@@ -1,20 +1,46 @@
-﻿using Code.MainGame.Settings;
+﻿using System.Collections;
+using System.Collections.Generic;
+using Code.MainGame;
+using Code.MainGame.Settings;
 using UnityEngine;
 
-namespace Code.MainGame
-{
-    public class ShapeGenerator {
+public class ShapeGenerator {
 
-        ShapeSettings settings;
+    ShapeSettings settings;
+    INoiseFilter[] noiseFilters;
 
-        public ShapeGenerator(ShapeSettings settings)
+    public ShapeGenerator(ShapeSettings settings)
+    {
+        this.settings = settings;
+        noiseFilters = new INoiseFilter[settings.noiseLayers.Length];
+        for (int i = 0; i < noiseFilters.Length; i++)
         {
-            this.settings = settings;
+            noiseFilters[i] = NoiseFilterFactory.CreateNoiseFilter(settings.noiseLayers[i].noiseSettings);
+        }
+    }
+
+    public Vector3 CalculatePointOnPlanet(Vector3 pointOnUnitSphere)
+    {
+        float firstLayerValue = 0;
+        float elevation = 0;
+
+        if (noiseFilters.Length > 0)
+        {
+            firstLayerValue = noiseFilters[0].Evaluate(pointOnUnitSphere);
+            if (settings.noiseLayers[0].enabled)
+            {
+                elevation = firstLayerValue;
+            }
         }
 
-        public Vector3 CalculatePointOnPlanet(Vector3 pointOnUnitSphere)
+        for (int i = 1; i < noiseFilters.Length; i++)
         {
-            return pointOnUnitSphere * settings.planetRadius;
+            if (settings.noiseLayers[i].enabled)
+            {
+                float mask = (settings.noiseLayers[i].useFirstLayerAsMask) ? firstLayerValue : 1;
+                elevation += noiseFilters[i].Evaluate(pointOnUnitSphere) * mask;
+            }
         }
+        return pointOnUnitSphere * settings.planetRadius * (1+elevation);
     }
 }

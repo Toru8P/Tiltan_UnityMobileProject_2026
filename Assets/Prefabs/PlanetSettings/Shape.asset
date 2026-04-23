@@ -12,4 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30d36b2bb50c2f342acb02ad2152810e, type: 3}
   m_Name: Shape
   m_EditorClassIdentifier: Assembly-CSharp::Code.MainGame.Settings.ShapeSettings
-  planetRadius: 2
+  planetRadius: 4
+  noiseLayers:
+  - enabled: 1
+    useFirstLayerAsMask: 0
+    noiseSettings:
+      filterType: 0
+      simpleNoiseSettings:
+        strength: 0.46
+        numLayers: 2
+        baseRoughness: 1.54
+        roughness: 4.14
+        persistence: 0.15
+        centre: {x: 0, y: 0, z: 0}
+        minValue: 0.58
+      ridgidNoiseSettings:
+        strength: 0
+        numLayers: 0
+        baseRoughness: 0
+        roughness: 0
+        persistence: 0
+        centre: {x: 0, y: 0, z: 0}
+        minValue: 0
+        weightMultiplier: 0

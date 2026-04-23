@@ -8,6 +8,8 @@ namespace Code.MainGame
         [Range(2,256)]
         public int resolution = 10;
         public bool autoUpdate = true;
+        public enum FaceRenderMask { All, Top, Bottom, Left, Right, Front, Back };
+        public FaceRenderMask faceRenderMask;
 
         public ShapeSettings shapeSettings;
         public ColourSettings colourSettings;
@@ -38,17 +40,19 @@ namespace Code.MainGame
 
             for (int i = 0; i < 6; i++)
             {
-                if (!meshFilters[i])
+                if (meshFilters[i] == null)
                 {
                     GameObject meshObj = new GameObject("mesh");
                     meshObj.transform.parent = transform;
 
-                    meshObj.AddComponent<MeshRenderer>().sharedMaterial = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                    meshObj.AddComponent<MeshRenderer>().sharedMaterial = new Material(Shader.Find("Standard"));
                     meshFilters[i] = meshObj.AddComponent<MeshFilter>();
                     meshFilters[i].sharedMesh = new Mesh();
                 }
 
                 terrainFaces[i] = new TerrainFace(shapeGenerator, meshFilters[i].sharedMesh, resolution, directions[i]);
+                bool renderFace = faceRenderMask == FaceRenderMask.All || (int)faceRenderMask - 1 == i;
+                meshFilters[i].gameObject.SetActive(renderFace);
             }
         }
 
@@ -79,9 +83,12 @@ namespace Code.MainGame
 
         void GenerateMesh()
         {
-            foreach (TerrainFace face in terrainFaces)
+            for (int i = 0; i < 6; i++)
             {
-                face.ConstructMesh();
+                if (meshFilters[i].gameObject.activeSelf)
+                {
+                    terrainFaces[i].ConstructMesh();
+                }
             }
         }
 
