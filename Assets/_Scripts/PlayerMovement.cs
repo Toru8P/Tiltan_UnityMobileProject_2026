@@ -111,6 +111,12 @@ public class PlayerMovementController : MonoBehaviour
     {
         Vector3 moveDir = GetCameraRelativeDirection();
 
+        if (moveDir.sqrMagnitude > 0.01f)
+        {
+            Quaternion targetRot = Quaternion.LookRotation(moveDir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 10f * Time.deltaTime);
+        }
+
         Vector3 horizontalVel = new Vector3(
             moveDir.x * moveSpeed,
             rb.linearVelocity.y,
@@ -122,6 +128,7 @@ public class PlayerMovementController : MonoBehaviour
 
         rb.linearVelocity = horizontalVel;
     }
+
 
 
     void HandleJumpRigidbody()
@@ -156,12 +163,19 @@ public class PlayerMovementController : MonoBehaviour
     {
         Vector3 moveDir = GetCameraRelativeDirection();
 
+        if (moveDir.sqrMagnitude > 0.01f)
+        {
+            Quaternion targetRot = Quaternion.LookRotation(moveDir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 10f * Time.deltaTime);
+        }
+
         Vector3 horizontalMove = moveDir * moveSpeed;
         Vector3 verticalMove = Vector3.up * velocity.y;
 
         Vector3 delta = (horizontalMove + verticalMove) * dt;
         transform.position += delta;
     }
+
 
 
     void UpdateAnimationsPrePhysics()
