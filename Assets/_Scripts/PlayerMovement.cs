@@ -20,9 +20,10 @@ public class PlayerMovementController : MonoBehaviour
 
     [Header("References")]
     public Animator animator;
+    private PlayerAnimationController animController;
 
     private Rigidbody rb;
-    private Vector3 velocity; // used only for Transform mode
+    private Vector3 velocity;
     private Vector2 moveInput;
     private bool jumpRequested;
     private bool isGrounded;
@@ -30,6 +31,8 @@ public class PlayerMovementController : MonoBehaviour
 
     void Start()
     {
+        animController = GetComponent<PlayerAnimationController>();
+
         rb = GetComponent<Rigidbody>();
         if (movementMode == MovementMode.Rigidbody && rb == null)
         {
@@ -42,12 +45,9 @@ public class PlayerMovementController : MonoBehaviour
 
         lastPosition = transform.position;
 
-        // If using Rigidbody, make it stable: prevent tipping and enable interpolation for smoother motion.
         if (movementMode == MovementMode.Rigidbody && rb != null)
         {
-            // Freeze X and Z rotation so the character doesn't fall over
             rb.constraints |= RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
-            // Prefer using Unity gravity and Rigidbody velocity for vertical motion
             rb.useGravity = true;
             rb.interpolation = RigidbodyInterpolation.Interpolate;
         }
@@ -55,55 +55,45 @@ public class PlayerMovementController : MonoBehaviour
 
     void Update()
     {
-        // Read input every frame
         moveInput = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-        if (Input.GetButtonDown("Jump"))
-            jumpRequested = true;
+        bool isMoving = moveInput.magnitude > 0.1f;
+        animController.SetMoving(isMoving);
 
-        // Update animator parameters that don't depend on physics timestep
+
         UpdateAnimationsPrePhysics();
     }
 
     void FixedUpdate()
     {
-        // Ground check uses the object's position and configured ground layers
         CheckGrounded();
 
         if (movementMode == MovementMode.Rigidbody && rb != null && !rb.isKinematic)
         {
             ApplyMovementRigidbody();
             HandleJumpRigidbody();
-            // Track last position for animation calculation after physics
             lastPosition = transform.position;
         }
         else
         {
-            // Transform-based (non-physics) movement
             ApplyGravity(Time.fixedDeltaTime);
             HandleJumpTransform();
             ApplyMovementTransform(Time.fixedDeltaTime);
             lastPosition = transform.position;
         }
 
-        // Reset jump request (consumed in this physics tick)
         jumpRequested = false;
     }
 
     void CheckGrounded()
     {
-        // Raycast downward from slightly above the object's position.
         Vector3 origin = transform.position + Vector3.up * 0.1f;
         isGrounded = Physics.Raycast(origin, Vector3.down, groundCheckDistance + 0.1f, groundLayers);
     }
 
-    // --- Rigidbody mode helpers ---
-
     void ApplyMovementRigidbody()
     {
-        // Horizontal move in world XZ as original implementation
         Vector3 horizontalVel = new Vector3(moveInput.x * moveSpeed, rb.linearVelocity.y, moveInput.y * moveSpeed);
 
-        // If near-ground and no vertical movement requested, ensure small downward velocity to stay grounded
         if (isGrounded && rb.linearVelocity.y < 0f)
             horizontalVel.y = -2f;
 
@@ -121,12 +111,10 @@ public class PlayerMovementController : MonoBehaviour
         }
     }
 
-    // --- Transform mode helpers (non-physics fallback) ---
-
     void ApplyGravity(float dt)
     {
         if (isGrounded && velocity.y < 0f)
-            velocity.y = -2f; // small downward force to keep grounded
+            velocity.y = -2f;
 
         velocity.y += gravity * dt;
     }
@@ -156,7 +144,6 @@ public class PlayerMovementController : MonoBehaviour
         if (movementMode == MovementMode.Transform)
         {
             float approxSpeed = new Vector2(moveInput.x, moveInput.y).magnitude * moveSpeed;
-            animator.SetFloat("Speed", approxSpeed);
         }
     }
 
@@ -176,16 +163,12 @@ public class PlayerMovementController : MonoBehaviour
         {
             Vector3 delta = transform.position - lastPosition;
             delta.y = 0f;
-            // Use fixedDeltaTime because lastPosition is updated in FixedUpdate
             speed = delta.magnitude / Time.fixedDeltaTime;
         }
-
-        animator.SetFloat("Speed", speed);
     }
 
     void LateUpdate()
     {
-        // UpdateAnimations runs after physics so the animator sees the final velocity/position
         UpdateAnimations();
     }
 }
