@@ -1,5 +1,7 @@
 using UnityEngine;
 
+
+
 public class PlayerMovementController : MonoBehaviour
 {
     public enum MovementMode
@@ -28,6 +30,20 @@ public class PlayerMovementController : MonoBehaviour
     private bool jumpRequested;
     private bool isGrounded;
     private Vector3 lastPosition;
+
+    Vector3 GetCameraRelativeDirection()
+    {
+        Vector3 camForward = Camera.main.transform.forward;
+        Vector3 camRight = Camera.main.transform.right;
+
+        camForward.y = 0;
+        camRight.y = 0;
+
+        camForward.Normalize();
+        camRight.Normalize();
+
+        return camForward * moveInput.y + camRight * moveInput.x;
+    }
 
     void Start()
     {
@@ -84,6 +100,7 @@ public class PlayerMovementController : MonoBehaviour
         jumpRequested = false;
     }
 
+
     void CheckGrounded()
     {
         Vector3 origin = transform.position + Vector3.up * 0.1f;
@@ -92,13 +109,20 @@ public class PlayerMovementController : MonoBehaviour
 
     void ApplyMovementRigidbody()
     {
-        Vector3 horizontalVel = new Vector3(moveInput.x * moveSpeed, rb.linearVelocity.y, moveInput.y * moveSpeed);
+        Vector3 moveDir = GetCameraRelativeDirection();
+
+        Vector3 horizontalVel = new Vector3(
+            moveDir.x * moveSpeed,
+            rb.linearVelocity.y,
+            moveDir.z * moveSpeed
+        );
 
         if (isGrounded && rb.linearVelocity.y < 0f)
             horizontalVel.y = -2f;
 
         rb.linearVelocity = horizontalVel;
     }
+
 
     void HandleJumpRigidbody()
     {
@@ -130,11 +154,15 @@ public class PlayerMovementController : MonoBehaviour
 
     void ApplyMovementTransform(float dt)
     {
-        Vector3 horizontalMove = new Vector3(moveInput.x, 0f, moveInput.y) * moveSpeed;
+        Vector3 moveDir = GetCameraRelativeDirection();
+
+        Vector3 horizontalMove = moveDir * moveSpeed;
         Vector3 verticalMove = Vector3.up * velocity.y;
+
         Vector3 delta = (horizontalMove + verticalMove) * dt;
         transform.position += delta;
     }
+
 
     void UpdateAnimationsPrePhysics()
     {
