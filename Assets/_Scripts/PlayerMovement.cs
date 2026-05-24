@@ -1,167 +1,136 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-public class PlayerMovementController : MonoBehaviour
+namespace _Scripts
 {
-    public enum MovementMode
+    public sealed class PlayerMovementController : MonoBehaviour
     {
-        Rigidbody,
-        Transform
-    }
+        [Header("Movement")]
+        public float moveSpeed = 6f;
+        public float rotationSpeed = 40f;
 
-    [Header("Movement")]
-    public MovementMode movementMode = MovementMode.Rigidbody;
-    public float moveSpeed = 6f;
+        [Header("Roll Settings")]
+        public float rollForce = 12f;
+        public float rollDuration = 0.35f;
+        public float rollCooldown = 0.8f;
 
-    [Header("Roll Settings")]
-    public float rollForce = 12f;
-    public float rollDuration = 0.35f;
-    public float rollCooldown = 0.8f;
+        private Vector2 _moveInput;
+        private Vector3 _moveDirection;
 
-    [Header("References")]
-    public Animator animator;
-    private PlayerAnimationController animController;
+        private bool _isRolling = false;
+        private float _rollTimer = 0f;
+        private float _rollCooldownTimer = 0f;
+        private Vector3 _rollDirection;
 
-    private Rigidbody rb;
-    private Vector2 moveInput;
-    private Vector3 lastPosition;
+        private Rigidbody _rb;
+        private Animator _animator;
+        private PlayerAnimationController _animationController;
 
-    private bool isRolling;
-    private float rollTimer;
-    private float rollCooldownTimer;
-    private Vector3 rollDirection;
-
-    void Start()
-    {
-        animController = GetComponent<PlayerAnimationController>();
-        rb = GetComponent<Rigidbody>();
-
-        if (movementMode == MovementMode.Rigidbody && rb == null)
+        private void Start()
         {
-            Debug.LogWarning("Rigidbody movement selected but no Rigidbody found. Falling back to Transform movement.");
-            movementMode = MovementMode.Transform;
+            _rb = GetComponent<Rigidbody>();
+            _animator = GetComponentInChildren<Animator>();
+            _animationController = GetComponent<PlayerAnimationController>();
+
+            // Prevent Rigidbody from tipping over
+            _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        }
+        
+        public void OnMove(InputValue value)
+        {
+            _moveInput = value.Get<Vector2>();
         }
 
-        if (animator == null)
-            animator = GetComponentInChildren<Animator>();
-
-        lastPosition = transform.position;
-
-        if (movementMode == MovementMode.Rigidbody && rb != null)
+        public void OnRoll(InputValue value)
         {
-            rb.constraints |= RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
-            rb.interpolation = RigidbodyInterpolation.Interpolate;
-        }
-    }
-
-    void Update()
-    {
-        moveInput = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-        bool isMoving = moveInput.magnitude > 0.1f;
-        animController?.SetMoving(isMoving);
-
-        if (rollCooldownTimer > 0f)
-            rollCooldownTimer -= Time.deltaTime;
-
-        if (Input.GetKeyDown(KeyCode.Space) && !isRolling && rollCooldownTimer <= 0f)
-            StartRoll();
-    }
-
-    void FixedUpdate()
-    {
-        if (isRolling)
-        {
-            ApplyRoll();
-            return; // skip normal movement while rolling
+            if (value.isPressed && !_isRolling && _rollCooldownTimer <= 0f)
+                StartRoll();
         }
 
-        if (movementMode == MovementMode.Rigidbody && rb != null && !rb.isKinematic)
+        public void OnAttack(InputValue value)
         {
-            ApplyMovementRigidbody();
-        }
-        else
-        {
-            ApplyMovementTransform(Time.fixedDeltaTime);
-        }
-
-        lastPosition = transform.position;
-    }
-
-    Vector3 GetCameraRelativeDirection()
-    {
-        var cam = Camera.main;
-        if (cam == null)
-            return new Vector3(moveInput.x, 0f, moveInput.y);
-
-        Vector3 camForward = cam.transform.forward;
-        Vector3 camRight = cam.transform.right;
-        camForward.y = 0;
-        camRight.y = 0;
-        camForward.Normalize();
-        camRight.Normalize();
-        return camForward * moveInput.y + camRight * moveInput.x;
-    }
-
-    void ApplyMovementRigidbody()
-    {
-        Vector3 moveDir = GetCameraRelativeDirection();
-
-        if (moveDir.sqrMagnitude > 0.01f)
-        {
-            Quaternion targetRot = Quaternion.LookRotation(moveDir);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 10f * Time.deltaTime);
+            if (value.isPressed && !_isRolling)
+            {
+                Debug.Log("Attack Pressed");
+                if (_animationController != null)
+                    _animationController.PlayAttack();
+                else if (_animator != null)
+                    _animator.SetTrigger("Attack");
+            }
         }
 
-        Vector3 horizontalVel = new Vector3(
-            moveDir.x * moveSpeed,
-            rb.linearVelocity.y,
-            moveDir.z * moveSpeed
-        );
-
-        rb.linearVelocity = horizontalVel;
-    }
-
-    void ApplyMovementTransform(float dt)
-    {
-        Vector3 moveDir = GetCameraRelativeDirection();
-
-        if (moveDir.sqrMagnitude > 0.01f)
+        void FixedUpdate()
         {
-            Quaternion targetRot = Quaternion.LookRotation(moveDir);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 10f * Time.deltaTime);
+            if (_isRolling)
+            {
+                ApplyRoll();
+                return;
+            }
+
+            MovePlayer();
+            RotatePlayer();
+
+            if (_rollCooldownTimer > 0f)
+                _rollCooldownTimer -= Time.deltaTime;
         }
 
-        Vector3 horizontalMove = moveDir * moveSpeed;
-        Vector3 delta = horizontalMove * dt;
-        transform.position += delta;
-    }
-
-    void StartRoll()
-    {
-        if (moveInput.magnitude < 0.1f)
-            rollDirection = transform.forward;
-        else
-            rollDirection = GetCameraRelativeDirection().normalized;
-
-        isRolling = true;
-        rollTimer = rollDuration;
-        rollCooldownTimer = rollCooldown;
-        animator?.SetTrigger("Roll");
-    }
-
-    void ApplyRoll()
-    {
-        rollTimer -= Time.fixedDeltaTime;
-
-        if (movementMode == MovementMode.Rigidbody && rb != null)
+        // CAMERA-RELATIVE MOVEMENT
+        Vector3 GetCameraRelativeDirection()
         {
-            rb.linearVelocity = rollDirection * rollForce;
-        }
-        else
-        {
-            transform.position += rollDirection * rollForce * Time.fixedDeltaTime;
+            Vector3 camForward = Camera.main.transform.forward;
+            Vector3 camRight = Camera.main.transform.right;
+
+            camForward.y = 0;
+            camRight.y = 0;
+
+            camForward.Normalize();
+            camRight.Normalize();
+
+            return camForward * _moveInput.y + camRight * _moveInput.x;
         }
 
-        if (rollTimer <= 0f)
-            isRolling = false;
+        // ReSharper disable Unity.PerformanceAnalysis
+        void MovePlayer()
+        {
+            _moveDirection = GetCameraRelativeDirection();
+
+            Vector3 velocity = _moveDirection * moveSpeed;
+            velocity.y = _rb.linearVelocity.y; // keep gravity from Rigidbody
+
+            _rb.linearVelocity = velocity;
+
+            _animator.SetBool("IsMoving", _moveDirection.magnitude > 0.1f);
+        }
+
+        private void RotatePlayer()
+        {
+            if (_moveDirection.sqrMagnitude < 0.01f)
+                return;
+
+            Quaternion targetRot = Quaternion.LookRotation(_moveDirection);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+        }
+
+        // ROLL SYSTEM
+        void StartRoll()
+        {
+            _rollDirection = _moveDirection.magnitude > 0.1f ? _moveDirection.normalized : transform.forward;
+
+            _isRolling = true;
+            _rollTimer = rollDuration;
+            _rollCooldownTimer = rollCooldown;
+
+            _animator.SetTrigger("Roll");
+        }
+
+        void ApplyRoll()
+        {
+            _rollTimer -= Time.fixedDeltaTime;
+
+            _rb.linearVelocity = _rollDirection * rollForce;
+
+            if (_rollTimer <= 0f)
+                _isRolling = false;
+        }
     }
 }
