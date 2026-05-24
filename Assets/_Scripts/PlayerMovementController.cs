@@ -13,19 +13,27 @@ namespace _Scripts
         public float rollForce = 12f;
         public float rollDuration = 0.35f;
         public float rollCooldown = 0.8f;
+        
+        [Header("Mouse Look Settings")] 
+        [SerializeField] private float mouseSensitivity = 2f;
 
         private Vector2 _moveInput;
+        private Vector2 _lookInput;
         private Vector3 _moveDirection;
 
         private bool _isRolling = false;
+        private bool _jumpQueued;
         private float _rollTimer = 0f;
         private float _rollCooldownTimer = 0f;
         private Vector3 _rollDirection;
+        private float _yaw;
 
         private Rigidbody _rb;
         private Animator _animator;
         private PlayerAnimationController _animationController;
 
+        private const float MoveDeadzoneSqr = 0.01f;
+        
         private void Start()
         {
             _rb = GetComponent<Rigidbody>();
@@ -36,9 +44,12 @@ namespace _Scripts
             _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         }
         
-        public void OnMove(InputValue value)
+        public void OnMove(InputAction.CallbackContext context)
         {
-            _moveInput = value.Get<Vector2>();
+            _moveInput = context.ReadValue<Vector2>();
+
+            if (context.canceled || _moveInput.sqrMagnitude < MoveDeadzoneSqr)
+                _moveInput = Vector2.zero;
         }
 
         public void OnRoll(InputValue value)
@@ -47,6 +58,14 @@ namespace _Scripts
                 StartRoll();
         }
 
+        public void OnLook(InputAction.CallbackContext context)
+        {
+            _lookInput = context.ReadValue<Vector2>();
+
+            if (context.canceled)
+                _lookInput = Vector2.zero;
+        }
+        
         public void OnAttack(InputValue value)
         {
             if (value.isPressed && !_isRolling)
@@ -58,6 +77,17 @@ namespace _Scripts
                     _animator.SetTrigger("Attack");
             }
         }
+        
+        public void OnJump(InputAction.CallbackContext context)
+        {
+            if (context.performed && IsGrounded())
+                _jumpQueued = true;
+        }
+        
+        private bool IsGrounded()
+        {
+            return Physics.Raycast(transform.position, Vector3.down, 1.1f);
+        }
 
         void FixedUpdate()
         {
@@ -67,48 +97,48 @@ namespace _Scripts
                 return;
             }
 
-            MovePlayer();
-            RotatePlayer();
-
+            MovePlayerUpdate();
+            RotatePlayerUpdate();
+            JumpUpdate();
             if (_rollCooldownTimer > 0f)
                 _rollCooldownTimer -= Time.deltaTime;
         }
-
-        // CAMERA-RELATIVE MOVEMENT
-        Vector3 GetCameraRelativeDirection()
+        
+        void JumpUpdate()
         {
-            Vector3 camForward = Camera.main.transform.forward;
-            Vector3 camRight = Camera.main.transform.right;
-
-            camForward.y = 0;
-            camRight.y = 0;
-
-            camForward.Normalize();
-            camRight.Normalize();
-
-            return camForward * _moveInput.y + camRight * _moveInput.x;
+            if (_jumpQueued)
+            {
+                _rb.AddForce(Vector3.up * 7f, ForceMode.Impulse);
+                _jumpQueued = false;
+            }
         }
 
-        // ReSharper disable Unity.PerformanceAnalysis
-        void MovePlayer()
+        void MovePlayerUpdate()
         {
-            _moveDirection = GetCameraRelativeDirection();
+            if (_moveInput.sqrMagnitude < MoveDeadzoneSqr)
+            {
+                // stop horizontal movement but preserve vertical velocity
+                _rb.linearVelocity = new Vector3(0f, _rb.linearVelocity.y, 0f);
+                _moveDirection = Vector3.zero;
+            }
+            else
+            {
+                Vector3 move = new Vector3(_moveInput.x, 0f, _moveInput.y);
+                if (move.sqrMagnitude > 1f) move.Normalize();
 
-            Vector3 velocity = _moveDirection * moveSpeed;
-            velocity.y = _rb.linearVelocity.y; // keep gravity from Rigidbody
+                Vector3 worldMove = transform.TransformDirection(move);
+                _moveDirection = worldMove; // keep for roll direction
 
-            _rb.linearVelocity = velocity;
-
-            _animator.SetBool("IsMoving", _moveDirection.magnitude > 0.1f);
+                Vector3 desiredVelocity = new Vector3(worldMove.x * moveSpeed, _rb.linearVelocity.y, worldMove.z * moveSpeed);
+                _rb.linearVelocity = desiredVelocity;
+            }
         }
 
-        private void RotatePlayer()
+        private void RotatePlayerUpdate()
         {
-            if (_moveDirection.sqrMagnitude < 0.01f)
-                return;
-
-            Quaternion targetRot = Quaternion.LookRotation(_moveDirection);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+            _yaw += _lookInput.x * mouseSensitivity;
+            transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
+            _lookInput = Vector2.zero; // Reset after applying
         }
 
         // ROLL SYSTEM
