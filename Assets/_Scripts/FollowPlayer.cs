@@ -1,39 +1,35 @@
 using UnityEngine;
 
-namespace _Scripts
+public class DekeloniCamera : MonoBehaviour
 {
-    public class FollowPlayer : MonoBehaviour
+    public Transform target;
+    public float smoothSpeed = 10f;
+
+    public float cameraDistance = 6f;
+    public float cameraHeight = 8f;
+    public float horizontalOffset = -2f;
+
+    public Vector3 lookOffset = new Vector3(0, 2, 0);
+
+    void LateUpdate()
     {
-        public Transform target;
-        public float smoothSpeed = 10f;
-        public float cameraDistance = 8f;
-        public float cameraHeight = 12f;
-        
-        public Vector3 lookOffset = new Vector3(0, 2, 0);
-    
-        void LateUpdate()
-        {
-            if (!target) return;
+        if (!target) return;
 
-            // Position camera behind target based on target's rotation
-            Vector3 targetBackDirection = -target.forward;
-            Vector3 desiredPosition = target.position + targetBackDirection * cameraDistance + Vector3.up * cameraHeight;
-        
-            transform.position = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
-            transform.LookAt(target.position + lookOffset);
-        }
+        // FIXED world-space diagonal offset (NOT using target.forward)
+        Vector3 offset = new Vector3(
+            -cameraDistance + horizontalOffset,
+            cameraHeight,
+            -cameraDistance
+        );
 
-        void OnDrawGizmosSelected()
-        {
-            Gizmos.color = Color.red;
-            if (target)
-            {
-                Vector3 targetPosition = target.position + lookOffset;
-                Gizmos.DrawWireSphere(targetPosition, 0.2f);
-                Gizmos.DrawLine(transform.position, targetPosition);
-            }
-        }
+        Vector3 desiredPosition = target.position + offset;
 
+        transform.position = Vector3.Lerp(
+            transform.position,
+            desiredPosition,
+            smoothSpeed * Time.deltaTime
+        );
 
+        transform.LookAt(target.position + lookOffset);
     }
 }
