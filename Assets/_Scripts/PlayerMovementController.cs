@@ -34,8 +34,9 @@ namespace _Scripts
             _animator = GetComponentInChildren<Animator>();
             _animationController = GetComponent<PlayerAnimationController>();
 
-            // Freeze X/Z rotation so physics doesn't tip the player
-            _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            // Freeze all rotations so physics doesn't rotate the player.
+            // We handle rotation manually in RotatePlayer().
+            _rb.constraints = RigidbodyConstraints.FreezeRotation;
         }
 
         public void OnMove(InputAction.CallbackContext context)

@@ -905,7 +905,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovementController
   moveSpeed: 6
-  rotationSpeed: 10
+  rotationSpeed: 360
   rollForce: 12
   rollDuration: 0.35
   rollCooldown: 0.8
