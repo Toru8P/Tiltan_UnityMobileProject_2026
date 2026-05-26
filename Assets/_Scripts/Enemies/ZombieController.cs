@@ -24,6 +24,11 @@ namespace _Scripts.Enemies
         public int currentHealth;
         public bool isDead = false;
 
+        private bool isAttacking = false;
+        private float attackTimer = 0f;
+        public float attackDuration = 1.2f;
+
+        
         private float wanderTimer = 0f;
 
         void Start()
@@ -135,10 +140,16 @@ namespace _Scripts.Enemies
 
         private void ChaseUpdate()
         {
-            if (animator) animator.SetBool("IsWalking", true);
-            if (!player) { state = ZombieState.Idle; return; }
-            if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh) agent.SetDestination(player.position);
+            if (animator) 
+                animator.SetBool("IsWalking", true);
+            
+            if (!player) 
+            { state = ZombieState.Idle; return; }
+            
+            if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh) 
+                agent.SetDestination(player.position);
             float dist = DistanceToPlayer();
+            
             if (dist <= attackRange)
             {
                 state = ZombieState.Attack;
@@ -149,17 +160,56 @@ namespace _Scripts.Enemies
 
         private void AttackUpdate()
         {
-            if (animator) animator.SetBool("IsWalking", false);
+            if (isAttacking)
+            {
+                attackTimer -= Time.deltaTime;
+
+                // Attack finished
+                if (attackTimer <= 0f)
+                {
+                    isAttacking = false;
+
+                    // Re-enable movement
+                    if (agent && agent.isActiveAndEnabled)
+                        agent.isStopped = false;
+
+                    // If player moved away, chase again
+                    if (DistanceToPlayer() > attackRange)
+                        state = ZombieState.Chase;
+                    else
+                        state = ZombieState.Attack; // ready for next attack
+                }
+
+
+                return;
+            }
+
+            // Start a new attack
+            isAttacking = true;
+            attackTimer = attackDuration;
+
+            if (animator)
+            {
+                animator.SetBool("IsWalking", false);
+                animator.SetTrigger("ZombieAttack");
+            }
+
+            // Stop movement during attack
+            if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh)
+            {
+                agent.ResetPath();
+                agent.isStopped = true;
+            }
+
+            // Face the player
             if (player != null)
             {
                 Vector3 lookPos = player.position;
                 lookPos.y = transform.position.y;
                 transform.LookAt(lookPos);
-                if (animator) animator.SetTrigger("ZombieAttack");
-                if (DistanceToPlayer() > attackRange) state = ZombieState.Chase;
             }
-            else state = ZombieState.Idle;
         }
+
 
         public void TakeDamage(int dmg)
         {
@@ -190,12 +240,17 @@ namespace _Scripts.Enemies
                 rb.angularVelocity = Vector3.zero;
             }
         }
-    
-        bool PlayerInRange(float range) { return DistanceToPlayer() <= range; }
+
+        bool PlayerInRange(float range)
+        {
+            return DistanceToPlayer() <= range;
+        }
 
         float DistanceToPlayer()
         {
-            if (!player) return Mathf.Infinity; return Vector3.Distance(transform.position, player.position);
+            if (!player) 
+                return Mathf.Infinity; 
+            return Vector3.Distance(transform.position, player.position);
         }
         public static Vector3 RandomNavSphere(Vector3 origin, float dist)
         {
