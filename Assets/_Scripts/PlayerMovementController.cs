@@ -34,28 +34,27 @@ namespace _Scripts
             _animator = GetComponentInChildren<Animator>();
             _animationController = GetComponent<PlayerAnimationController>();
 
-            // Freeze all rotations so physics doesn't rotate the player.
-            // We handle rotation manually in RotatePlayer().
             _rb.constraints = RigidbodyConstraints.FreezeRotation;
         }
 
-        public void OnMove(InputAction.CallbackContext context)
+        // Logic methods called by input handler
+        public void SetMoveInput(Vector2 input)
         {
-            _moveInput = context.ReadValue<Vector2>();
+            _moveInput = input;
 
-            if (context.canceled || _moveInput.sqrMagnitude < MoveDeadzoneSqr)
+            if (_moveInput.sqrMagnitude < MoveDeadzoneSqr)
                 _moveInput = Vector2.zero;
         }
 
-        public void OnRoll(InputAction.CallbackContext context)
+        public void PerformRoll()
         {
-            if (context.performed && !_isRolling && _rollCooldownTimer <= 0f)
+            if (!_isRolling && _rollCooldownTimer <= 0f)
                 StartRoll();
         }
 
-        public void OnAttack(InputValue value)
+        public void PerformAttack()
         {
-            if (value.isPressed && !_isRolling)
+            if (!_isRolling)
             {
                 if (_animationController != null)
                     _animationController.PlayAttack();
@@ -65,7 +64,7 @@ namespace _Scripts
         }
 
         private void FixedUpdate()
-        {
+{
             if (_isRolling)
             {
                 ApplyRoll();
@@ -89,13 +88,18 @@ namespace _Scripts
                 return;
             }
 
+            // Calculate input magnitude for proportional speed
+            float inputMagnitude = Mathf.Clamp01(_moveInput.magnitude);
+            
             // World-space movement (NOT camera-relative)
             _moveDirection = new Vector3(_moveInput.x, 0f, _moveInput.y).normalized;
 
+            float currentSpeed = moveSpeed * inputMagnitude;
+
             Vector3 desiredVelocity = new Vector3(
-                _moveDirection.x * moveSpeed,
+                _moveDirection.x * currentSpeed,
                 _rb.linearVelocity.y,
-                _moveDirection.z * moveSpeed
+                _moveDirection.z * currentSpeed
             );
 
             _rb.linearVelocity = desiredVelocity;
