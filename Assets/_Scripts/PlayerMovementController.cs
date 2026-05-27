@@ -20,7 +20,13 @@ namespace _Scripts
         private bool _isRolling = false;
         private float _rollTimer = 0f;
         private float _rollCooldownTimer = 0f;
+        public float RollCooldownTimer => _rollCooldownTimer;
         private Vector3 _rollDirection;
+
+        [Header("Attack Settings")]
+        public float attackCooldown = 0.5f;
+        private float _attackCooldownTimer = 0f;
+        public float AttackCooldownTimer => _attackCooldownTimer;
 
         private Rigidbody _rb;
         private Animator _animator;
@@ -54,8 +60,9 @@ namespace _Scripts
 
         public void PerformAttack()
         {
-            if (!_isRolling)
+            if (!_isRolling && _attackCooldownTimer <= 0f)
             {
+                _attackCooldownTimer = attackCooldown;
                 if (_animationController != null)
                     _animationController.PlayAttack();
                 else if (_animator != null)
@@ -76,6 +83,9 @@ namespace _Scripts
 
             if (_rollCooldownTimer > 0f)
                 _rollCooldownTimer -= Time.fixedDeltaTime;
+
+            if (_attackCooldownTimer > 0f)
+                _attackCooldownTimer -= Time.fixedDeltaTime;
         }
 
         private void MovePlayer()
