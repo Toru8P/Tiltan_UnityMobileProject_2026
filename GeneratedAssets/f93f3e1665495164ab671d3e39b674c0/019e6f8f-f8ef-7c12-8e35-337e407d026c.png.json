@@ -1,0 +1,38 @@
+{
+    "asset": "f93f3e1665495164ab671d3e39b674c0",
+    "fileName": "019e6f8f-f8ef-7c12-8e35-337e407d026c.png",
+    "prompt": "Center the text 'Seventh Ave' and the numbers '378 - 362' within the image. Ensure there is significant green padding on all sides so the text is not cut off at the edges. Maintain the dark green background and white sans-serif font. Add a thin white border around the very edge of the sign.",
+    "negativePrompt": "",
+    "model": "gpt-image-1-5",
+    "modelName": "GPT Image 1.5",
+    "customSeed": -1,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelatePixelGridSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": [
+            {
+                "doodleReferenceType": 7,
+                "doodle": [],
+                "label": "Image",
+                "strength": 0.25,
+                "invertStrength": false,
+                "assetReferenceGuid": "f93f3e1665495164ab671d3e39b674c0",
+                "unlabeledIndex": -1
+            }
+        ]
+    },
+    "upscaleFactor": 0,
+    "dimensions": {
+        "width": 1024,
+        "height": 1024
+    },
+    "spriteSheet": false,
+    "duration": 0.0
+}

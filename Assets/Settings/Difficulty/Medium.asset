@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7974df230e62464aaf6417272a3e249, type: 3}
+  m_Name: Medium
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.Difficulty.DifficultySettings
+  levelName: Medium
+  levelColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  spawnInterval: 2.5
+  maxActiveEnemies: 25
+  enemyTypeDistribution:
+  - prefab: {fileID: 29499875973665485, guid: 450d428688c33ce40948c11120f2591d, type: 3}
+    weight: 70
+  - prefab: {fileID: 6965602527386248432, guid: 4458553e373c4e14e942e6d4d98b9478, type: 3}
+    weight: 30
+  spawnIntensityCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0.005
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 600
+      value: 4
+      inSlope: 0.005
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  enemySpeedMultiplier: 1.2
+  enemyMaxHealthMultiplier: 1.3
+  enemyDamageMultiplier: 1
+  scoreMultiplier: 1.15

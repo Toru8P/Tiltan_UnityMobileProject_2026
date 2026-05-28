@@ -1,9 +1,10 @@
+using _Scripts.Difficulty;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace _Scripts.Enemies
 {
-    public class ZombieController : MonoBehaviour
+    public class ZombieController : MonoBehaviour, IDifficultyScalable
     {
         public enum ZombieState { Idle, Wander, Chase, Attack, Dead }
         public ZombieState state = ZombieState.Idle;
@@ -19,26 +20,58 @@ namespace _Scripts.Enemies
         public float wanderRadius = 5f;
         public float wanderDelay = 3f;
 
+        [Header("Base Stats")]
+        [SerializeField] private float baseSpeed = 3.5f;
+        [SerializeField] private int baseMaxHealth = 50;
+        [SerializeField] private float baseDamage = 10f;
+
         [Header("Health")]
         public int maxHealth = 50;
         public int currentHealth;
         public bool isDead = false;
 
+        [Header("Active Stats")]
+        public float currentDamage = 10f;
+
         private bool isAttacking = false;
         private float attackTimer = 0f;
         public float attackDuration = 1.2f;
 
-        
         private float wanderTimer = 0f;
+
+        public void ApplyDifficulty(DifficultySettings settings)
+        {
+            if (isDead) return;
+
+            // Update Max Health
+            float healthRatio = maxHealth > 0 ? (float)currentHealth / maxHealth : 1f;
+            maxHealth = Mathf.RoundToInt(baseMaxHealth * settings.enemyMaxHealthMultiplier);
+            currentHealth = Mathf.RoundToInt(maxHealth * healthRatio);
+
+            // Update Speed
+            if (agent != null)
+            {
+                agent.speed = baseSpeed * settings.enemySpeedMultiplier;
+            }
+
+            // Update Damage
+            currentDamage = baseDamage * settings.enemyDamageMultiplier;
+
+            Debug.Log($"{name} updated: Speed={agent.speed}, Health={maxHealth}, Damage={currentDamage}");
+        }
 
         void Start()
         {
+            if (!agent) agent = GetComponent<NavMeshAgent>();
+            
+            // Apply base speed to agent initially
+            if (agent) agent.speed = baseSpeed;
+
             if (currentHealth <= 0 && !isDead) 
             {
                 currentHealth = maxHealth;
             }
         
-            if (!agent) agent = GetComponent<NavMeshAgent>();
             if (!animator) animator = GetComponentInChildren<Animator>();
         
             FindPlayer();
@@ -47,13 +80,59 @@ namespace _Scripts.Enemies
             {
                 RestoreComponents();
             }
+
+            // Apply and subscribe
+            if (DifficultyManager.Instance != null)
+            {
+                DifficultyManager.Instance.OnDifficultyChanged.AddListener(ApplyDifficulty);
+                if (DifficultyManager.Instance.CurrentSettings != null)
+                {
+                    ApplyDifficulty(DifficultyManager.Instance.CurrentSettings);
+                }
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (DifficultyManager.Instance != null)
+            {
+                DifficultyManager.Instance.OnDifficultyChanged.RemoveListener(ApplyDifficulty);
+            }
         }
 
         void OnEnable()
         {
-            if (!isDead)
+            ResetState();
+        }
+
+        public void ResetState()
+        {
+            isDead = false;
+            currentHealth = maxHealth;
+            state = ZombieState.Idle;
+            isAttacking = false;
+            attackTimer = 0f;
+            wanderTimer = 0f;
+
+            if (animator)
             {
-                RestoreComponents();
+                animator.SetBool("IsDead", false);
+                animator.SetBool("IsWalking", false);
+                animator.Rebind();
+                animator.Update(0);
+            }
+
+            RestoreComponents();
+
+            if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh)
+            {
+                agent.isStopped = false;
+            }
+
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = false;
             }
         }
 
@@ -61,13 +140,13 @@ namespace _Scripts.Enemies
         {
             if (agent) agent.enabled = true;
         
-            Collider col = GetComponent<Collider>();
-            if (col) col.enabled = true;
+            Collider[] colliders = GetComponentsInChildren<Collider>();
+            foreach (Collider col in colliders) col.enabled = true;
         
             if (agent && agent.isActiveAndEnabled && !agent.isOnNavMesh)
             {
                 NavMeshHit hit;
-                if (NavMesh.SamplePosition(transform.position, out hit, 2.0f, NavMesh.AllAreas))
+                if (NavMesh.SamplePosition(transform.position, out hit, 5.0f, NavMesh.AllAreas))
                 {
                     agent.Warp(hit.position);
                 }
@@ -238,6 +317,26 @@ namespace _Scripts.Enemies
                 rb.isKinematic = true;
                 rb.linearVelocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
+            }
+
+            // Return to pool after a delay
+            StartCoroutine(ReturnToPoolAfterDelay(5f));
+        }
+
+        private System.Collections.IEnumerator ReturnToPoolAfterDelay(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            
+            if (EnemySpawner.Instance != null)
+                EnemySpawner.Instance.UnregisterEnemy(gameObject);
+
+            if (Pooling.PoolManager.Instance != null)
+            {
+                Pooling.PoolManager.Instance.Return(gameObject);
+            }
+            else
+            {
+                gameObject.SetActive(false);
             }
         }
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using _Scripts.Difficulty;
 
 namespace _Scripts.UI
 {
@@ -11,7 +12,7 @@ namespace _Scripts.UI
         [SerializeField] private TextMeshProUGUI difficultyText;
 
         [Header("Settings")]
-        [SerializeField] private float scoreMultiplier = 10f;
+        [SerializeField] private float scoreBaseMultiplier = 10f;
 
         private float _survivalTime;
         private int _score;
@@ -22,13 +23,49 @@ namespace _Scripts.UI
             _survivalTime = 0f;
             _score = 0;
             _lastDisplayedScore = -1;
+            
+            if (DifficultyManager.Instance != null)
+            {
+                DifficultyManager.Instance.OnDifficultyChanged.AddListener(UpdateDifficultyUI);
+                if (DifficultyManager.Instance.CurrentSettings != null)
+                {
+                    UpdateDifficultyUI(DifficultyManager.Instance.CurrentSettings);
+                }
+            }
+            
             UpdateHUD();
         }
 
+        private void OnDestroy()
+        {
+            if (DifficultyManager.Instance != null)
+            {
+                DifficultyManager.Instance.OnDifficultyChanged.RemoveListener(UpdateDifficultyUI);
+            }
+        }
+
+        private float _updateTimer = 0f;
+        private float _updateInterval = 0.1f;
+
         private void Update()
         {
-            _survivalTime += Time.deltaTime;
-            _score = Mathf.FloorToInt(_survivalTime * scoreMultiplier);
+            _updateTimer += Time.deltaTime;
+            if (_updateTimer < _updateInterval) return;
+            _updateTimer = 0f;
+
+            if (DifficultyManager.Instance != null)
+            {
+                _survivalTime = DifficultyManager.Instance.CurrentTime;
+                
+                float multiplier = scoreBaseMultiplier;
+                if (DifficultyManager.Instance.CurrentSettings != null)
+                {
+                    multiplier *= DifficultyManager.Instance.CurrentSettings.scoreMultiplier;
+                }
+                
+                _score = Mathf.FloorToInt(_survivalTime * multiplier);
+            }
+            
             UpdateHUD();
         }
 
@@ -46,12 +83,14 @@ namespace _Scripts.UI
                     _lastDisplayedScore = displayedScore;
                 }
             }
+        }
 
-            if (difficultyText != null)
+        private void UpdateDifficultyUI(DifficultySettings settings)
+        {
+            if (difficultyText != null && settings != null)
             {
-                string difficulty = GetDifficulty(_survivalTime);
-                difficultyText.text = $"Difficulty: {difficulty}";
-                difficultyText.color = GetDifficultyColor(difficulty);
+                difficultyText.text = $"Difficulty: {settings.levelName}";
+                difficultyText.color = settings.levelColor;
             }
         }
 
@@ -60,32 +99,6 @@ namespace _Scripts.UI
             int minutes = Mathf.FloorToInt(time / 60f);
             int seconds = Mathf.FloorToInt(time % 60f);
             return $"{minutes:00}:{seconds:00}";
-        }
-
-        private string GetDifficulty(float time)
-        {
-            if (time < 30f) return "Easy";
-            if (time < 60f) return "Medium";
-            if (time < 120f) return "Hard";
-            if (time < 240f) return "Extreme";
-            if (time < 480f) return "Hell";
-            if (time < 960f) return "Nightmare";
-            return "Death Guaranteed";
-        }
-
-        private Color GetDifficultyColor(string difficulty)
-        {
-            switch (difficulty)
-            {
-                case "Easy": return Color.green;
-                case "Medium": return Color.yellow;
-                case "Hard": return new Color(1f, 0.5f, 0f); // Orange
-                case "Extreme": return Color.red;
-                case "Hell": return new Color(0.5f, 0f, 0f); // Dark Red
-                case "Nightmare": return Color.magenta;
-                case "Death Guaranteed": return Color.black;
-                default: return Color.white;
-            }
         }
     }
 }

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fe19103eae31bc47aefc66ef9ae11a7, type: 3}
+  m_Name: MainProgression
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.Difficulty.DifficultyProgression
+  thresholds:
+  - timeThreshold: 0
+    settings: {fileID: 11400000, guid: 07384f76cf7f1cb4797fb9888dd3cb68, type: 2}
+  - timeThreshold: 60
+    settings: {fileID: 11400000, guid: 44fb5c0af65759c498e1f6b43bcbd494, type: 2}
+  - timeThreshold: 180
+    settings: {fileID: 11400000, guid: 40e042f3dc4c7bc4e9cbc8afc1aa8b44, type: 2}
+  - timeThreshold: 360
+    settings: {fileID: 11400000, guid: b42cc1106e6850641ab66c14de2cfaf7, type: 2}
