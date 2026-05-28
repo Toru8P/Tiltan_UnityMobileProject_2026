@@ -2,10 +2,6 @@ using UnityEngine;
 
 namespace _Scripts.Difficulty
 {
-    /// <summary>
-    /// Add this to any GameObject with components implementing IDifficultyScalable 
-    /// to ensure they stay updated when difficulty changes.
-    /// </summary>
     public class DifficultyAutoScaler : MonoBehaviour
     {
         private IDifficultyScalable[] _scalables;

@@ -12,12 +12,16 @@ public class DekeloniCamera : MonoBehaviour
 
     public Vector3 lookOffset = new Vector3(0, 2, 0);
 
+    // Forces the device into landscape orientation when the game starts (this is a mobile game).
     void Start()
     {
         Screen.orientation = ScreenOrientation.LandscapeRight;
     }
 
-    
+
+    // LateUpdate runs after every other Update — so the player has already moved this frame.
+    // The camera computes a fixed diagonal offset from the player and smoothly slides toward that position,
+    // then looks at a point slightly above the player.
     void LateUpdate()
     {
         if (!target) return;

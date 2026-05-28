@@ -15,16 +15,21 @@ namespace _Scripts.UI
         
         private PlayerMovementController _playerController;
 
+        // Finds the player movement controller in the scene and auto-resolves any UI references
+        // (countdown text, radial fill image, label) that weren't manually assigned in the Inspector.
         private void Start()
         {
             _playerController = Object.FindAnyObjectByType<PlayerMovementController>();
-            
+
             // Auto-find references if they are missing
             if (cooldownText == null) cooldownText = GetComponentInChildren<TextMeshProUGUI>();
             if (fillImage == null) fillImage = transform.Find("CooldownFill")?.GetComponent<UnityEngine.UI.Image>();
             if (labelObject == null) labelObject = transform.Find("Label")?.gameObject;
         }
 
+        // Every frame, read the current cooldown for the selected ability (Roll or Attack) from the player.
+        // While on cooldown: show the countdown number and shrink the radial fill image.
+        // When ready: hide the timer, show the label (e.g., the ability icon).
         private void Update()
         {
             if (_playerController == null) return;

@@ -15,6 +15,9 @@ namespace _Scripts.Difficulty
     {
         public DifficultyThreshold[] thresholds;
         
+        // Given the current survival time, returns which DifficultySettings should be active.
+        // Walks the sorted list and picks the highest threshold the time has passed.
+        // Example: if thresholds are 0s/60s/180s and time=120s → returns the 60s settings.
         public DifficultySettings GetSettingsForTime(float time)
         {
             if (thresholds == null || thresholds.Length == 0) return null;

@@ -13,6 +13,7 @@ namespace _Scripts.MainGame
         private Dictionary<Vector2Int, TerrainPlane> terrainFaces = new Dictionary<Vector2Int, TerrainPlane>();
         private List<TerrainPlane> _activePlanes = new List<TerrainPlane>();
 
+        // Builds the starting 3x3 grid of terrain tiles around the player and activates all of them.
         public void Start()
         {
             ActivePlane(GenerateOrGetPlaneAt(-1, -1));
@@ -28,6 +29,8 @@ namespace _Scripts.MainGame
             ActivePlane(GenerateOrGetPlaneAt(1, 0));
         }
 
+        // Turns a tile on (visible + collidable) and tracks it as active.
+        // Skips if it's already active, so we don't double-add to the list.
         private void ActivePlane(TerrainPlane plane)
         {
             if (_activePlanes.Contains(plane)) return;
@@ -35,12 +38,15 @@ namespace _Scripts.MainGame
             _activePlanes.Add(plane);
         }
 
+        // Turns a tile off and removes it from the active list. Saves performance — disabled tiles aren't rendered.
         private void DeactivatePlane(TerrainPlane plane)
         {
             plane.gameObject.SetActive(false);
             _activePlanes.Remove(plane);
         }
 
+        // Editor-only visualization: draws a green sphere at the terrain's origin
+        // and red dots at each generated tile's center. Helps you see the grid in the Scene view.
         void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.green;
@@ -52,6 +58,9 @@ namespace _Scripts.MainGame
             }
         }
 
+        // Returns the tile at grid coords (row, col). If it doesn't exist yet,
+        // creates a new GameObject, attaches a TerrainPlane, builds its mesh, and adds a trigger zone
+        // that calls UpdateFacesAroundPlayer when the player enters this tile.
         private TerrainPlane GenerateOrGetPlaneAt(int row, int col)
         {
             Vector2Int key = new Vector2Int(row, col);
@@ -75,6 +84,8 @@ namespace _Scripts.MainGame
             return terrainFace;
         }
 
+        // Called when the player enters a tile. Activates every tile within renderDistance of the player
+        // and deactivates everything else. Result: only nearby terrain is rendered, the rest is asleep.
         private void UpdateFacesAroundPlayer(int row, int col)
         {
             List<TerrainPlane> planesToDeactivate = new List<TerrainPlane>(_activePlanes);

@@ -34,6 +34,8 @@ namespace _Scripts
 
         private const float MoveDeadzoneSqr = 0.01f;
 
+        // Runs once when the game starts. Grabs references to Rigidbody and Animator,
+        // and locks rotation on the Rigidbody so physics collisions don't spin the player.
         private void Start()
         {
             _rb = GetComponent<Rigidbody>();
@@ -43,7 +45,8 @@ namespace _Scripts
             _rb.constraints = RigidbodyConstraints.FreezeRotation;
         }
 
-        // Logic methods called by input handler
+        // Called by PlayerInputHandler whenever the joystick moves.
+        // Stores the input, and snaps tiny values to zero (deadzone) so a near-still stick doesn't drift the player.
         public void SetMoveInput(Vector2 input)
         {
             _moveInput = input;
@@ -52,12 +55,15 @@ namespace _Scripts
                 _moveInput = Vector2.zero;
         }
 
+        // Called when the Roll button is pressed. Only rolls if not already rolling and cooldown is done.
         public void PerformRoll()
         {
             if (!_isRolling && _rollCooldownTimer <= 0f)
                 StartRoll();
         }
 
+        // Called when the Attack button is pressed. Plays the attack animation if not rolling and cooldown is done,
+        // then starts the attack cooldown timer.
         public void PerformAttack()
         {
             if (!_isRolling && _attackCooldownTimer <= 0f)
@@ -70,6 +76,9 @@ namespace _Scripts
             }
         }
 
+        // Physics update — runs at a fixed timestep, perfect for moving Rigidbodies.
+        // While rolling, run the roll instead of normal movement.
+        // Otherwise: walk, rotate, and tick the cooldown timers down.
         private void FixedUpdate()
 {
             if (_isRolling)
@@ -88,6 +97,9 @@ namespace _Scripts
                 _attackCooldownTimer -= Time.fixedDeltaTime;
         }
 
+        // Applies movement based on joystick input.
+        // If the stick is in the deadzone, stop horizontal velocity (preserve Y for gravity) and tell the animator we're idle.
+        // Otherwise, build a world-space velocity vector from the input and assign it to the Rigidbody.
         private void MovePlayer()
         {
             if (_moveInput.sqrMagnitude < MoveDeadzoneSqr)
@@ -117,6 +129,8 @@ namespace _Scripts
             _animationController?.SetMoving(true);
         }
 
+        // Smoothly rotates the player to face the direction they're moving in.
+        // Uses RotateTowards (not Lerp) so the rotation speed is constant in degrees/second.
         private void RotatePlayer()
         {
             if (_moveDirection.sqrMagnitude < MoveDeadzoneSqr)
@@ -134,6 +148,8 @@ namespace _Scripts
         }
 
         // ROLL SYSTEM
+        // Kicks off a roll: chooses the roll direction (current movement or forward if standing still),
+        // sets the rolling flag, and starts both the roll-duration timer and the cooldown timer.
         private void StartRoll()
         {
             _rollDirection = _moveDirection.sqrMagnitude > 0.1f
@@ -147,6 +163,8 @@ namespace _Scripts
             _animator?.SetTrigger("Roll");
         }
 
+        // Runs every physics frame while rolling. Pushes the player at full rollForce in the roll direction,
+        // counts the timer down, and stops the roll when the timer hits zero.
         private void ApplyRoll()
         {
             _rollTimer -= Time.fixedDeltaTime;

@@ -17,11 +17,14 @@ namespace _Scripts.Enemies
         private Coroutine _spawnCoroutine;
         private List<GameObject> _activeEnemies = new List<GameObject>();
 
+        // Singleton setup so other scripts (like ZombieController) can find the spawner easily.
         private void Awake()
         {
             if (Instance == null) Instance = this;
         }
 
+        // Subscribes to difficulty change events. When difficulty updates, restart the spawn loop with the new settings.
+        // Also immediately applies the current difficulty if one is already set.
         private void Start()
         {
             if (DifficultyManager.Instance != null)
@@ -34,6 +37,7 @@ namespace _Scripts.Enemies
             }
         }
 
+        // Unsubscribe when destroyed — prevents the DifficultyManager from trying to call a destroyed object.
         private void OnDestroy()
         {
             if (DifficultyManager.Instance != null)
@@ -42,6 +46,8 @@ namespace _Scripts.Enemies
             }
         }
 
+        // Difficulty just changed. Save the new settings, stop the old spawn coroutine,
+        // and start a fresh one with the new spawn interval and enemy mix.
         private void HandleDifficultyChanged(DifficultySettings newSettings)
         {
             _currentSettings = newSettings;
@@ -50,6 +56,9 @@ namespace _Scripts.Enemies
             _spawnCoroutine = StartCoroutine(SpawnRoutine());
         }
 
+        // Infinite spawn loop (runs as a coroutine so we can yield/wait without blocking).
+        // Each cycle: compute the wait time based on current intensity, wait, then spawn if we're under the cap.
+        // Higher intensity = shorter wait between spawns.
         private IEnumerator SpawnRoutine()
         {
             while (true)
@@ -74,17 +83,21 @@ namespace _Scripts.Enemies
             }
         }
 
+        // Adds an enemy to the active list. We track this so we can enforce the maxActiveEnemies cap.
         public void RegisterEnemy(GameObject enemy)
         {
             if (!_activeEnemies.Contains(enemy))
                 _activeEnemies.Add(enemy);
         }
 
+        // Called by an enemy when it dies, so the spawner knows there's room for more.
         public void UnregisterEnemy(GameObject enemy)
         {
             _activeEnemies.Remove(enemy);
         }
 
+        // Picks a random enemy prefab (weighted by difficulty settings) and a random position on a circle around the player.
+        // Pulls the enemy from the object pool if possible (cheap), otherwise instantiates a new one.
         private void SpawnEnemy()
         {
             GameObject prefab = GetWeightedRandomPrefab();
@@ -106,6 +119,9 @@ namespace _Scripts.Enemies
             RegisterEnemy(enemy);
         }
 
+        // Weighted random selection. Adds all weights together, picks a random value in that range,
+        // then walks the list adding weights until we hit the random value — that's our chosen prefab.
+        // A prefab with weight 3 is 3x as likely to be picked as one with weight 1.
         private GameObject GetWeightedRandomPrefab()
         {
             float totalWeight = 0;

@@ -23,13 +23,13 @@ namespace _Scripts.World
         public float cleanupDistanceBehind = 15f; 
         
         [Header("Probabilities")]
-        [Range(0, 1)] public float treeChance = 0.05f;
-        [Range(0, 1)] public float rockChance = 0.15f;
-        [Range(0, 1)] public float bushChance = 0.2f;
-        [Range(0, 1)] public float smallChance = 0.4f;
+        [Range(0, 1)] public float treeChance = 0.25f; // Increased
+        [Range(0, 1)] public float rockChance = 0.2f;
+        [Range(0, 1)] public float bushChance = 0.1f;
+        [Range(0, 1)] public float smallChance = 0.45f;
 
         [Header("Ground Alignment")]
-        public float groundOverlap = 1.0f; // Extra scale to ensure seamless connection
+        public float groundOverlap = 2.0f; // Increased for better seamless connection
 
         [Header("Persistence")]
         public bool persistBetweenSessions = true;
@@ -49,6 +49,9 @@ namespace _Scripts.World
         private float _lastNavMeshUpdateTime = 0f;
         private int _frameCount = 0;
 
+        // First-time setup: find the player, configure the NavMeshSurface for procedural generation,
+        // cache prefab sizes (used to scale ground tiles to chunk size), load any saved world data,
+        // and pre-warm the object pools so initial spawning doesn't lag.
         private void Start()
         {
             if (playerTransform == null)
@@ -66,9 +69,9 @@ namespace _Scripts.World
             // Configure for robust procedural navigation
             navMeshSurface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
             navMeshSurface.collectObjects = CollectObjects.All;
-            // Higher step height and slope for procedural seams
+            
             navMeshSurface.overrideVoxelSize = true;
-            navMeshSurface.voxelSize = 0.1f;
+            navMeshSurface.voxelSize = 0.08f; // Finer voxels for better seams
             
             CacheGroundMeshSizes();
 
@@ -80,6 +83,8 @@ namespace _Scripts.World
             PreWarmPools();
         }
 
+        // Pre-creates inactive copies of every nature prefab (trees, rocks, etc.) so the pool is full
+        // before gameplay starts. Without this, the first time we spawn 30 trees would cause a hitch.
         private void PreWarmPools()
         {
             if (PoolManager.Instance == null) return;
@@ -91,6 +96,8 @@ namespace _Scripts.World
             foreach (var p in smallNaturePrefabs) PoolManager.Instance.PreWarm(p, preWarmCount);
         }
 
+        // Reads the bounds of every ground prefab's mesh once at startup and stores the size.
+        // We use these sizes later to calculate how much to scale each ground tile to fit the chunk perfectly.
         private void CacheGroundMeshSizes()
         {
             for (int i = 0; i < groundPrefabs.Length; i++)
@@ -107,6 +114,7 @@ namespace _Scripts.World
             }
         }
 
+        // Auto-save when the game closes (or this object is destroyed). Keeps the world persistent across sessions.
         private void OnDestroy()
         {
             if (persistBetweenSessions)
@@ -115,6 +123,7 @@ namespace _Scripts.World
             }
         }
 
+        // Converts all explored chunks to JSON and stores in PlayerPrefs (Unity's simple persistent storage).
         public void SaveWorld()
         {
             string json = _persistence.ToJson();
@@ -123,6 +132,8 @@ namespace _Scripts.World
             Debug.Log("World Data Saved.");
         }
 
+        // Reads the saved JSON back from PlayerPrefs and rebuilds the chunk dictionary.
+        // Called once at startup so re-visited chunks keep their original trees and rocks.
         public void LoadWorld()
         {
             if (PlayerPrefs.HasKey(saveKey))
@@ -133,6 +144,9 @@ namespace _Scripts.World
             }
         }
 
+        // Main update loop, throttled. Every `updateFrequencyFrames` frames we check whether chunks need to be
+        // spawned in or cleaned out. The NavMesh rebuild is throttled separately — rebuilding is expensive,
+        // so we batch changes and only rebuild every `navMeshUpdateInterval` seconds at most.
         private void Update()
         {
             if (playerTransform == null) return;
@@ -152,6 +166,9 @@ namespace _Scripts.World
             }
         }
 
+        // Figures out which chunk the player is currently standing in, then makes sure every chunk
+        // within `viewDistance` is active. New chunks only spawn if they're roughly in front of the player
+        // (using a forward-direction dot product) — avoids wasting effort spawning behind them.
         private void UpdateChunks()
         {
             Vector3 pos = playerTransform.position;
@@ -169,8 +186,10 @@ namespace _Scripts.World
                         Vector3 chunkCenter = new Vector3(coords.x * chunkSize, 0, coords.y * chunkSize);
                         Vector3 toChunk = chunkCenter - pos;
                         
-                        if (Vector3.Dot(toChunk, playerTransform.forward) > -chunkSize * 1.5f)
+                        float dot = Vector3.Dot(toChunk, playerTransform.forward);
+                        if (dot > -chunkSize * 1.5f)
                         {
+                            Debug.Log($"[WorldGen] Activating chunk at {coords}. Dot: {dot}");
                             ActivateChunk(coords);
                             _needsNavMeshUpdate = true;
                         }
@@ -179,115 +198,144 @@ namespace _Scripts.World
             }
         }
 
+        // Spawns one chunk: ground tile + filler base + nature objects.
+        // Either uses previously generated data (if the chunk has been visited before) or makes new random data.
+        // Ground tiles are scaled to match `chunkSize` based on the cached mesh size.
         private void ActivateChunk(Vector2Int coords)
         {
-            ChunkData data;
-            if (_persistence.HasChunk(coords))
+            try
             {
-                data = _persistence.GetChunk(coords);
-            }
-            else
-            {
-                data = GenerateChunkData(coords);
-                _persistence.SaveChunk(data);
-            }
-
-            // Spawn Ground
-            Vector3 groundPos = new Vector3(coords.x * chunkSize, 0, coords.y * chunkSize);
-            GameObject ground = PoolManager.Instance.Get(groundPrefabs[data.groundPrefabIndex], groundPos, Quaternion.identity);
-            
-            // Normalize scale using cached mesh size
-            if (_groundMeshSizeCache.TryGetValue(data.groundPrefabIndex, out Vector3 meshSize))
-            {
-                // Force XZ to chunkSize + overlap for a solid connection
-                float scaleX = (chunkSize + groundOverlap) / meshSize.x;
-                float scaleZ = (chunkSize + groundOverlap) / meshSize.z;
-                
-                float scaleY = 1f;
-                float yOffset = 0f;
-
-                // Ground_02 is a tall hill (height ~5.5). We flatten it to ensure pathfinding connectivity.
-                if (groundPrefabs[data.groundPrefabIndex].name == "Ground_02")
+                ChunkData data;
+                if (_persistence.HasChunk(coords))
                 {
-                    scaleY = 0.5f; 
+                    data = _persistence.GetChunk(coords);
                 }
-                
-                // Ground_03 has a lower base. Align it with the others.
-                if (groundPrefabs[data.groundPrefabIndex].name == "Ground_03")
+                else
                 {
-                    yOffset = 0.15f;
+                    data = GenerateChunkData(coords);
+                    _persistence.SaveChunk(data);
                 }
 
-                ground.transform.localScale = new Vector3(scaleX, scaleY, scaleZ);
-                
-                // Adjust position to center the mesh on the chunk grid
-                // mesh.bounds.center is the offset of the mesh from the pivot
-                MeshFilter filter = groundPrefabs[data.groundPrefabIndex].GetComponentInChildren<MeshFilter>();
-                Vector3 meshCenterOffset = filter.sharedMesh.bounds.center;
-                
-                // We want the mesh center to be at the chunk center
-                // So pivot should be at groundPos - scaledCenterOffset
-                Vector3 scaledCenterOffset = new Vector3(meshCenterOffset.x * scaleX, 0, meshCenterOffset.z * scaleZ);
-                ground.transform.position = groundPos - scaledCenterOffset + Vector3.up * yOffset;
-            }
-
-            _activeGroundTiles[coords] = ground;
-
-            // Spawn Nature Objects
-            List<GameObject> chunkObjects = new List<GameObject>();
-
-            // SPAWN FILLER GROUND (Basement layer to hide gaps)
-            int fillerIndex = -1;
-            for (int i = 0; i < groundPrefabs.Length; i++)
-            {
-                if (groundPrefabs[i].name == "Ground_03") { fillerIndex = i; break; }
-            }
-            if (fillerIndex != -1)
-            {
-                // Place it slightly below the main ground
-                float basementY = -0.4f;
-                Vector3 fillerPos = new Vector3(coords.x * chunkSize, basementY, coords.y * chunkSize);
-                GameObject filler = PoolManager.Instance.Get(groundPrefabs[fillerIndex], fillerPos, Quaternion.identity);
-                
-                if (_groundMeshSizeCache.TryGetValue(fillerIndex, out Vector3 fSize))
+                if (PoolManager.Instance == null)
                 {
-                    // Scale basement to be wider than the chunk (chunkSize + 2) to bridge any diagonal gaps
-                    float fScaleX = (chunkSize + groundOverlap + 2.0f) / fSize.x;
-                    float fScaleZ = (chunkSize + groundOverlap + 2.0f) / fSize.z;
-                    filler.transform.localScale = new Vector3(fScaleX, 0.1f, fScaleZ); // Very flat
+                    PoolManager pm = Object.FindFirstObjectByType<PoolManager>();
+                    if (pm != null)
+                    {
+                        Debug.Log("[WorldGen] Found PoolManager instance manually.");
+                        // We can't set the private Instance but we can use pm
+                    }
+                    else
+                    {
+                        Debug.LogError("[WorldGen] PoolManager.Instance is NULL and no instance found in scene!");
+                        return;
+                    }
+                }
+                
+                PoolManager pool = PoolManager.Instance;
+
+                // Spawn Ground
+                Vector3 groundPos = new Vector3(coords.x * chunkSize, 0, coords.y * chunkSize);
+                GameObject ground = pool.Get(groundPrefabs[data.groundPrefabIndex], groundPos, Quaternion.identity);
+                
+                if (ground == null)
+                {
+                    Debug.LogError($"[WorldGen] Failed to get ground from PoolManager for {coords}");
+                    return;
+                }
+
+                // Normalize scale using cached mesh size
+                if (_groundMeshSizeCache.TryGetValue(data.groundPrefabIndex, out Vector3 meshSize))
+                {
+                    float scaleX = (chunkSize + groundOverlap) / meshSize.x;
+                    float scaleZ = (chunkSize + groundOverlap) / meshSize.z;
                     
-                    MeshFilter fFilter = groundPrefabs[fillerIndex].GetComponentInChildren<MeshFilter>();
-                    Vector3 fOffset = fFilter.sharedMesh.bounds.center;
-                    filler.transform.position = fillerPos - new Vector3(fOffset.x * fScaleX, 0, fOffset.z * fScaleZ);
-                }
-                chunkObjects.Add(filler);
-            }
+                    float scaleY = 1f;
+                    float yOffset = 0f;
 
-            foreach (var objData in data.objects)
-            {
-                GameObject prefab = GetPrefabFromData(objData);
-                if (prefab != null)
-                {
-                    Vector3 worldPos = groundPos + objData.localPosition;
-                    GameObject instance = PoolManager.Instance.Get(prefab, worldPos, objData.localRotation);
+                    if (groundPrefabs[data.groundPrefabIndex].name == "Ground_02") scaleY = 0.4f;
+                    else if (groundPrefabs[data.groundPrefabIndex].name == "Ground_01") scaleY = 0.7f;
                     
-                    // Add cleanup component
-                    PooledObject pooled = instance.GetComponent<PooledObject>();
-                    if (pooled == null) pooled = instance.AddComponent<PooledObject>();
-                    pooled.Setup(playerTransform, cleanupDistanceBehind + chunkSize);
+                    if (groundPrefabs[data.groundPrefabIndex].name == "Ground_03") yOffset = 0.15f;
+
+                    ground.transform.localScale = new Vector3(scaleX, scaleY, scaleZ);
                     
-                    chunkObjects.Add(instance);
+                    MeshFilter filter = groundPrefabs[data.groundPrefabIndex].GetComponentInChildren<MeshFilter>();
+                    if (filter != null && filter.sharedMesh != null)
+                    {
+                        Vector3 meshCenterOffset = filter.sharedMesh.bounds.center;
+                        Vector3 scaledCenterOffset = new Vector3(meshCenterOffset.x * scaleX, 0, meshCenterOffset.z * scaleZ);
+                        ground.transform.position = groundPos - scaledCenterOffset + Vector3.up * yOffset;
+                    }
                 }
+
+                _activeGroundTiles[coords] = ground;
+
+                // Spawn Nature Objects
+                List<GameObject> chunkObjects = new List<GameObject>();
+
+                int fillerIndex = -1;
+                for (int i = 0; i < groundPrefabs.Length; i++)
+                {
+                    if (groundPrefabs[i] != null && groundPrefabs[i].name == "Ground_03") { fillerIndex = i; break; }
+                }
+                
+                if (fillerIndex != -1)
+                {
+                    float basementY = -0.2f; 
+                    Vector3 fillerPos = new Vector3(coords.x * chunkSize, basementY, coords.y * chunkSize);
+                    GameObject filler = pool.Get(groundPrefabs[fillerIndex], fillerPos, Quaternion.identity);
+                    
+                    if (filler != null && _groundMeshSizeCache.TryGetValue(fillerIndex, out Vector3 fSize))
+                    {
+                        float fScaleX = (chunkSize + groundOverlap + 5.0f) / fSize.x;
+                        float fScaleZ = (chunkSize + groundOverlap + 5.0f) / fSize.z;
+                        filler.transform.localScale = new Vector3(fScaleX, 1.0f, fScaleZ); 
+                        
+                        MeshFilter fFilter = groundPrefabs[fillerIndex].GetComponentInChildren<MeshFilter>();
+                        if (fFilter != null && fFilter.sharedMesh != null)
+                        {
+                            Vector3 fOffset = fFilter.sharedMesh.bounds.center;
+                            filler.transform.position = fillerPos - new Vector3(fOffset.x * fScaleX, 0, fOffset.z * fScaleZ);
+                        }
+                    }
+                    if (filler != null) chunkObjects.Add(filler);
+                }
+
+                foreach (var objData in data.objects)
+                {
+                    GameObject prefab = GetPrefabFromData(objData);
+                    if (prefab != null)
+                    {
+                        Vector3 worldPos = groundPos + objData.localPosition;
+                        GameObject instance = pool.Get(prefab, worldPos, objData.localRotation);
+                        
+                        PooledObject pooled = instance.GetComponent<PooledObject>();
+                        if (pooled == null) pooled = instance.AddComponent<PooledObject>();
+                        pooled.Setup(playerTransform, cleanupDistanceBehind + chunkSize);
+                        
+                        chunkObjects.Add(instance);
+                    }
+                }
+                _activeNatureObjects[coords] = chunkObjects;
             }
-            _activeNatureObjects[coords] = chunkObjects;
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[WorldGen] Exception in ActivateChunk: {e.Message}\n{e.StackTrace}");
+            }
         }
 
+        // Procedurally generates the content of a brand-new chunk:
+        // 1. Pick a random ground prefab.
+        // 2. Try 10-25 spawn attempts. Each attempt rolls a random value and uses the configured
+        //    tree/rock/bush/small probabilities to decide what (if anything) to place.
+        // 3. Each object gets a random local position within the chunk and a random Y rotation.
+        // This data is then SAVED so the chunk looks identical next time the player visits it.
         private ChunkData GenerateChunkData(Vector2Int coords)
         {
             ChunkData data = new ChunkData { coordinates = coords };
             data.groundPrefabIndex = Random.Range(0, groundPrefabs.Length);
 
-            int attempts = Random.Range(5, 15);
+            int attempts = Random.Range(10, 25);
             for (int i = 0; i < attempts; i++)
             {
                 float r = Random.value;
@@ -315,6 +363,8 @@ namespace _Scripts.World
             return data;
         }
 
+        // Looks up the actual prefab from saved ObjectData. The data only stores a TYPE index (tree/rock/bush/small)
+        // and an INDEX into that list. This way the save file stays small and human-readable.
         private GameObject GetPrefabFromData(ObjectData data)
         {
             GameObject[] list = null;
@@ -330,6 +380,8 @@ namespace _Scripts.World
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
+        // Loops through all active chunks and returns any that are too far behind the player OR
+        // outside the maximum view distance, back to the pool. Marks the NavMesh as dirty so it gets rebuilt.
         private void CleanupFarChunks()
         {
             List<Vector2Int> toRemove = new List<Vector2Int>();
@@ -361,6 +413,8 @@ namespace _Scripts.World
             }
         }
 
+        // Returns the chunk's ground tile and all its nature objects back to the pool.
+        // The chunk DATA stays saved in _persistence — only the visible GameObjects get recycled.
         private void DeactivateChunk(Vector2Int coords)
         {
             if (_activeGroundTiles.TryGetValue(coords, out GameObject ground))

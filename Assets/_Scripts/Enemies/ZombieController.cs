@@ -39,6 +39,9 @@ namespace _Scripts.Enemies
 
         private float wanderTimer = 0f;
 
+        // Called whenever the difficulty changes. Rescales this zombie's stats based on the new multipliers.
+        // We preserve the current health *percentage* (so a half-dead zombie stays half-dead after rescaling),
+        // and update agent speed, damage, and turning responsiveness all at once.
         public void ApplyDifficulty(DifficultySettings settings)
         {
             if (isDead) return;
@@ -48,10 +51,12 @@ namespace _Scripts.Enemies
             maxHealth = Mathf.RoundToInt(baseMaxHealth * settings.enemyMaxHealthMultiplier);
             currentHealth = Mathf.RoundToInt(maxHealth * healthRatio);
 
-            // Update Speed
+            // Update Speed and Responsiveness
             if (agent != null)
             {
                 agent.speed = baseSpeed * settings.enemySpeedMultiplier;
+                agent.acceleration = 30f * settings.enemySpeedMultiplier; // Scale responsiveness
+                agent.angularSpeed = 400f * settings.enemySpeedMultiplier;
             }
 
             // Update Damage
@@ -60,6 +65,8 @@ namespace _Scripts.Enemies
             Debug.Log($"{name} updated: Speed={agent.speed}, Health={maxHealth}, Damage={currentDamage}");
         }
 
+        // Runs once when the zombie first spawns.
+        // Grabs components, sets initial speed and health, finds the player, and subscribes to difficulty changes.
         void Start()
         {
             if (!agent) agent = GetComponent<NavMeshAgent>();
@@ -92,6 +99,7 @@ namespace _Scripts.Enemies
             }
         }
 
+        // Unsubscribe from difficulty events when destroyed — avoids leaks.
         private void OnDestroy()
         {
             if (DifficultyManager.Instance != null)
@@ -100,11 +108,15 @@ namespace _Scripts.Enemies
             }
         }
 
+        // OnEnable fires every time the zombie is activated — including when it's reused from the pool.
+        // We reset its state so a recycled corpse comes back as a fresh enemy.
         void OnEnable()
         {
             ResetState();
         }
 
+        // Resets every variable to its starting value so a pooled zombie behaves like a brand-new one.
+        // Important: pooled objects do NOT re-run Start(), so we need this manual reset.
         public void ResetState()
         {
             isDead = false;
@@ -132,10 +144,12 @@ namespace _Scripts.Enemies
             Rigidbody rb = GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.isKinematic = false;
+                rb.isKinematic = true; // Kinematic while alive to prevent slipping/physics fighting
             }
         }
 
+        // Turns the NavMeshAgent and all colliders back on, and warps the zombie onto the NavMesh
+        // if it spawned slightly off it. Without this, a pooled zombie might be invisible/non-interactive.
         void RestoreComponents()
         {
             if (agent) agent.enabled = true;
@@ -153,6 +167,11 @@ namespace _Scripts.Enemies
             }
         }
 
+        // The main "brain" loop. Every frame:
+        // 1. Kill the zombie if health hit zero.
+        // 2. If dead, skip everything else.
+        // 3. Make sure we have a player reference.
+        // 4. Run the right state handler based on the current state (Idle, Wander, Chase, Attack).
         void Update()
         {
             if (!isDead && currentHealth <= 0)
@@ -178,6 +197,7 @@ namespace _Scripts.Enemies
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
+        // Locates the player in the scene by tag (or name as a fallback) and caches the reference.
         void FindPlayer()
         {
             if (player != null) return;
@@ -186,6 +206,8 @@ namespace _Scripts.Enemies
             if (pObj) player = pObj.transform;
         }
 
+        // IDLE STATE: standing still. After waiting `wanderDelay` seconds, switch to wandering.
+        // If the player gets close enough, switch straight to chasing.
         void IdleUpdate()
         {
             if (animator) animator.SetBool("IsWalking", false);
@@ -202,6 +224,8 @@ namespace _Scripts.Enemies
             }
         }
 
+        // WANDER STATE: pick a random point within wanderRadius and walk there.
+        // Once we arrive, go back to Idle. If the player shows up nearby, abandon wandering and start chasing.
         void WanderUpdate()
         {
             if (animator) animator.SetBool("IsWalking", true);
@@ -217,6 +241,8 @@ namespace _Scripts.Enemies
             if (PlayerInRange(detectionRange)) state = ZombieState.Chase;
         }
 
+        // CHASE STATE: walk toward the player using NavMesh pathfinding.
+        // Switch to Attack if we're in melee range. If the player runs way out of range, give up and go back to Idle.
         private void ChaseUpdate()
         {
             if (animator) 
@@ -237,6 +263,8 @@ namespace _Scripts.Enemies
             else if (dist > detectionRange * 1.5f) state = ZombieState.Idle;
         }
 
+        // ATTACK STATE: stop, face the player, and play the attack animation for `attackDuration` seconds.
+        // After the swing finishes, either attack again (player still in range) or chase (player ran).
         private void AttackUpdate()
         {
             if (isAttacking)
@@ -290,6 +318,7 @@ namespace _Scripts.Enemies
         }
 
 
+        // Called by the player's attack hitbox. Subtracts damage and triggers Die() if health hits zero.
         public void TakeDamage(int dmg)
         {
             if (isDead) return;
@@ -298,6 +327,8 @@ namespace _Scripts.Enemies
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
+        // Handles death: marks the zombie as dead, plays the death animation, disables agent/colliders/physics
+        // so the corpse doesn't interfere with the game, and schedules a return to the pool in 5 seconds.
         void Die()
         {
             if (isDead) return;
@@ -323,6 +354,8 @@ namespace _Scripts.Enemies
             StartCoroutine(ReturnToPoolAfterDelay(5f));
         }
 
+        // Coroutine: wait `delay` seconds (so the death animation can play), then return the zombie to the pool
+        // so it can be reused for the next spawn. Also tells the spawner we're gone so it can spawn another.
         private System.Collections.IEnumerator ReturnToPoolAfterDelay(float delay)
         {
             yield return new WaitForSeconds(delay);
@@ -340,17 +373,22 @@ namespace _Scripts.Enemies
             }
         }
 
+        // Quick helper: is the player within `range` units of this zombie?
         bool PlayerInRange(float range)
         {
             return DistanceToPlayer() <= range;
         }
 
+        // Returns the distance to the player. Returns infinity if there's no player reference
+        // so range checks always return false until the player is found.
         float DistanceToPlayer()
         {
-            if (!player) 
-                return Mathf.Infinity; 
+            if (!player)
+                return Mathf.Infinity;
             return Vector3.Distance(transform.position, player.position);
         }
+        // Picks a random point within `dist` of `origin` that's actually on the NavMesh (so the zombie can walk there).
+        // Returns Vector3.zero if no valid point was found.
         public static Vector3 RandomNavSphere(Vector3 origin, float dist)
         {
             Vector3 randomDirection = Random.insideUnitSphere * dist;

@@ -21,6 +21,8 @@ namespace _Scripts.Difficulty
         public float CurrentTime => _currentTime;
         public DifficultySettings CurrentSettings => _currentSettings;
 
+        // Singleton setup. Also pre-applies the starting difficulty in Awake (not Start) so other scripts
+        // can read it from their own Start() methods without race conditions.
         private void Awake()
         {
             if (Instance == null)
@@ -38,6 +40,8 @@ namespace _Scripts.Difficulty
             }
         }
 
+        // Ticks the survival timer up every frame and re-checks which difficulty should be active.
+        // Can be disabled via `autoProgress = false` for manual control.
         private void Update()
         {
             if (autoProgress)
@@ -47,6 +51,9 @@ namespace _Scripts.Difficulty
             }
         }
 
+        // Asks the progression asset which DifficultySettings matches the current time.
+        // If it's a NEW setting (different from last frame), broadcasts the OnDifficultyChanged event
+        // so every listener (spawner, zombies, HUD) can react.
         private void UpdateDifficulty(float time)
         {
             if (progression == null) return;
@@ -60,12 +67,15 @@ namespace _Scripts.Difficulty
             }
         }
 
+        // Reads the current difficulty's intensity curve at the current time.
+        // Lets spawn rate ramp up smoothly *within* a single difficulty level, not just between them.
         public float GetCurrentIntensity()
         {
             if (_currentSettings == null) return 1f;
             return _currentSettings.spawnIntensityCurve.Evaluate(_currentTime);
         }
 
+        // Resets the timer back to zero — useful when the player restarts a round.
         public void ResetTimer()
         {
             _currentTime = 0f;

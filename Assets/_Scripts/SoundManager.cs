@@ -13,6 +13,8 @@ public class SoundManager : MonoBehaviour
     public AudioClip hitSound;
     public AudioClip deathSound;
 
+    // Singleton setup: only one SoundManager should exist.
+    // If a second one is created (e.g., scene reload), destroy it.
     void Awake()
     {
         if (Instance == null)
@@ -21,7 +23,7 @@ public class SoundManager : MonoBehaviour
             Destroy(gameObject);
     }
 
-    // Generic SFX player
+    // Generic sound effect player. Slightly randomizes pitch each play so repeated sounds feel less robotic.
     public void PlaySFX(AudioClip clip, float volume = 1f)
     {
         if (clip == null || sfxSource == null)
@@ -31,22 +33,25 @@ public class SoundManager : MonoBehaviour
         sfxSource.PlayOneShot(clip, volume);
     }
 
-    // Specific methods you can call anywhere
+    // Convenience wrappers — anywhere in the game can just call SoundManager.Instance.PlayFootstep() etc.
     public void PlayFootstep()
     {
         PlaySFX(grassFootstep, 0.8f);
     }
 
+    // Plays the player's attack swing sound.
     public void PlayAttack()
     {
         PlaySFX(attackSound, 1f);
     }
 
+    // Plays the "got hit" sound.
     public void PlayHit()
     {
         PlaySFX(hitSound, 1f);
     }
 
+    // Plays the death sound.
     public void PlayDeath()
     {
         PlaySFX(deathSound, 1f);

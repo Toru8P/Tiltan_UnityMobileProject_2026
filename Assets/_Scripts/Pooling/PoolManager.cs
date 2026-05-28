@@ -10,6 +10,8 @@ namespace _Scripts.Pooling
         private Dictionary<GameObject, Queue<GameObject>> _pools = new Dictionary<GameObject, Queue<GameObject>>();
         private Dictionary<GameObject, GameObject> _instanceToPrefab = new Dictionary<GameObject, GameObject>();
 
+        // Singleton setup. DontDestroyOnLoad keeps the pool alive across scene loads
+        // so we don't lose all our pre-warmed objects when changing scenes.
         private void Awake()
         {
             if (Instance == null)
@@ -23,6 +25,9 @@ namespace _Scripts.Pooling
             }
         }
 
+        // Pulls an inactive instance out of the pool and reactivates it at the requested position/rotation.
+        // If the pool is empty, creates a brand new one and remembers which prefab it came from.
+        // This is way cheaper than Instantiate every time — pooling avoids garbage collection hitches.
         public GameObject Get(GameObject prefab, Vector3 position, Quaternion rotation)
         {
             if (!_pools.ContainsKey(prefab))
@@ -47,6 +52,8 @@ namespace _Scripts.Pooling
             return instance;
         }
 
+        // Sends an object back into the pool: disables it and queues it for reuse.
+        // If we can't find which prefab it came from, fall back to destroying it (and log a warning).
         public void Return(GameObject instance)
         {
             if (_instanceToPrefab.TryGetValue(instance, out GameObject prefab))
@@ -61,7 +68,9 @@ namespace _Scripts.Pooling
             }
         }
 
-        // Helper for auto-expansion if we want to pre-warm
+        // Pre-creates `count` copies of a prefab and stashes them disabled in the pool.
+        // Called at the start of the game so the first spawns don't cause a hitch
+        // — instantiating dozens of objects mid-gameplay would cause a frame drop.
         public void PreWarm(GameObject prefab, int count)
         {
             if (!_pools.ContainsKey(prefab))

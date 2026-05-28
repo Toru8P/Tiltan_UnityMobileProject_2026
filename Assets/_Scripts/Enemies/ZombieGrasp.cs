@@ -12,6 +12,9 @@ namespace _Scripts.Enemies
         public Transform[] thumbBones;
         public Vector3 thumbRotation = new Vector3(-20, 0, 0);
 
+        // LateUpdate runs AFTER the animator has set bone rotations.
+        // We forcibly override the finger and thumb bones to a curled "grabby" pose every frame,
+        // so the zombie's hands always look menacing regardless of which animation is playing.
         private void LateUpdate()
         {
             if (fingerBones != null)

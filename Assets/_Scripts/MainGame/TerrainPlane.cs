@@ -15,6 +15,7 @@ namespace _Scripts.MainGame
         
         public event System.Action OnPlayerEnter;
 
+        // Stores the tile's size and resolution. Called right after the TerrainPlane component is added.
         public void Setup(int width, int height, Vector3 localUp, int resolution = 10)
         {
             _width = width;
@@ -26,12 +27,14 @@ namespace _Scripts.MainGame
             _position = Vector3.zero;
         }
 
+        // Sets where this tile lives in world space.
         public void SetPosition(Vector3 position)
         {
             _position = position;
             transform.position = position;
         }
 
+        // Editor-only: draws the tile's outline and corners in the Scene view so you can verify size and placement.
         void OnDrawGizmosSelected()
         {
             Vector3 center = Center();
@@ -68,11 +71,14 @@ namespace _Scripts.MainGame
         }
 
 
+        // Returns the world-space center of this tile.
         public Vector3 Center()
         {
             return _position;
         }
 
+        // Adds a tall, invisible trigger box sitting on top of this tile.
+        // When the player enters it, the onPlayerEnter callback fires (used to detect tile crossings).
         public void CreatePlayerZone(float tall = 50f, Action onPlayerEnter = null)
         {
             if (_playerTrigger) return; // Already created
@@ -84,11 +90,17 @@ namespace _Scripts.MainGame
             this.OnPlayerEnter += () => onPlayerEnter?.Invoke();
         }
 
+        // Unity calls this automatically when something enters the trigger.
+        // If it's the player, fire the OnPlayerEnter event so the parent Terrain can update tiles.
         private void OnTriggerEnter(Collider other)
         {
             if (other.CompareTag("Player")) OnPlayerEnter?.Invoke();
         }
 
+        // Procedurally builds a flat rectangular mesh at runtime.
+        // Step 1: create a grid of vertices (resolution + 1 in each direction) with UVs.
+        // Step 2: connect them into triangles (two triangles per grid cell = a quad).
+        // Step 3: assign the mesh to a MeshFilter/MeshRenderer/MeshCollider, with a URP Lit material.
         public void CreateMesh()
         {
             int res = Mathf.Max(1, _resolution);

@@ -18,12 +18,14 @@ namespace _Scripts.UI
         private int _score;
         private int _lastDisplayedScore = -1;
 
+        // Resets the HUD state and subscribes to the difficulty change event so the difficulty label
+        // updates whenever the difficulty changes (instead of polling for it).
         private void Start()
         {
             _survivalTime = 0f;
             _score = 0;
             _lastDisplayedScore = -1;
-            
+
             if (DifficultyManager.Instance != null)
             {
                 DifficultyManager.Instance.OnDifficultyChanged.AddListener(UpdateDifficultyUI);
@@ -36,6 +38,7 @@ namespace _Scripts.UI
             UpdateHUD();
         }
 
+        // Unsubscribe from the event when the HUD is destroyed — keeps the event clean and avoids null callbacks.
         private void OnDestroy()
         {
             if (DifficultyManager.Instance != null)
@@ -47,6 +50,9 @@ namespace _Scripts.UI
         private float _updateTimer = 0f;
         private float _updateInterval = 0.1f;
 
+        // Throttled update — runs the HUD refresh only 10x per second (not every frame).
+        // UI text doesn't need to update at 60Hz, and skipping work saves performance.
+        // Reads the survival time from the DifficultyManager and computes score = time * baseMultiplier * difficultyMultiplier.
         private void Update()
         {
             _updateTimer += Time.deltaTime;
@@ -69,6 +75,9 @@ namespace _Scripts.UI
             UpdateHUD();
         }
 
+        // Writes the timer and score to the UI text fields.
+        // Score is rounded to the nearest 100 to stop the digits from flickering every frame,
+        // and we only update the text string when the rounded value actually changed (small allocation win).
         private void UpdateHUD()
         {
             if (timeText != null)
@@ -85,6 +94,8 @@ namespace _Scripts.UI
             }
         }
 
+        // Event handler — fires when DifficultyManager broadcasts a difficulty change.
+        // Updates the on-screen difficulty label name and color to match the new tier (e.g., red for "Hard").
         private void UpdateDifficultyUI(DifficultySettings settings)
         {
             if (difficultyText != null && settings != null)
@@ -94,6 +105,7 @@ namespace _Scripts.UI
             }
         }
 
+        // Converts a raw second count into a "MM:SS" formatted string for the timer display.
         private string FormatTime(float time)
         {
             int minutes = Mathf.FloorToInt(time / 60f);
