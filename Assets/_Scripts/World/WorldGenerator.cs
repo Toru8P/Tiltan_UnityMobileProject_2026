@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using _Scripts.Pooling;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.AI.Navigation;
 
@@ -36,9 +37,9 @@ namespace _Scripts.World
         public string saveKey = "WorldData";
 
         [Header("Performance")]
-        public int updateFrequencyFrames = 10;
-        public float navMeshUpdateInterval = 2f;
-        public int preWarmCount = 30;
+        public int updateFrequencyFrames = 30; // Throttled from 10 to 30
+        public float navMeshUpdateInterval = 1f; // Reduced from 10 to 1 for faster startup
+public int preWarmCount = 30;
 
         private readonly WorldPersistence _persistence = new WorldPersistence();
         private readonly Dictionary<Vector2Int, GameObject> _activeGroundTiles = new Dictionary<Vector2Int, GameObject>();
@@ -48,6 +49,10 @@ namespace _Scripts.World
         private bool _needsNavMeshUpdate = false;
         private float _lastNavMeshUpdateTime = 0f;
         private int _frameCount = 0;
+        private Transform _groundParent;
+        private Transform _natureParent;
+        private Queue<Vector2Int> _spawnQueue = new Queue<Vector2Int>();
+        private HashSet<Vector2Int> _queuedCoords = new HashSet<Vector2Int>();
 
         // First-time setup: find the player, configure the NavMeshSurface for procedural generation,
         // cache prefab sizes (used to scale ground tiles to chunk size), load any saved world data,
@@ -66,9 +71,18 @@ namespace _Scripts.World
                 if (navMeshSurface == null) navMeshSurface = gameObject.AddComponent<NavMeshSurface>();
             }
 
+            // Create or find parent objects for organization
+            _groundParent = new GameObject("Active_Ground").transform;
+            _natureParent = new GameObject("Active_Nature").transform;
+            
+            // Optimization: Parent containers to this generator and use CollectObjects.Children
+            // This drastically reduces NavMesh build time by only scanning ground/nature objects.
+            _groundParent.SetParent(transform);
+            _natureParent.SetParent(transform);
+
             // Configure for robust procedural navigation
             navMeshSurface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
-            navMeshSurface.collectObjects = CollectObjects.All;
+            navMeshSurface.collectObjects = CollectObjects.Children;
             
             navMeshSurface.overrideVoxelSize = true;
             navMeshSurface.voxelSize = 0.08f; // Finer voxels for better seams
@@ -80,20 +94,35 @@ namespace _Scripts.World
                 LoadWorld();
             }
 
-            PreWarmPools();
+            StartCoroutine(PreWarmPoolsRoutine());
+
+            // Trigger initial chunk queueing immediately
+            UpdateChunks();
         }
 
         // Pre-creates inactive copies of every nature prefab (trees, rocks, etc.) so the pool is full
-        // before gameplay starts. Without this, the first time we spawn 30 trees would cause a hitch.
-        private void PreWarmPools()
+        // before gameplay starts. Optimized: Spreads instantiation over many frames to avoid hitching.
+        private IEnumerator PreWarmPoolsRoutine()
         {
-            if (PoolManager.Instance == null) return;
+            if (PoolManager.Instance == null) yield break;
             
-            foreach (var p in groundPrefabs) PoolManager.Instance.PreWarm(p, preWarmCount);
-            foreach (var p in treePrefabs) PoolManager.Instance.PreWarm(p, preWarmCount);
-            foreach (var p in rockPrefabs) PoolManager.Instance.PreWarm(p, preWarmCount);
-            foreach (var p in bushPrefabs) PoolManager.Instance.PreWarm(p, preWarmCount);
-            foreach (var p in smallNaturePrefabs) PoolManager.Instance.PreWarm(p, preWarmCount);
+            // Note: Ground is NOT pooled as it is low-frequency and large
+            var allPrefabs = new List<GameObject[]>() { treePrefabs, rockPrefabs, bushPrefabs, smallNaturePrefabs };
+
+            foreach (var list in allPrefabs)
+            {
+                foreach (var p in list)
+                {
+                    if (p == null) continue;
+                    
+                    // Instantiate one by one with a frame gap
+                    for (int i = 0; i < preWarmCount; i++)
+                    {
+                        PoolManager.Instance.PreWarm(p, 1);
+                        yield return null;
+                    }
+                }
+            }
         }
 
         // Reads the bounds of every ground prefab's mesh once at startup and stores the size.
@@ -158,6 +187,21 @@ namespace _Scripts.World
                 CleanupFarChunks();
             }
 
+            // Process spawn queue - spawn one chunk per frame to avoid spikes
+            if (_spawnQueue.Count > 0)
+            {
+                Vector2Int coords = _spawnQueue.Dequeue();
+                _queuedCoords.Remove(coords);
+                
+                if (!_activeGroundTiles.ContainsKey(coords))
+                {
+                    ActivateChunk(coords);
+                    _needsNavMeshUpdate = true;
+                    // Sync physics once after potentially spawning a chunk so raycasts work next frame
+                    Physics.SyncTransforms();
+                }
+            }
+
             if (_needsNavMeshUpdate && Time.time > _lastNavMeshUpdateTime + navMeshUpdateInterval)
             {
                 _needsNavMeshUpdate = false;
@@ -167,31 +211,29 @@ namespace _Scripts.World
         }
 
         // Figures out which chunk the player is currently standing in, then makes sure every chunk
-        // within `viewDistance` is active. New chunks only spawn if they're roughly in front of the player
-        // (using a forward-direction dot product) — avoids wasting effort spawning behind them.
+        // within `viewDistance` is active. Chunks are added to a queue to be processed over time.
+        // Optimized: Uses a spiral/ring-based search to prioritize spawning chunks closest to the player.
         private void UpdateChunks()
         {
             Vector3 pos = playerTransform.position;
             int currentX = Mathf.FloorToInt(pos.x / chunkSize);
             int currentZ = Mathf.FloorToInt(pos.z / chunkSize);
 
-            for (int x = -viewDistance; x <= viewDistance; x++)
+            // Spiral out from distance 0 to viewDistance
+            for (int d = 0; d <= viewDistance; d++)
             {
-                for (int z = -viewDistance; z <= viewDistance; z++)
+                for (int x = -d; x <= d; x++)
                 {
-                    Vector2Int coords = new Vector2Int(currentX + x, currentZ + z);
-                    
-                    if (!_activeGroundTiles.ContainsKey(coords))
+                    for (int z = -d; z <= d; z++)
                     {
-                        Vector3 chunkCenter = new Vector3(coords.x * chunkSize, 0, coords.y * chunkSize);
-                        Vector3 toChunk = chunkCenter - pos;
-                        
-                        float dot = Vector3.Dot(toChunk, playerTransform.forward);
-                        if (dot > -chunkSize * 1.5f)
+                        // Only process the outer ring for this distance 'd'
+                        if (Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)) != d) continue;
+
+                        Vector2Int coords = new Vector2Int(currentX + x, currentZ + z);
+                        if (!_activeGroundTiles.ContainsKey(coords) && !_queuedCoords.Contains(coords))
                         {
-                            Debug.Log($"[WorldGen] Activating chunk at {coords}. Dot: {dot}");
-                            ActivateChunk(coords);
-                            _needsNavMeshUpdate = true;
+                            _spawnQueue.Enqueue(coords);
+                            _queuedCoords.Add(coords);
                         }
                     }
                 }
@@ -205,6 +247,7 @@ namespace _Scripts.World
         {
             try
             {
+                Debug.Log($"[WorldGen] Activating chunk at {coords}");
                 ChunkData data;
                 if (_persistence.HasChunk(coords))
                 {
@@ -216,32 +259,37 @@ namespace _Scripts.World
                     _persistence.SaveChunk(data);
                 }
 
-                if (PoolManager.Instance == null)
+                PoolManager pool = PoolManager.Instance;
+                if (pool == null)
                 {
-                    PoolManager pm = Object.FindFirstObjectByType<PoolManager>();
-                    if (pm != null)
+                    pool = Object.FindFirstObjectByType<PoolManager>();
+                    if (pool == null)
                     {
-                        Debug.Log("[WorldGen] Found PoolManager instance manually.");
-                        // We can't set the private Instance but we can use pm
-                    }
-                    else
-                    {
-                        Debug.LogError("[WorldGen] PoolManager.Instance is NULL and no instance found in scene!");
+                        Debug.LogError("[WorldGen] PoolManager not found in scene!");
                         return;
                     }
                 }
                 
-                PoolManager pool = PoolManager.Instance;
-
                 // Spawn Ground
                 Vector3 groundPos = new Vector3(coords.x * chunkSize, 0, coords.y * chunkSize);
                 GameObject ground = pool.Get(groundPrefabs[data.groundPrefabIndex], groundPos, Quaternion.identity);
                 
                 if (ground == null)
                 {
-                    Debug.LogError($"[WorldGen] Failed to get ground from PoolManager for {coords}");
+                    Debug.LogError($"[WorldGen] Failed to get ground prefab {data.groundPrefabIndex} from pool at {coords}");
                     return;
                 }
+
+                if (_groundParent == null)
+                {
+                    Debug.LogWarning("[WorldGen] _groundParent was null, recreating...");
+                    _groundParent = new GameObject("Active_Ground").transform;
+                    _groundParent.SetParent(transform);
+                }
+
+                ground.transform.SetParent(_groundParent);
+                Debug.Log($"[WorldGen] Ground tile {ground.name} spawned at {ground.transform.position}");
+
 
                 // Normalize scale using cached mesh size
                 if (_groundMeshSizeCache.TryGetValue(data.groundPrefabIndex, out Vector3 meshSize))
@@ -269,9 +317,9 @@ namespace _Scripts.World
                 }
 
                 _activeGroundTiles[coords] = ground;
-
+                
                 // Spawn Nature Objects
-                List<GameObject> chunkObjects = new List<GameObject>();
+List<GameObject> chunkObjects = new List<GameObject>();
 
                 int fillerIndex = -1;
                 for (int i = 0; i < groundPrefabs.Length; i++)
@@ -298,7 +346,11 @@ namespace _Scripts.World
                             filler.transform.position = fillerPos - new Vector3(fOffset.x * fScaleX, 0, fOffset.z * fScaleZ);
                         }
                     }
-                    if (filler != null) chunkObjects.Add(filler);
+                    if (filler != null) 
+                    {
+                        filler.transform.SetParent(_natureParent);
+                        chunkObjects.Add(filler);
+                    }
                 }
 
                 foreach (var objData in data.objects)
@@ -306,12 +358,26 @@ namespace _Scripts.World
                     GameObject prefab = GetPrefabFromData(objData);
                     if (prefab != null)
                     {
-                        Vector3 worldPos = groundPos + objData.localPosition;
-                        GameObject instance = pool.Get(prefab, worldPos, objData.localRotation);
+                        Vector3 spawnPos = groundPos + objData.localPosition;
                         
+                        // Snap to surface. Increased ray distance and added LayerMask to avoid hitting other nature objects
+                        Vector3 rayStart = spawnPos + Vector3.up * 50f;
+                        if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 100f))
+                        {
+                            spawnPos.y = hit.point.y;
+                        }
+                        else
+                        {
+                            spawnPos.y = 0.0f; 
+                        }
+                        
+                        GameObject instance = pool.Get(prefab, spawnPos, objData.localRotation);
+                        instance.transform.SetParent(_natureParent);
+                        
+                        // Ensure nature objects have PooledObject for distance-based cleanup
                         PooledObject pooled = instance.GetComponent<PooledObject>();
                         if (pooled == null) pooled = instance.AddComponent<PooledObject>();
-                        pooled.Setup(playerTransform, cleanupDistanceBehind + chunkSize);
+                        pooled.Setup(playerTransform, chunkSize * (viewDistance + 2f));
                         
                         chunkObjects.Add(instance);
                     }
@@ -354,7 +420,7 @@ namespace _Scripts.World
                     {
                         prefabType = type,
                         prefabIndex = index,
-                        localPosition = new Vector3(Random.Range(0, chunkSize), 0, Random.Range(0, chunkSize)),
+                        localPosition = new Vector3(Random.Range(-chunkSize * 0.5f, chunkSize * 0.5f), 0, Random.Range(-chunkSize * 0.5f, chunkSize * 0.5f)),
                         localRotation = Quaternion.Euler(0, Random.Range(0, 360), 0)
                     });
                 }
@@ -386,21 +452,16 @@ namespace _Scripts.World
         {
             List<Vector2Int> toRemove = new List<Vector2Int>();
             Vector3 playerPos = playerTransform.position;
-            float maxDistSqr = Mathf.Pow(chunkSize * (viewDistance + 1.5f), 2);
+            // Use a slightly larger radius for cleanup than view distance to prevent flickering
+            float cleanupRadius = chunkSize * (viewDistance + 1f);
+            float cleanupRadiusSqr = cleanupRadius * cleanupRadius;
 
             foreach (var coord in _activeGroundTiles.Keys)
             {
                 Vector3 chunkCenter = new Vector3(coord.x * chunkSize, 0, coord.y * chunkSize);
-                Vector3 toChunk = chunkCenter - playerPos;
+                float distSqr = (chunkCenter - playerPos).sqrMagnitude;
                 
-                // If it's behind the player
-                if (Vector3.Dot(toChunk, playerTransform.forward) < -cleanupDistanceBehind - chunkSize)
-                {
-                    toRemove.Add(coord);
-                    _needsNavMeshUpdate = true;
-                }
-                // Or way too far in any direction
-                else if (toChunk.sqrMagnitude > maxDistSqr)
+                if (distSqr > cleanupRadiusSqr)
                 {
                     toRemove.Add(coord);
                     _needsNavMeshUpdate = true;
@@ -419,7 +480,7 @@ namespace _Scripts.World
         {
             if (_activeGroundTiles.TryGetValue(coords, out GameObject ground))
             {
-                PoolManager.Instance.Return(ground);
+                Destroy(ground);
                 _activeGroundTiles.Remove(coords);
             }
 

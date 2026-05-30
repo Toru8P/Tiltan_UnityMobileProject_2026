@@ -11,16 +11,20 @@ namespace _Scripts.Enemies
 
         [Header("References")]
         [SerializeField] private Transform playerTransform;
-        [SerializeField] private float spawnRadius = 20f;
+        [SerializeField] private float spawnDistance = 25f;
+        [SerializeField] private float sideVariance = 15f;
         
+        private Transform _enemyParent;
         private DifficultySettings _currentSettings;
         private Coroutine _spawnCoroutine;
         private List<GameObject> _activeEnemies = new List<GameObject>();
+        private HashSet<GameObject> _preWarmedPrefabs = new HashSet<GameObject>();
 
         // Singleton setup so other scripts (like ZombieController) can find the spawner easily.
         private void Awake()
         {
             if (Instance == null) Instance = this;
+            _enemyParent = new GameObject("Active_Enemies").transform;
         }
 
         // Subscribes to difficulty change events. When difficulty updates, restart the spawn loop with the new settings.
@@ -48,12 +52,41 @@ namespace _Scripts.Enemies
 
         // Difficulty just changed. Save the new settings, stop the old spawn coroutine,
         // and start a fresh one with the new spawn interval and enemy mix.
+        // Also pre-warms the pools for any NEW enemy types introduced by this difficulty.
         private void HandleDifficultyChanged(DifficultySettings newSettings)
         {
             _currentSettings = newSettings;
             
+            StartCoroutine(PreWarmDifficultyEnemiesRoutine(newSettings));
+
             if (_spawnCoroutine != null) StopCoroutine(_spawnCoroutine);
             _spawnCoroutine = StartCoroutine(SpawnRoutine());
+        }
+
+        // Ensures that all enemy types for the current difficulty are loaded into the pool.
+        // This prevents "Instantiate" hits during gameplay when a new enemy type appears.
+        // Optimized to spread instantiation over multiple frames to avoid hitching.
+        private IEnumerator PreWarmDifficultyEnemiesRoutine(DifficultySettings settings)
+        {
+            if (Pooling.PoolManager.Instance == null || settings.enemyTypeDistribution == null) yield break;
+
+            foreach (var distribution in settings.enemyTypeDistribution)
+            {
+                if (distribution.prefab != null && !_preWarmedPrefabs.Contains(distribution.prefab))
+                {
+                    // Pre-warm a reasonable amount (e.g., half the max capacity per type)
+                    int count = settings.maxActiveEnemies / Mathf.Max(1, settings.enemyTypeDistribution.Length);
+                    
+                    // Instantiate one by one with a frame gap
+                    for (int i = 0; i < count; i++)
+                    {
+                        Pooling.PoolManager.Instance.PreWarm(distribution.prefab, 1);
+                        yield return null; // Wait for next frame
+                    }
+                    
+                    _preWarmedPrefabs.Add(distribution.prefab);
+                }
+            }
         }
 
         // Infinite spawn loop (runs as a coroutine so we can yield/wait without blocking).
@@ -90,31 +123,46 @@ namespace _Scripts.Enemies
                 _activeEnemies.Add(enemy);
         }
 
-        // Called by an enemy when it dies, so the spawner knows there's room for more.
+        // Called by an enemy when it dies or is cleaned up, so the spawner knows there's room for more.
         public void UnregisterEnemy(GameObject enemy)
         {
             _activeEnemies.Remove(enemy);
         }
 
-        // Picks a random enemy prefab (weighted by difficulty settings) and a random position on a circle around the player.
+        // Picks a random enemy prefab (weighted by difficulty settings) and a position AHEAD of the player.
+        // Requirement: "Spawn area: around +5 units (or more) ahead of player world position"
         // Pulls the enemy from the object pool if possible (cheap), otherwise instantiates a new one.
         private void SpawnEnemy()
         {
             GameObject prefab = GetWeightedRandomPrefab();
             if (prefab == null) return;
 
-            Vector2 randomCircle = Random.insideUnitCircle.normalized * spawnRadius;
-            Vector3 spawnPos = playerTransform.position + new Vector3(randomCircle.x, 0, randomCircle.y);
+            // Calculate spawn position ahead of the player
+            // Using player forward + some random side variance to keep them outside the immediate screen view but ahead.
+            Vector3 spawnPos = playerTransform.position + (playerTransform.forward * spawnDistance) + (playerTransform.right * Random.Range(-sideVariance, sideVariance));
+            
+            // Snap to NavMesh to ensure they can move
+            if (UnityEngine.AI.NavMesh.SamplePosition(spawnPos, out UnityEngine.AI.NavMeshHit hit, 10f, UnityEngine.AI.NavMesh.AllAreas))
+            {
+                spawnPos = hit.position;
+            }
 
             GameObject enemy;
             if (Pooling.PoolManager.Instance != null)
             {
-                enemy = Pooling.PoolManager.Instance.Get(prefab, spawnPos, Quaternion.identity);
+                enemy = Pooling.PoolManager.Instance.Get(prefab, spawnPos, Quaternion.LookRotation(-playerTransform.forward));
             }
             else
             {
-                enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
+                enemy = Instantiate(prefab, spawnPos, Quaternion.LookRotation(-playerTransform.forward));
             }
+
+            enemy.transform.SetParent(_enemyParent);
+            
+            // Add or configure PooledObject for distance-based cleanup (+10 units behind player)
+            Pooling.PooledObject pooled = enemy.GetComponent<Pooling.PooledObject>();
+            if (pooled == null) pooled = enemy.AddComponent<Pooling.PooledObject>();
+            pooled.Setup(playerTransform, spawnDistance * 1.5f); // Use a buffer for general distance, PooledObject now handles the "behind" logic.
 
             RegisterEnemy(enemy);
         }

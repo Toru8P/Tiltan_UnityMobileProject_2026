@@ -38,6 +38,12 @@ namespace _Scripts.Enemies
         public float attackDuration = 1.2f;
 
         private float wanderTimer = 0f;
+        private float _pathUpdateTimer = 0f;
+        private const float PathUpdateInterval = 0.5f; // Update path twice a second
+        private Collider[] _cachedColliders;
+        private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
+        private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
+        private static readonly int AttackTriggerHash = Animator.StringToHash("ZombieAttack");
 
         // Called whenever the difficulty changes. Rescales this zombie's stats based on the new multipliers.
         // We preserve the current health *percentage* (so a half-dead zombie stays half-dead after rescaling),
@@ -80,6 +86,7 @@ namespace _Scripts.Enemies
             }
         
             if (!animator) animator = GetComponentInChildren<Animator>();
+            _cachedColliders = GetComponentsInChildren<Collider>();
         
             FindPlayer();
         
@@ -115,6 +122,16 @@ namespace _Scripts.Enemies
             ResetState();
         }
 
+        // When the object is disabled (returned to pool), make sure to unregister it from the spawner
+        // so the spawner knows it can spawn more. This covers both death and distance-based cleanup.
+        void OnDisable()
+        {
+            if (EnemySpawner.Instance != null)
+            {
+                EnemySpawner.Instance.UnregisterEnemy(gameObject);
+            }
+        }
+
         // Resets every variable to its starting value so a pooled zombie behaves like a brand-new one.
         // Important: pooled objects do NOT re-run Start(), so we need this manual reset.
         public void ResetState()
@@ -125,11 +142,12 @@ namespace _Scripts.Enemies
             isAttacking = false;
             attackTimer = 0f;
             wanderTimer = 0f;
+            _pathUpdateTimer = 0f;
 
-            if (animator)
+            if (animator != null)
             {
-                animator.SetBool("IsDead", false);
-                animator.SetBool("IsWalking", false);
+                // Using Rebind is the most reliable way to reset the animator state machine for pooling.
+                // Since we now spawn enemies over multiple frames, the one-time cost is acceptable.
                 animator.Rebind();
                 animator.Update(0);
             }
@@ -154,8 +172,8 @@ namespace _Scripts.Enemies
         {
             if (agent) agent.enabled = true;
         
-            Collider[] colliders = GetComponentsInChildren<Collider>();
-            foreach (Collider col in colliders) col.enabled = true;
+            if (_cachedColliders == null) _cachedColliders = GetComponentsInChildren<Collider>();
+            foreach (Collider col in _cachedColliders) col.enabled = true;
         
             if (agent && agent.isActiveAndEnabled && !agent.isOnNavMesh)
             {
@@ -210,7 +228,7 @@ namespace _Scripts.Enemies
         // If the player gets close enough, switch straight to chasing.
         void IdleUpdate()
         {
-            if (animator) animator.SetBool("IsWalking", false);
+            if (animator) animator.SetBool(IsWalkingHash, false);
             if (PlayerInRange(detectionRange))
             {
                 state = ZombieState.Chase;
@@ -228,7 +246,7 @@ namespace _Scripts.Enemies
         // Once we arrive, go back to Idle. If the player shows up nearby, abandon wandering and start chasing.
         void WanderUpdate()
         {
-            if (animator) animator.SetBool("IsWalking", true);
+            if (animator) animator.SetBool(IsWalkingHash, true);
             if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh)
             {
                 if (!agent.hasPath && !agent.pathPending)
@@ -241,18 +259,23 @@ namespace _Scripts.Enemies
             if (PlayerInRange(detectionRange)) state = ZombieState.Chase;
         }
 
-        // CHASE STATE: walk toward the player using NavMesh pathfinding.
-        // Switch to Attack if we're in melee range. If the player runs way out of range, give up and go back to Idle.
+        // Optimization: Throttle SetDestination to reduce CPU usage.
         private void ChaseUpdate()
         {
             if (animator) 
-                animator.SetBool("IsWalking", true);
+                animator.SetBool(IsWalkingHash, true);
             
             if (!player) 
             { state = ZombieState.Idle; return; }
             
-            if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh) 
-                agent.SetDestination(player.position);
+            _pathUpdateTimer += Time.deltaTime;
+            if (_pathUpdateTimer >= PathUpdateInterval)
+            {
+                _pathUpdateTimer = 0f;
+                if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh) 
+                    agent.SetDestination(player.position);
+            }
+
             float dist = DistanceToPlayer();
             
             if (dist <= attackRange)
@@ -297,8 +320,8 @@ namespace _Scripts.Enemies
 
             if (animator)
             {
-                animator.SetBool("IsWalking", false);
-                animator.SetTrigger("ZombieAttack");
+                animator.SetBool(IsWalkingHash, false);
+                animator.SetTrigger(AttackTriggerHash);
             }
 
             // Stop movement during attack
@@ -334,14 +357,14 @@ namespace _Scripts.Enemies
             if (isDead) return;
             isDead = true;
             state = ZombieState.Dead;
-            if (animator) animator.SetBool("IsDead", true);
+            if (animator) animator.SetBool(IsDeadHash, true);
             if (agent != null)
             {
                 if (agent.isOnNavMesh) agent.isStopped = true;
                 agent.enabled = false;
             }
-            Collider[] colliders = GetComponentsInChildren<Collider>();
-            foreach (Collider col in colliders) col.enabled = false;
+            if (_cachedColliders == null) _cachedColliders = GetComponentsInChildren<Collider>();
+            foreach (Collider col in _cachedColliders) col.enabled = false;
             Rigidbody rb = GetComponent<Rigidbody>();
             if (rb != null)
             {

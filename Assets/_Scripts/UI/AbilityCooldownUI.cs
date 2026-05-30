@@ -14,18 +14,9 @@ namespace _Scripts.UI
         [SerializeField] private GameObject labelObject;
         
         private PlayerMovementController _playerController;
+        private float _lastDisplayedCooldown = -1f;
 
-        // Finds the player movement controller in the scene and auto-resolves any UI references
-        // (countdown text, radial fill image, label) that weren't manually assigned in the Inspector.
-        private void Start()
-        {
-            _playerController = Object.FindAnyObjectByType<PlayerMovementController>();
-
-            // Auto-find references if they are missing
-            if (cooldownText == null) cooldownText = GetComponentInChildren<TextMeshProUGUI>();
-            if (fillImage == null) fillImage = transform.Find("CooldownFill")?.GetComponent<UnityEngine.UI.Image>();
-            if (labelObject == null) labelObject = transform.Find("Label")?.gameObject;
-        }
+        // ...
 
         // Every frame, read the current cooldown for the selected ability (Roll or Attack) from the player.
         // While on cooldown: show the countdown number and shrink the radial fill image.
@@ -55,7 +46,13 @@ namespace _Scripts.UI
                 if (cooldownText != null)
                 {
                     cooldownText.gameObject.SetActive(true);
-                    cooldownText.text = currentCooldown.ToString("F1");
+                    
+                    // Only update text if the value changed significantly (0.1s steps) to save GC
+                    if (Mathf.Abs(currentCooldown - _lastDisplayedCooldown) > 0.05f)
+                    {
+                        cooldownText.text = currentCooldown.ToString("F1");
+                        _lastDisplayedCooldown = currentCooldown;
+                    }
                 }
                 
                 if (fillImage != null && maxCooldown > 0)
@@ -71,6 +68,7 @@ namespace _Scripts.UI
                 if (cooldownText != null) cooldownText.gameObject.SetActive(false);
                 if (fillImage != null) fillImage.gameObject.SetActive(false);
                 if (labelObject != null) labelObject.SetActive(true);
+                _lastDisplayedCooldown = -1f;
             }
         }
     }

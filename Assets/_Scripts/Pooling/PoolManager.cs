@@ -8,6 +8,7 @@ namespace _Scripts.Pooling
         public static PoolManager Instance { get; private set; }
 
         private Dictionary<GameObject, Queue<GameObject>> _pools = new Dictionary<GameObject, Queue<GameObject>>();
+        private Dictionary<GameObject, HashSet<GameObject>> _inPoolCheck = new Dictionary<GameObject, HashSet<GameObject>>();
         private Dictionary<GameObject, GameObject> _instanceToPrefab = new Dictionary<GameObject, GameObject>();
 
         // Singleton setup. DontDestroyOnLoad keeps the pool alive across scene loads
@@ -17,9 +18,13 @@ namespace _Scripts.Pooling
             if (Instance == null)
             {
                 Instance = this;
+                if (transform.parent != null)
+                {
+                    transform.SetParent(null);
+                }
                 DontDestroyOnLoad(gameObject);
             }
-            else
+            else if (Instance != this)
             {
                 Destroy(gameObject);
             }
@@ -33,12 +38,15 @@ namespace _Scripts.Pooling
             if (!_pools.ContainsKey(prefab))
             {
                 _pools[prefab] = new Queue<GameObject>();
+                _inPoolCheck[prefab] = new HashSet<GameObject>();
             }
 
             GameObject instance;
             if (_pools[prefab].Count > 0)
             {
                 instance = _pools[prefab].Dequeue();
+                _inPoolCheck[prefab].Remove(instance);
+                
                 instance.transform.position = position;
                 instance.transform.rotation = rotation;
                 instance.SetActive(true);
@@ -54,12 +62,26 @@ namespace _Scripts.Pooling
 
         // Sends an object back into the pool: disables it and queues it for reuse.
         // If we can't find which prefab it came from, fall back to destroying it (and log a warning).
+        // Optimized: Using a HashSet for O(1) membership check to prevent double-queueing.
         public void Return(GameObject instance)
         {
+            if (instance == null) return;
+
             if (_instanceToPrefab.TryGetValue(instance, out GameObject prefab))
             {
-                instance.SetActive(false);
-                _pools[prefab].Enqueue(instance);
+                if (!_pools.ContainsKey(prefab))
+                {
+                    _pools[prefab] = new Queue<GameObject>();
+                    _inPoolCheck[prefab] = new HashSet<GameObject>();
+                }
+                
+                if (!_inPoolCheck[prefab].Contains(instance))
+                {
+                    instance.SetActive(false);
+                    instance.transform.SetParent(transform);
+                    _pools[prefab].Enqueue(instance);
+                    _inPoolCheck[prefab].Add(instance);
+                }
             }
             else
             {
@@ -76,13 +98,16 @@ namespace _Scripts.Pooling
             if (!_pools.ContainsKey(prefab))
             {
                 _pools[prefab] = new Queue<GameObject>();
+                _inPoolCheck[prefab] = new HashSet<GameObject>();
             }
 
             for (int i = 0; i < count; i++)
             {
                 GameObject instance = Instantiate(prefab);
                 instance.SetActive(false);
+                instance.transform.SetParent(transform);
                 _pools[prefab].Enqueue(instance);
+                _inPoolCheck[prefab].Add(instance);
                 _instanceToPrefab[instance] = prefab;
             }
         }

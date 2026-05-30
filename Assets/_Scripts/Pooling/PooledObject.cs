@@ -30,9 +30,12 @@ namespace _Scripts.Pooling
             if (_frameCount % checkFrequency != 0) return;
 
             Vector3 toObject = transform.position - _playerTransform.position;
-            float distanceAlongForward = Vector3.Dot(toObject, _playerTransform.forward);
+            float distAhead = Vector3.Dot(toObject, _playerTransform.forward);
 
-            if (distanceAlongForward < -_cleanupDistance)
+            // Requirement: "Return/deactivation area: around +10 units behind player world position"
+            // If distAhead is -10 or less, it's 10+ units behind.
+            // Also keep a general far-away check for side/front objects.
+            if (distAhead < -10f || toObject.sqrMagnitude > _cleanupDistance * _cleanupDistance)
             {
                 ReturnToPool();
             }
