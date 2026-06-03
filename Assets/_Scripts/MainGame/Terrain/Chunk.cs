@@ -1,10 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
+using _Scripts.MainGame.Pool;
 using UnityEngine;
 
-namespace _Scripts.MainGame
+namespace _Scripts.MainGame.Terrain
 {
-    public class TerrainPlane : MonoBehaviour
+    public class Chunk : MonoBehaviour
     {
+        public List<ObjectData> objects = new List<ObjectData>();
+        private Dictionary<ObjectData, GameObject> _activeObjects = new Dictionary<ObjectData, GameObject>();
+        
+        private NoiseSettings _noiseSettings = NoiseSettings.Default;
+        
         private Vector3 _position;
         private int _width;
         private int _height;
@@ -12,11 +19,12 @@ namespace _Scripts.MainGame
         private int _resolution;
         
         private BoxCollider _playerTrigger;
+        private MeshCollider _meshCollider;
         
         public event System.Action OnPlayerEnter;
 
-        // Stores the tile's size and resolution. Called right after the TerrainPlane component is added.
-        public void Setup(int width, int height, Vector3 localUp, int resolution = 10)
+        // Stores the tile's size and resolution. Called right after the Chunk component is added.
+        public void Setup(NoiseSettings noiseSettings, int width, int height, Vector3 localUp, int resolution = 10)
         {
             _width = width;
             _height = height;
@@ -24,7 +32,36 @@ namespace _Scripts.MainGame
 
             _resolution = resolution;
             
+            _noiseSettings = noiseSettings;
+            
             _position = Vector3.zero;
+        }
+
+        public void Fill(ObjectPool pool)
+        {
+            foreach (ObjectData objectData in objects)
+            {
+                GameObject instance = pool.Get(objectData.prefab);
+                instance.transform.SetParent(this.transform);
+                instance.transform.localPosition = objectData.localPosition;
+                instance.transform.localRotation = objectData.localRotation;
+                instance.SetActive(true);
+                _activeObjects[objectData] = instance;
+            }
+        }
+
+        public void Unfill(ObjectPool pool)
+        {
+            foreach (KeyValuePair<ObjectData, GameObject> keyValuePair in _activeObjects)
+            {
+                pool.Return(keyValuePair.Value);
+            }
+            _activeObjects.Clear();
+        }
+
+        public void AddObjectData(ObjectData objectData)
+        {
+            objects.Add(objectData);
         }
 
         // Sets where this tile lives in world space.
@@ -127,7 +164,12 @@ namespace _Scripts.MainGame
                     int idx = z * vertsX + x;
                     float vx = -halfW + x * stepX;
                     float vz = -halfH + z * stepZ;
-                    vertices[idx] = new Vector3(vx, 0f, vz);
+                    
+                    float worldX = transform.position.x + vx;
+                    float worldZ = transform.position.z + vz;
+                    float y = NoiseGenerator.SampleHeight(worldX, worldZ, _noiseSettings);
+
+                    vertices[idx] = new Vector3(vx, y, vz);
                     uvs[idx] = new Vector2((float)x / res, (float)z / res);
                 }
             }
@@ -174,11 +216,20 @@ namespace _Scripts.MainGame
             
             MeshCollider mc = gameObject.AddComponent<MeshCollider>();
             mc.sharedMesh = mesh;
-            
+            _meshCollider = mc;
         }
 
         public Vector3 Position => _position;
         public int Width => _width;
         public int Height => _height;
+        public MeshCollider MeshCollider => _meshCollider;
+    }
+    
+    [Serializable]
+    public class ObjectData
+    {
+        public GameObject prefab;
+        public Vector3 localPosition;
+        public Quaternion localRotation;
     }
 }
