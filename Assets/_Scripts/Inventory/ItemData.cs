@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public enum ItemCategory { Resource, Food, Tool, Weapon, Armor }
+public enum ItemCategory { Resource, Food, Tool, Weapon, Armor, Potion, Consumable }
 
 [CreateAssetMenu(fileName = "NewItem", menuName = "Survival/Item")]
 public class ItemData : ScriptableObject
@@ -13,4 +13,6 @@ public class ItemData : ScriptableObject
     public int maxStackSize = 100;
     public bool isConsumable;
     public int hungerRestore;
+    public GameObject heldPrefab;
+    public Vector3 holdRotation;
 }

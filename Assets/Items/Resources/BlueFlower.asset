@@ -10,15 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
-  m_Name: Apple
+  m_Name: BlueFlower
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemId: Apple
-  displayName: Apple
-  description: An apple that was cut down from a tree
-  icon: {fileID: 21300000, guid: 72de03231a6bb1548851d3c35465cecb, type: 3}
-  category: 1
+  itemId: BlueFlower
+  displayName: Blue Flower
+  description: A beautiful flower. Can be used to make flax
+  icon: {fileID: 0}
+  category: 0
   maxStackSize: 100
-  isConsumable: 1
-  hungerRestore: 3
-  heldPrefab: {fileID: 4940626800380959196, guid: 2e83e0d2def586942bef8529eb0825d6, type: 3}
-  holdRotation: {x: 0, y: 0, z: 0}
+  isConsumable: 0
+  hungerRestore: 0

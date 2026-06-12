@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
+  m_Name: RoughHammer
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemId: RoughHammer
+  displayName: Rough Hammer
+  description: A simple hammer. Can be used to increase damage
+  icon: {fileID: 21300000, guid: 0d63ea012df00f140aca253680017540, type: 3}
+  category: 2
+  maxStackSize: 1
+  isConsumable: 0
+  hungerRestore: 0
+  heldPrefab: {fileID: 9061450581189290187, guid: cf4b854bc77fb08439e13dea4f94c6ea, type: 3}
+  holdRotation: {x: 0, y: 90, z: 0}
