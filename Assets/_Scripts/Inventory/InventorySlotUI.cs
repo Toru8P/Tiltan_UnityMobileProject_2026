@@ -4,24 +4,78 @@ using TMPro;
 
 public class InventorySlotUI : MonoBehaviour
 {
-    public Image iconImage;
+    [Header("Slot References")]
+    public Image slotBackground;
+    public Image itemIcon;
     public TextMeshProUGUI quantityText;
-    private int slotIndex;
+    public Image categoryDot;
+    public Image selectionBorder;
 
-    public void Init(int index) => slotIndex = index;
+    [Header("Slot Colors")]
+    public Color emptySlotColor = new Color(0.133f, 0.121f, 0.101f, 1f); // #221F1A
+    public Color filledSlotColor = new Color(0.180f, 0.164f, 0.133f, 1f); // #2E2A22
+    public Color selectedSlotColor = new Color(0.207f, 0.180f, 0.125f, 1f); // #352E20
+
+    [Header("Category Dot Colors")]
+    public Color resourceColor = new Color(0.35f, 0.60f, 0.35f, 1f);
+    public Color foodColor = new Color(0.78f, 0.63f, 0.13f, 1f);
+    public Color toolColor = new Color(0.29f, 0.48f, 0.69f, 1f);
+    public Color weaponColor = new Color(0.75f, 0.31f, 0.25f, 1f);
+    public Color armorColor = new Color(0.50f, 0.47f, 0.87f, 1f);
+    public Color defaultColor = new Color(0.42f, 0.40f, 0.38f, 1f);
+
+    private int slotIndex;
+    private bool isSelected;
+
+    public void Init(int index)
+    {
+        slotIndex = index;
+        SetSelected(false);
+    }
 
     public void Refresh(InventorySlot slot)
     {
-        if (slot.IsEmpty)
+        bool hasItem = !slot.IsEmpty;
+
+        slotBackground.color = isSelected ? selectedSlotColor
+                             : hasItem ? filledSlotColor
+                                          : emptySlotColor;
+
+        itemIcon.enabled = hasItem;
+        categoryDot.enabled = hasItem;
+
+        if (!hasItem)
         {
-            iconImage.enabled = false;
             quantityText.text = "";
+            return;
         }
-        else
+
+        itemIcon.sprite = slot.item.icon;
+
+        bool stackable = slot.item.maxStackSize > 1;
+        quantityText.text = stackable ? slot.quantity.ToString() : "";
+
+        categoryDot.color = GetCategoryColor(slot.item.category);
+    }
+
+    public void SetSelected(bool selected)
+    {
+        isSelected = selected;
+
+        if (selectionBorder != null)
+            selectionBorder.enabled = selected;
+    }
+
+    private Color GetCategoryColor(ItemCategory category)
+    {
+        return category switch
         {
-            iconImage.sprite = slot.item.icon;
-            iconImage.enabled = slot.item.icon != null;
-            quantityText.text = slot.item.maxStackSize > 1 ? slot.quantity.ToString() : "";
-        }
+            ItemCategory.Resource => resourceColor,
+            ItemCategory.Food => foodColor,
+            ItemCategory.Tool => toolColor,
+            ItemCategory.Weapon => weaponColor,
+            ItemCategory.Armor => armorColor,
+            _ => defaultColor,
+        };
     }
 }

@@ -6,7 +6,7 @@ public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance { get; private set; }
 
-    [SerializeField] private int slotCount = 24;
+    [SerializeField] private int slotCount = 15;
     public List<InventorySlot> slots = new();
 
     public event Action<int> OnSlotChanged;

@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: food_apple
   displayName: Apple
   description: A fresh apple from the kitchen.
-  icon: {fileID: 21300000, guid: c74ee592ffa1f1941ab1d46fef4c2ddd, type: 3}
+  icon: {fileID: 21300000, guid: 72de03231a6bb1548851d3c35465cecb, type: 3}
   category: 1
   maxStackSize: 10
   isConsumable: 1
