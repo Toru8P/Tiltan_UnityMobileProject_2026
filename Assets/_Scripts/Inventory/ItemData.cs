@@ -14,5 +14,6 @@ public class ItemData : ScriptableObject
     public bool isConsumable;
     public int hungerRestore;
     public GameObject heldPrefab;
+    public Vector3 holdPosition;
     public Vector3 holdRotation;
 }

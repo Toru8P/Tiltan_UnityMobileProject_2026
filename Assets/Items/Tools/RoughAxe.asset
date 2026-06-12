@@ -21,4 +21,5 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   heldPrefab: {fileID: 6728992476826767089, guid: 08a0b1a44bebeef4dbb9a5d4ac4e5305, type: 3}
-  holdRotation: {x: 0, y: 90, z: 0}
+  holdPosition: {x: -0.12129429, y: -0.0020641405, z: -0.047723167}
+  holdRotation: {x: 358.22733, y: 169.07224, z: 4.565223}

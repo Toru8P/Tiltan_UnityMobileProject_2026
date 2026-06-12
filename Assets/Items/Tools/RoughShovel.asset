@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
-  m_Name: RoughHammer
+  m_Name: RoughShovel
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemId: RoughHammer
-  displayName: Rough Hammer
-  description: A simple hammer. Can be used to increase damage
-  icon: {fileID: 21300000, guid: 0d63ea012df00f140aca253680017540, type: 3}
+  itemId: RoughShovel
+  displayName: RoughShovel
+  description: A simple shovel. Can be used to harvest Clay from the ground
+  icon: {fileID: 21300000, guid: c4961014f767e8a4faaa63ecdba9a4eb, type: 3}
   category: 2
   maxStackSize: 1
   isConsumable: 0
   hungerRestore: 0
-  heldPrefab: {fileID: 310574568959611158, guid: 768daac6d87237d4ea61587a16ef41b7, type: 3}
-  holdPosition: {x: -0.11, y: -0.09, z: -0.094}
-  holdRotation: {x: 357.26056, y: 167.09903, z: 2.251998}
+  heldPrefab: {fileID: 3631743804569562876, guid: dd60299c4ee23d64db38d2cde51ff312, type: 3}
+  holdPosition: {x: 0, y: 0, z: 0}
+  holdRotation: {x: -0, y: 0, z: 0}
