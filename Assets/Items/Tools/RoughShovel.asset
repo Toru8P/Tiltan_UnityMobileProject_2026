@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
   m_Name: RoughShovel
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemId: RoughShovel
-  displayName: RoughShovel
+  itemId: Rough Shovel
+  displayName: Rough Shovel
   description: A simple shovel. Can be used to harvest Clay from the ground
   icon: {fileID: 21300000, guid: c4961014f767e8a4faaa63ecdba9a4eb, type: 3}
   category: 2
@@ -21,5 +21,5 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   heldPrefab: {fileID: 3631743804569562876, guid: dd60299c4ee23d64db38d2cde51ff312, type: 3}
-  holdPosition: {x: 0, y: 0, z: 0}
-  holdRotation: {x: -0, y: 0, z: 0}
+  holdPosition: {x: -0.096, y: -0.168, z: -0.112}
+  holdRotation: {x: 21.726568, y: 5.282802, z: 195.60844}

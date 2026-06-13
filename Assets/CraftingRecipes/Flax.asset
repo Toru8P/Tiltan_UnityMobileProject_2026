@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: Flax
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipe
+  recipeName: Flax
+  icon: {fileID: 0}
+  ingredients:
+  - item: {fileID: 11400000, guid: aba7ba30a267a4347a2757418d6629c6, type: 2}
+    quantity: 2
+  outputItem: {fileID: 0}
+  outputQuantity: 1
+  requiresWorkstation: 0
+  requiredWorkstation: 

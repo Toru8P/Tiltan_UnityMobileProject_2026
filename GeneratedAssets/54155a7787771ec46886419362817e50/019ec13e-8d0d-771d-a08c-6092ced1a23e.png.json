@@ -1,0 +1,38 @@
+{
+    "asset": "54155a7787771ec46886419362817e50",
+    "fileName": "019ec13e-8d0d-771d-a08c-6092ced1a23e.png",
+    "prompt": "In this texture atlas, identify the sections representing cooked meat/steak. Darken those brown meat areas to look more well-done and charred. Crucially, identify the white bone sections within the steak and keep them bright white, do not darken them. Ensure the overall layout and other colors in the atlas remain unchanged.",
+    "negativePrompt": "",
+    "model": "gemini-3.1-flash-texture",
+    "modelName": "Gemini 3.1 Nano Banana 2",
+    "customSeed": -1,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelatePixelGridSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": [
+            {
+                "doodleReferenceType": 7,
+                "doodle": [],
+                "label": "Image",
+                "strength": 0.25,
+                "invertStrength": false,
+                "assetReferenceGuid": "54155a7787771ec46886419362817e50",
+                "unlabeledIndex": -1
+            }
+        ]
+    },
+    "upscaleFactor": 0,
+    "dimensions": {
+        "width": 1024,
+        "height": 1024
+    },
+    "spriteSheet": false,
+    "duration": 0.0
+}
