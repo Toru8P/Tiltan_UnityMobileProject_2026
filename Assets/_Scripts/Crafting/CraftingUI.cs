@@ -36,6 +36,12 @@ public class CraftingUI : MonoBehaviour
 
     public void Hide() => craftingPanel.SetActive(false);
 
+    public void Toggle()
+    {
+        if (craftingPanel.activeSelf) Hide();
+        else Show();
+    }
+
     void Refresh()
     {
         foreach (var e in entries) Destroy(e.gameObject);
@@ -51,7 +57,7 @@ public class CraftingUI : MonoBehaviour
         }
     }
 
-    // Called when inventory changes — just update craftable state, no full rebuild
+    // Called when inventory changes ï¿½ just update craftable state, no full rebuild
     void RefreshCraftability()
     {
         var recipes = CraftingManager.Instance.GetAvailableRecipes();
