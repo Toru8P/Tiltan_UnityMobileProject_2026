@@ -4,15 +4,22 @@ using UnityEngine;
 
 public class CraftingUI : MonoBehaviour
 {
+    public static CraftingUI Instance { get; private set; }
+
     [SerializeField] private GameObject recipeEntryPrefab;
-    [SerializeField] private Transform recipeList;
+[SerializeField] private Transform recipeList;
     [SerializeField] private GameObject craftingPanel;
 
     // IDE0044: Make field readonly
     private readonly List<CraftingRecipeEntryUI> entries = new();
 
-    void OnEnable()
+    void Awake()
     {
+        if (Instance == null) Instance = this;
+    }
+
+    void OnEnable()
+{
         CraftingManager.Instance.OnCraftingContextChanged += Refresh;
         InventoryManager.Instance.OnSlotChanged += _ => RefreshCraftability();
         Refresh();
@@ -32,6 +39,7 @@ public class CraftingUI : MonoBehaviour
             CraftingManager.Instance.OpenInventoryCrafting();
 
         craftingPanel.SetActive(true);
+        if (InventoryUI.Instance != null) InventoryUI.Instance.HideInventory();
     }
 
     public void Hide() => craftingPanel.SetActive(false);

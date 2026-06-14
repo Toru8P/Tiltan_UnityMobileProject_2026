@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: Rope
   displayName: Rope
   description: A rope made from flowers. Can be used to create tools
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: fcc29206cf2bda848b5f3e2d01742452, type: 3}
   category: 0
   maxStackSize: 100
   isConsumable: 0

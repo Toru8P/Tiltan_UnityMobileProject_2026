@@ -943,11 +943,11 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 05853047-3c54-4894-9e2e-bb2a0ae4442d
+  cloudProjectId: f00f12c1-f3ae-443b-bf67-ca2990cce4dc
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Tiltan_UnityMobileProject_2026
-  organizationId: dekelmail34
+  projectName: Tiltan_UnityMobileProject_2026 2026-06-14_12-26-50
+  organizationId: schoolplanet
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}

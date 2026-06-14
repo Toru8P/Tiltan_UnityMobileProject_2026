@@ -20,11 +20,18 @@ public class InventoryUI : MonoBehaviour
     public Image itemIcon;
     public Button useButton;
 
+    public static InventoryUI Instance { get; private set; }
+
     private List<InventorySlotUI> slotUIs = new();
     private int selectedIndex = -1;
 
-    void Start()
+    void Awake()
     {
+        if (Instance == null) Instance = this;
+    }
+
+    void Start()
+{
         InitializeSlots();
         inventoryPanel.SetActive(false);
         detailsPanel.SetActive(false);
@@ -61,11 +68,18 @@ public class InventoryUI : MonoBehaviour
 
     public void ToggleInventory()
     {
-        inventoryPanel.SetActive(!inventoryPanel.activeSelf);
-        if (inventoryPanel.activeSelf)
+        bool newState = !inventoryPanel.activeSelf;
+        inventoryPanel.SetActive(newState);
+        if (newState)
         {
+            if (CraftingUI.Instance != null) CraftingUI.Instance.Hide();
             RefreshAll();
         }
+    }
+
+    public void HideInventory()
+    {
+        inventoryPanel.SetActive(false);
     }
 
     private void OnSlotClicked(InventorySlotUI slotUI)
