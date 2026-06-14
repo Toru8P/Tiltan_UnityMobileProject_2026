@@ -3410,6 +3410,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
   slotCount: 15
+  pickupSound: {fileID: 8300000, guid: 46e2374ea5642af44be1c16cb5a4c96b, type: 3}
   slots:
   - item: {fileID: 0}
     quantity: 0
@@ -9049,6 +9050,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 4956634775751331195, guid: ab7dba41493419c4db6003f73c2584ee, type: 3}
+      propertyPath: swingSound
+      value: 
+      objectReference: {fileID: 8300000, guid: b244d38e6eb7a804ea49b22e57ed4d6f, type: 3}
     - target: {fileID: 7376743923781949030, guid: ab7dba41493419c4db6003f73c2584ee, type: 3}
       propertyPath: m_Camera
       value: 

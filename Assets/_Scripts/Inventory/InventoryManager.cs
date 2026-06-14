@@ -7,6 +7,7 @@ public class InventoryManager : MonoBehaviour
     public static InventoryManager Instance { get; private set; }
 
     [SerializeField] private int slotCount = 15;
+    [SerializeField] private AudioClip pickupSound;
     public List<InventorySlot> slots = new();
 
     public event Action<int> OnSlotChanged;
@@ -33,6 +34,7 @@ public class InventoryManager : MonoBehaviour
 
     public int AddItem(ItemData item, int qty = 1)
     {
+        int startQty = qty;
         int remaining = qty;
 
         foreach (var slot in slots)
@@ -62,6 +64,11 @@ public class InventoryManager : MonoBehaviour
             slot.quantity = toAdd;
             remaining -= toAdd;
             OnSlotChanged?.Invoke(slots.IndexOf(slot));
+        }
+
+        if (remaining < startQty && pickupSound != null)
+        {
+            AudioManager.Instance.PlaySFX(pickupSound);
         }
 
         if (remaining > 0) OnInventoryFull?.Invoke();
@@ -119,6 +126,5 @@ public class InventoryManager : MonoBehaviour
         
         OnSlotChanged?.Invoke(a);
         OnSlotChanged?.Invoke(b);
-
     }
 }

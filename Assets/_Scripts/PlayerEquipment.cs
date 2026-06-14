@@ -11,6 +11,7 @@ public class PlayerEquipment : MonoBehaviour
     public bool unlockItemForEditing = false;
     
     private ItemData currentItemData;
+    public ItemData CurrentItem => currentItemData;
     private GameObject currentHeldItem;
     private HotbarUI hotbar;
 
