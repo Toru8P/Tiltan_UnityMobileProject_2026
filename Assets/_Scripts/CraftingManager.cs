@@ -47,21 +47,52 @@ public class CraftingManager : MonoBehaviour
         return result;
     }
 
-    // Returns true if player has all ingredients
+        // Returns true if player has all ingredients
     public bool CanCraft(CraftingRecipe recipe)
     {
+        if (InventoryManager.Instance == null)
+        {
+            Debug.LogError("CraftingManager: InventoryManager.Instance is null");
+            return false;
+        }
+
+        if (recipe == null)
+        {
+            Debug.LogError("CraftingManager: recipe is null");
+            return false;
+        }
+
         foreach (var ingredient in recipe.ingredients)
         {
-            if (!InventoryManager.Instance.HasItem(ingredient.item, ingredient.quantity))
+            if (ingredient.item == null)
+            {
+                Debug.LogWarning($"CraftingManager: Ingredient item is null in recipe {recipe.recipeName}");
+                continue;
+            }
+
+            int have = InventoryManager.Instance.CountItem(ingredient.item);
+            if (have < ingredient.quantity)
+            {
+                // Only log if we are actually trying to craft, or if we need diagnostic info
+                // Debug.Log($"CraftingManager: Missing ingredient {ingredient.item.displayName}. Have {have}, need {ingredient.quantity}");
                 return false;
+            }
         }
         return true;
     }
 
-    // Attempts to craft — returns true on success
+        // Attempts to craft - returns true on success
     public bool TryCraft(CraftingRecipe recipe)
     {
-        if (!CanCraft(recipe)) return false;
+        if (recipe == null) return false;
+
+        Debug.Log($"CraftingManager: Attempting to craft {recipe.recipeName}");
+
+        if (!CanCraft(recipe))
+        {
+            Debug.Log($"CraftingManager: Cannot craft {recipe.recipeName} - requirements not met");
+            return false;
+        }
 
         foreach (var ingredient in recipe.ingredients)
             InventoryManager.Instance.RemoveItem(ingredient.item, ingredient.quantity);
@@ -69,8 +100,9 @@ public class CraftingManager : MonoBehaviour
         int leftover = InventoryManager.Instance.AddItem(recipe.outputItem, recipe.outputQuantity);
 
         if (leftover > 0)
-            Debug.LogWarning($"Inventory full — {leftover}x {recipe.outputItem.displayName} dropped");
+            Debug.LogWarning($"Inventory full - {leftover}x {recipe.outputItem.displayName} dropped");
 
+        Debug.Log($"CraftingManager: Successfully crafted {recipe.recipeName}");
         return true;
     }
 }

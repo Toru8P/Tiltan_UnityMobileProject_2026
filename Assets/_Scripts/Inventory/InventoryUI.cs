@@ -20,6 +20,9 @@ public class InventoryUI : MonoBehaviour
     public Image itemIcon;
     public Button useButton;
 
+    [Header("Unified UI Integration")]
+    [SerializeField] private GameObject inventoryContent;
+
     public static InventoryUI Instance { get; private set; }
 
     private List<InventorySlotUI> slotUIs = new();
@@ -31,9 +34,9 @@ public class InventoryUI : MonoBehaviour
     }
 
     void Start()
-{
+    {
         InitializeSlots();
-        inventoryPanel.SetActive(false);
+        // inventoryPanel.SetActive(false); // Managed by CraftingUI
         detailsPanel.SetActive(false);
 
         InventoryManager.Instance.OnSlotChanged += UpdateSlot;
@@ -68,18 +71,20 @@ public class InventoryUI : MonoBehaviour
 
     public void ToggleInventory()
     {
-        bool newState = !inventoryPanel.activeSelf;
-        inventoryPanel.SetActive(newState);
-        if (newState)
-        {
-            if (CraftingUI.Instance != null) CraftingUI.Instance.Hide();
-            RefreshAll();
-        }
+        if (CraftingUI.Instance != null) CraftingUI.Instance.ToggleMenu();
+    }
+
+    public void ShowContent(bool show)
+    {
+        if (inventoryContent != null) inventoryContent.SetActive(show);
+        if (!show && detailsPanel != null) detailsPanel.SetActive(false);
+        if (show) RefreshAll();
     }
 
     public void HideInventory()
     {
-        inventoryPanel.SetActive(false);
+        if (CraftingUI.Instance != null) CraftingUI.Instance.Hide();
+        else inventoryPanel.SetActive(false);
     }
 
     private void OnSlotClicked(InventorySlotUI slotUI)

@@ -41,15 +41,12 @@ public class InventoryManager : MonoBehaviour
         {
             if (remaining <= 0) 
                 break;
-            if (!slot.CanStack(item)) 
+            if (slot.item == null || !IsMatchingItem(slot.item, item) || slot.quantity >= item.maxStackSize) 
                 continue;
             
             int space = item.maxStackSize - slot.quantity;
-            
             int toAdd = Mathf.Min(space, remaining);
-            
             slot.quantity += toAdd;
-            
             remaining -= toAdd;
             
             OnSlotChanged?.Invoke(slots.IndexOf(slot));
@@ -59,6 +56,7 @@ public class InventoryManager : MonoBehaviour
         {
             if (remaining <= 0) break;
             if (!slot.IsEmpty) continue;
+            
             int toAdd = Mathf.Min(item.maxStackSize, remaining);
             slot.item = item;
             slot.quantity = toAdd;
@@ -83,13 +81,11 @@ public class InventoryManager : MonoBehaviour
         {
             var slot = slots[i];
             
-            if (slot.item != item) 
+            if (slot.item == null || !IsMatchingItem(slot.item, item)) 
                 continue;
             
             int take = Mathf.Min(slot.quantity, remaining);
-            
             slot.quantity -= take;
-            
             remaining -= take;
             
             if (slot.quantity <= 0) 
@@ -100,23 +96,34 @@ public class InventoryManager : MonoBehaviour
         return true;
     }
 
+    private bool IsMatchingItem(ItemData a, ItemData b)
+    {
+        if (a == null || b == null) return false;
+        // Check references first (fastest)
+        if (a == b) return true;
+        // Fallback to name-based (robust for instances/clones)
+        string nameA = a.name.Replace("(Clone)", "").Trim();
+        string nameB = b.name.Replace("(Clone)", "").Trim();
+        return nameA == nameB;
+    }
+
     public bool HasItem(ItemData item, int qty = 1)
     {
-        int count = 0;
-        
-        foreach (var slot in slots)
-            if (slot.item == item) count += slot.quantity;
-        
+        int count = CountItem(item);
         return count >= qty;
     }
 
     public int CountItem(ItemData item)
     {
+        if (item == null) return 0;
         int count = 0;
-        
         foreach (var slot in slots)
-            if (!slot.IsEmpty && slot.item == item) count += slot.quantity;
-        
+        {
+            if (slot.item != null && IsMatchingItem(slot.item, item))
+            {
+                count += slot.quantity;
+            }
+        }
         return count;
     }
 
