@@ -27,6 +27,10 @@ public class InventoryUI : MonoBehaviour
 
     private List<InventorySlotUI> slotUIs = new();
     private int selectedIndex = -1;
+    private int movingIndex = -1;
+    private float lastClickTime;
+    private int lastClickIndex = -1;
+    [SerializeField] private float doubleClickThreshold = 0.3f;
 
     void Awake()
     {
@@ -77,7 +81,16 @@ public class InventoryUI : MonoBehaviour
     public void ShowContent(bool show)
     {
         if (inventoryContent != null) inventoryContent.SetActive(show);
-        if (!show && detailsPanel != null) detailsPanel.SetActive(false);
+        if (!show)
+        {
+            if (detailsPanel != null) detailsPanel.SetActive(false);
+            // Cancel moving when closing
+            if (movingIndex != -1)
+            {
+                if (movingIndex < slotUIs.Count) slotUIs[movingIndex].SetMoving(false);
+                movingIndex = -1;
+            }
+        }
         if (show) RefreshAll();
     }
 
@@ -90,8 +103,61 @@ public class InventoryUI : MonoBehaviour
     private void OnSlotClicked(InventorySlotUI slotUI)
     {
         int index = slotUIs.IndexOf(slotUI);
+        
+        float timeSinceLastClick = Time.time - lastClickTime;
+        bool isDoubleClick = index == lastClickIndex && timeSinceLastClick < doubleClickThreshold;
+        
+        lastClickTime = Time.time;
+        lastClickIndex = index;
+
+        if (isDoubleClick)
+        {
+            HandleDoubleClick(index);
+        }
+        else
+        {
+            HandleSingleClick(index);
+        }
+    }
+
+    private void HandleSingleClick(int index)
+    {
+        // Selection for details (original behavior)
+        if (selectedIndex != -1 && selectedIndex < slotUIs.Count) 
+            slotUIs[selectedIndex].SetSelected(false);
+            
         selectedIndex = index;
+        slotUIs[selectedIndex].SetSelected(true);
         UpdateDetails(index);
+    }
+
+    private void HandleDoubleClick(int index)
+    {
+        if (movingIndex == -1)
+        {
+            // Start moving if slot is not empty
+            if (!InventoryManager.Instance.slots[index].IsEmpty)
+            {
+                movingIndex = index;
+                slotUIs[movingIndex].SetMoving(true);
+            }
+        }
+        else if (movingIndex == index)
+        {
+            // Cancel moving if double clicking the same slot
+            slotUIs[movingIndex].SetMoving(false);
+            movingIndex = -1;
+        }
+        else
+        {
+            // Swap items
+            InventoryManager.Instance.SwapSlots(movingIndex, index);
+            slotUIs[movingIndex].SetMoving(false);
+            movingIndex = -1;
+            
+            // Re-select the destination slot to update details if needed
+            HandleSingleClick(index);
+        }
     }
 
     private void UpdateSlot(int index)

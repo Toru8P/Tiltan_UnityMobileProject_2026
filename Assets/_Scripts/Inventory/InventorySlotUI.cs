@@ -26,20 +26,23 @@ public class InventorySlotUI : MonoBehaviour
 
     private int slotIndex;
     private bool isSelected;
+    private bool isMoving;
 
     public void Init(int index)
     {
         slotIndex = index;
         SetSelected(false);
+        SetMoving(false);
     }
 
     public void Refresh(InventorySlot slot)
     {
         bool hasItem = !slot.IsEmpty;
 
-        slotBackground.color = isSelected ? selectedSlotColor
+        slotBackground.color = isMoving ? selectedSlotColor // Reuse or define moving color
+                             : isSelected ? selectedSlotColor
                              : hasItem ? filledSlotColor
-                                          : emptySlotColor;
+                             : emptySlotColor;
 
         itemIcon.enabled = hasItem;
         categoryDot.enabled = hasItem;
@@ -61,9 +64,25 @@ public class InventorySlotUI : MonoBehaviour
     public void SetSelected(bool selected)
     {
         isSelected = selected;
+        UpdateVisuals();
+    }
 
+    public void SetMoving(bool moving)
+    {
+        isMoving = moving;
+        UpdateVisuals();
+    }
+
+    private void UpdateVisuals()
+    {
         if (selectionBorder != null)
-            selectionBorder.enabled = selected;
+        {
+            selectionBorder.enabled = isSelected || isMoving;
+            if (isMoving)
+                selectionBorder.color = Color.cyan; // Distinct color for moving
+            else
+                selectionBorder.color = new Color(0.784f, 0.659f, 0.290f, 0.706f); // Restore original color
+        }
     }
 
     private Color GetCategoryColor(ItemCategory category)
