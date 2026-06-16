@@ -54,6 +54,7 @@ public class InventorySlotUI : MonoBehaviour
         }
 
         itemIcon.sprite = slot.item.icon;
+        itemIcon.color = Color.white; // force full brightness regardless of prefab tint
 
         bool stackable = slot.item.maxStackSize > 1;
         quantityText.text = stackable ? slot.quantity.ToString() : "";

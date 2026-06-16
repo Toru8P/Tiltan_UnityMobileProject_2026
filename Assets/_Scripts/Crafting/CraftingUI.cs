@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using _Scripts.UI;
 
 
 public class CraftingUI : MonoBehaviour
@@ -15,6 +16,7 @@ public class CraftingUI : MonoBehaviour
     [Header("Unified UI Integration")]
     [SerializeField] private GameObject unifiedPanel;
     [SerializeField] private GameObject craftingContent;
+    [SerializeField] private GameObject backgroundCloser;
     [SerializeField] private Button inventoryTabButton;
     [SerializeField] private Button craftingTabButton;
 
@@ -57,6 +59,13 @@ public class CraftingUI : MonoBehaviour
         // Ensure buttons are wired up
         if (inventoryTabButton != null) inventoryTabButton.onClick.AddListener(SwitchToInventory);
         if (craftingTabButton != null) craftingTabButton.onClick.AddListener(SwitchToCrafting);
+        
+        if (backgroundCloser != null)
+        {
+            var btn = backgroundCloser.GetComponent<Button>();
+            if (btn != null) btn.onClick.AddListener(Hide);
+            backgroundCloser.SetActive(false);
+        }
 
         Subscribe();
         Refresh();
@@ -96,6 +105,8 @@ public class CraftingUI : MonoBehaviour
         if (unifiedPanel == null) return;
 
         unifiedPanel.SetActive(true);
+        if (backgroundCloser != null) backgroundCloser.SetActive(true);
+
         if (isWorkstation)
         {
             if (CraftingManager.Instance != null)
@@ -113,6 +124,7 @@ public class CraftingUI : MonoBehaviour
     public void Hide()
     {
         if (unifiedPanel != null) unifiedPanel.SetActive(false);
+        if (backgroundCloser != null) backgroundCloser.SetActive(false);
     }
 
     public void ToggleMenu()
@@ -179,6 +191,10 @@ public class CraftingUI : MonoBehaviour
             entry.Setup(recipe, CraftingManager.Instance.CanCraft(recipe));
             entries.Add(entry);
         }
+
+        // Notify the scaler so newly spawned recipe entries get their text bumped up too.
+        var scaler = FindFirstObjectByType<MobileUIScaler>();
+        if (scaler != null) scaler.RefreshTextSizes();
     }
 
         // Called when inventory changes - just update craftable state, no full rebuild

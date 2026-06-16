@@ -58,12 +58,13 @@ namespace _Scripts.Editor
             int targetH = Mathf.Max(1, Mathf.RoundToInt(srcH * scale));
 
             // Render to a temporary RenderTexture at the target size
+            // Use sRGB to ensure colors are preserved correctly for UI in Linear space
             RenderTexture tmp = RenderTexture.GetTemporary(
                 targetW,
                 targetH,
                 0,
                 RenderTextureFormat.Default,
-                RenderTextureReadWrite.Linear);
+                RenderTextureReadWrite.sRGB);
 
             Graphics.Blit(preview, tmp);
             RenderTexture previous = RenderTexture.active;
@@ -93,15 +94,15 @@ namespace _Scripts.Editor
                 importer.textureType = TextureImporterType.Sprite;
                 importer.spriteImportMode = SpriteImportMode.Single;
                 importer.alphaIsTransparency = true;
+                importer.sRGBTexture = true; // CRITICAL: Fix for dark icons in Linear space
 
                 // Reduce max size and enable compressed/crunched textures for smaller builds
                 importer.maxTextureSize = Mathf.Max(32, maxSize);
                 importer.textureCompression = TextureImporterCompression.Compressed;
 
 #if UNITY_2017_3_OR_NEWER
-                // Crunch helps reduce build size for compressed textures (works for some platforms/formats)
-                importer.crunchedCompression = true;
-                importer.compressionQuality = 50; // 0-100 (lower = smaller)
+                // Disable crunching for small 128x128 icons to maintain readability
+                importer.crunchedCompression = false; 
 #endif
 
                 // Per-platform overrides: use ETC2 (Android) and ASTC (iOS) if available
@@ -126,7 +127,7 @@ namespace _Scripts.Editor
                 importer.SaveAndReimport();
             }
 
-            Debug.Log($"Icon saved for {prefab.name} at {filePath} (size {targetW}x{targetH}, RGBA4444)");
-        }
+            Debug.Log($"Icon saved for {prefab.name} at {filePath} (size {targetW}x{targetH}, sRGB enabled)");
+}
     }
 }

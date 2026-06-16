@@ -10,7 +10,7 @@ public class CraftingRecipeEntryUI : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button craftButton;
     [SerializeField] private Sprite buttonSprite;
     [SerializeField] private Color craftableColor = new Color(0.29f, 0.87f, 0.50f); // #4ade80
-    [SerializeField] private Color unCraftableColor = new Color(0.29f, 0.27f, 0.22f); // #4a4438
+    [SerializeField] private Color unCraftableColor = new Color(0.45f, 0.45f, 0.45f); // neutral grey — dark enough to signal unavailable without hiding the icon
 
     public CraftingRecipe recipe { get; private set; }
 
@@ -18,6 +18,7 @@ public class CraftingRecipeEntryUI : MonoBehaviour
     {
         recipe = r;
         recipeIcon.sprite = r.icon;
+        recipeIcon.color = Color.white; // force full brightness regardless of prefab tint
         recipeName.text = r.recipeName;
         if (buttonSprite != null) craftButton.image.sprite = buttonSprite;
         RefreshDisplay();
