@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(rm \"C:\\\\Users\\\\famil\\\\Tiltan_UnityMobileProject_2026\\\\SCRIPT_NOTES.md\")"
+      "Bash(rm \"C:\\\\Users\\\\famil\\\\Tiltan_UnityMobileProject_2026\\\\SCRIPT_NOTES.md\")",
+      "WebFetch(domain:my.microsoftpersonalcontent.com)"
     ]
   }
 }
