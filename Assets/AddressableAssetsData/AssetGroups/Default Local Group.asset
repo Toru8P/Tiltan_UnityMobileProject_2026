@@ -18,12 +18,14 @@ MonoBehaviour:
   - m_GUID: 08a0b1a44bebeef4dbb9a5d4ac4e5305
     m_Address: Assets/Prefabs/RoughAxe.prefab
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - default
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 768daac6d87237d4ea61587a16ef41b7
     m_Address: Assets/Prefabs/RoughHammer.prefab
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - default
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 11a925c3d13a6414fb7f10b0362735bd, type: 2}
