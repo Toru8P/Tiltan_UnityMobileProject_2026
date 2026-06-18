@@ -1,8 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 
-public class InventorySlotUI : MonoBehaviour
+public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
 {
     [Header("Slot References")]
     public Image slotBackground;
@@ -28,9 +29,21 @@ public class InventorySlotUI : MonoBehaviour
     private bool isSelected;
     private bool isMoving;
 
+    private Canvas canvas;
+    private RectTransform rectTransform;
+    private CanvasGroup canvasGroup;
+    private Vector2 originalPosition;
+
     public void Init(int index)
     {
         slotIndex = index;
+        rectTransform = GetComponent<RectTransform>();
+        canvas = GetComponentInParent<Canvas>();
+        
+        // Add CanvasGroup if missing for drag transparency/raycasting
+        canvasGroup = GetComponent<CanvasGroup>();
+        if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
+
         SetSelected(false);
         SetMoving(false);
     }
@@ -39,7 +52,7 @@ public class InventorySlotUI : MonoBehaviour
     {
         bool hasItem = !slot.IsEmpty;
 
-        slotBackground.color = isMoving ? selectedSlotColor // Reuse or define moving color
+        slotBackground.color = isMoving ? selectedSlotColor
                              : isSelected ? selectedSlotColor
                              : hasItem ? filledSlotColor
                              : emptySlotColor;
@@ -54,7 +67,7 @@ public class InventorySlotUI : MonoBehaviour
         }
 
         itemIcon.sprite = slot.item.icon;
-        itemIcon.color = Color.white; // force full brightness regardless of prefab tint
+        itemIcon.color = Color.white;
 
         bool stackable = slot.item.maxStackSize > 1;
         quantityText.text = stackable ? slot.quantity.ToString() : "";
@@ -80,10 +93,48 @@ public class InventorySlotUI : MonoBehaviour
         {
             selectionBorder.enabled = isSelected || isMoving;
             if (isMoving)
-                selectionBorder.color = Color.cyan; // Distinct color for moving
+                selectionBorder.color = Color.cyan;
             else
-                selectionBorder.color = new Color(0.784f, 0.659f, 0.290f, 0.706f); // Restore original color
+                selectionBorder.color = new Color(0.784f, 0.659f, 0.290f, 0.706f);
         }
+    }
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        if (InventoryManager.Instance.slots[slotIndex].IsEmpty) return;
+
+        originalPosition = rectTransform.anchoredPosition;
+        canvasGroup.alpha = 0.6f;
+        canvasGroup.blocksRaycasts = false;
+        
+        // Bring to front
+        transform.SetAsLastSibling();
+        
+        InventoryUI.Instance.OnBeginDrag(slotIndex);
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (InventoryManager.Instance.slots[slotIndex].IsEmpty) return;
+        rectTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        canvasGroup.alpha = 1f;
+        canvasGroup.blocksRaycasts = true;
+        rectTransform.anchoredPosition = originalPosition;
+        
+        // Ensure it goes back to its correct sibling index if needed, 
+        // but InitializeSlots re-parents them anyway.
+        // Actually, LayoutGroup handles position, so anchoredPosition reset is good.
+
+        InventoryUI.Instance.OnEndDrag();
+    }
+
+    public void OnDrop(PointerEventData eventData)
+    {
+        InventoryUI.Instance.OnDropOnSlot(slotIndex);
     }
 
     private Color GetCategoryColor(ItemCategory category)

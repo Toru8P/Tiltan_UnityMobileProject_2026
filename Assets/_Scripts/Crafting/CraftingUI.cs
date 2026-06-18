@@ -57,8 +57,8 @@ public class CraftingUI : MonoBehaviour
         if (isInitialized) return;
         
         // Ensure buttons are wired up
-        if (inventoryTabButton != null) inventoryTabButton.onClick.AddListener(SwitchToInventory);
-        if (craftingTabButton != null) craftingTabButton.onClick.AddListener(SwitchToCrafting);
+        if (inventoryTabButton != null) inventoryTabButton.gameObject.SetActive(false);
+        if (craftingTabButton != null) craftingTabButton.gameObject.SetActive(false);
         
         if (backgroundCloser != null)
         {
@@ -68,7 +68,7 @@ public class CraftingUI : MonoBehaviour
         }
 
         Subscribe();
-        Refresh();
+        // Refresh(); // No more recipe list to refresh
         isInitialized = true;
     }
 
@@ -76,8 +76,7 @@ public class CraftingUI : MonoBehaviour
     {
         if (isSubscribed) return;
 
-        if (CraftingManager.Instance != null)
-            CraftingManager.Instance.OnCraftingContextChanged += Refresh;
+        // No need to subscribe to crafting context if menu is gone
         
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnSlotChanged += HandleSlotChanged;
@@ -89,16 +88,13 @@ public class CraftingUI : MonoBehaviour
     {
         if (!isSubscribed) return;
 
-        if (CraftingManager.Instance != null)
-            CraftingManager.Instance.OnCraftingContextChanged -= Refresh;
-        
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnSlotChanged -= HandleSlotChanged;
 
         isSubscribed = false;
     }
 
-    private void HandleSlotChanged(int index) => RefreshCraftability();
+    private void HandleSlotChanged(int index) { } // No-op
 
     public void Show(bool isWorkstation = false, string workstationId = null)
     {
@@ -107,18 +103,11 @@ public class CraftingUI : MonoBehaviour
         unifiedPanel.SetActive(true);
         if (backgroundCloser != null) backgroundCloser.SetActive(true);
 
-        if (isWorkstation)
-        {
-            if (CraftingManager.Instance != null)
-                CraftingManager.Instance.OpenWorkstation(workstationId);
-            SwitchToCrafting();
-        }
-        else
-        {
-            if (CraftingManager.Instance != null)
-                CraftingManager.Instance.OpenInventoryCrafting();
-            SwitchToInventory();
-        }
+        // Always show inventory now
+        if (InventoryUI.Instance != null) InventoryUI.Instance.ShowContent(true);
+        if (craftingContent != null) craftingContent.SetActive(false);
+        
+        UpdateTabStyles(true);
     }
 
     public void Hide()
@@ -149,74 +138,17 @@ public class CraftingUI : MonoBehaviour
 
     public void SwitchToCrafting()
     {
-        if (InventoryUI.Instance != null) InventoryUI.Instance.ShowContent(false);
-        if (craftingContent != null) craftingContent.SetActive(true);
-        UpdateTabStyles(false);
-        Refresh();
+        // No-op or redirect to inventory
+        SwitchToInventory();
     }
 
     private void UpdateTabStyles(bool isInventory)
     {
-        if (inventoryTabButton != null)
-        {
-            inventoryTabButton.image.color = isInventory ? activeTabColor : inactiveTabColor;
-            var text = inventoryTabButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (text != null) text.color = isInventory ? activeTextColor : inactiveTextColor;
-            
-            var border = inventoryTabButton.transform.Find("ActiveBorder");
-            if (border != null) border.gameObject.SetActive(isInventory);
-        }
-
-        if (craftingTabButton != null)
-        {
-            craftingTabButton.image.color = !isInventory ? activeTabColor : inactiveTabColor;
-            var text = craftingTabButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (text != null) text.color = !isInventory ? activeTextColor : inactiveTextColor;
-
-            var border = craftingTabButton.transform.Find("ActiveBorder");
-            if (border != null) border.gameObject.SetActive(!isInventory);
-        }
+        // Tabs are hidden, so styling is just for safety
     }
 
-    void Refresh()
-    {
-        foreach (var e in entries) Destroy(e.gameObject);
-        entries.Clear();
-
-        var recipes = CraftingManager.Instance.GetAvailableRecipes();
-        foreach (var recipe in recipes)
-        {
-            var go = Instantiate(recipeEntryPrefab, recipeList);
-            var entry = go.GetComponent<CraftingRecipeEntryUI>();
-            entry.Setup(recipe, CraftingManager.Instance.CanCraft(recipe));
-            entries.Add(entry);
-        }
-
-        // Notify the scaler so newly spawned recipe entries get their text bumped up too.
-        var scaler = FindFirstObjectByType<MobileUIScaler>();
-        if (scaler != null) scaler.RefreshTextSizes();
-    }
+    void Refresh() { }
 
         // Called when inventory changes - just update craftable state, no full rebuild
-    public void RefreshCraftability()
-    {
-        if (CraftingManager.Instance == null) return;
-
-        var recipes = CraftingManager.Instance.GetAvailableRecipes();
-        
-        // If counts don't match, full refresh
-        if (entries.Count != recipes.Count)
-        {
-            Refresh();
-            return;
-        }
-
-        foreach (var entry in entries)
-        {
-            if (entry != null)
-            {
-                entry.RefreshDisplay();
-            }
-        }
-    }
+    public void RefreshCraftability() { }
 }

@@ -134,4 +134,10 @@ public class InventoryManager : MonoBehaviour
         OnSlotChanged?.Invoke(a);
         OnSlotChanged?.Invoke(b);
     }
+
+    public void NotifySlotChanged(int index)
+    {
+        if (index >= 0 && index < slots.Count)
+            OnSlotChanged?.Invoke(index);
+    }
 }

@@ -19,14 +19,16 @@ public class InventoryUI : MonoBehaviour
     public TextMeshProUGUI itemStackText;
     public Image itemIcon;
     public Button useButton;
+    public Button combineItemButton;
 
     [Header("Unified UI Integration")]
-    [SerializeField] private GameObject inventoryContent;
+[SerializeField] private GameObject inventoryContent;
 
     public static InventoryUI Instance { get; private set; }
 
     private List<InventorySlotUI> slotUIs = new();
     private int selectedIndex = -1;
+    private int draggingIndex = -1;
     private int movingIndex = -1;
     private float lastClickTime;
     private int lastClickIndex = -1;
@@ -45,10 +47,42 @@ public class InventoryUI : MonoBehaviour
 
         InventoryManager.Instance.OnSlotChanged += UpdateSlot;
         if (useButton != null) useButton.onClick.AddListener(UseItem);
+        // Combine button is no longer needed with drag-and-drop merge
+        if (combineItemButton != null) combineItemButton.gameObject.SetActive(false);
+    }
+
+    public void OnBeginDrag(int index)
+    {
+        draggingIndex = index;
+        // Selection follows drag
+        HandleSingleClick(index);
+    }
+
+    public void OnEndDrag()
+    {
+        draggingIndex = -1;
+    }
+
+    public void OnDropOnSlot(int targetIndex)
+    {
+        if (draggingIndex == -1) return;
+        if (draggingIndex == targetIndex) return;
+
+        // Try to merge
+        if (CraftingManager.Instance != null && CraftingManager.Instance.TryMergeSlots(draggingIndex, targetIndex))
+        {
+            // Merge handled consumption and adding result
+            HandleSingleClick(targetIndex);
+            return;
+        }
+
+        // If no merge possible, swap
+        InventoryManager.Instance.SwapSlots(draggingIndex, targetIndex);
+        HandleSingleClick(targetIndex);
     }
 
     private void InitializeSlots()
-    {
+{
         // Clear existing children
         foreach (Transform child in slotContainer)
         {
