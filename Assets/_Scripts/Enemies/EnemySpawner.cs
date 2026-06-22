@@ -20,7 +20,7 @@ namespace _Scripts.Enemies
         private List<GameObject> _activeEnemies = new List<GameObject>();
         private HashSet<GameObject> _preWarmedPrefabs = new HashSet<GameObject>();
 
-        // Singleton setup so other scripts (like ZombieController) can find the spawner easily.
+        // Singleton setup so other scripts (like EnemyController) can find the spawner easily.
         private void Awake()
         {
             if (Instance == null) Instance = this;

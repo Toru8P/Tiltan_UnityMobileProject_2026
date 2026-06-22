@@ -15,8 +15,11 @@ MonoBehaviour:
   itemId: Branch
   displayName: Branch
   description: Wooden branch used for crafting
-  icon: {fileID: 21300000, guid: 287b813235896e24eac5dd465c8c39ae, type: 3}
+  icon: {fileID: 21300000, guid: 6f3067a4cf8cd06448f033a2753a5ff1, type: 3}
   category: 0
   maxStackSize: 100
   isConsumable: 0
   hungerRestore: 0
+  heldPrefab: {fileID: 0}
+  holdPosition: {x: 0, y: 0, z: 0}
+  holdRotation: {x: 0, y: 0, z: 0}

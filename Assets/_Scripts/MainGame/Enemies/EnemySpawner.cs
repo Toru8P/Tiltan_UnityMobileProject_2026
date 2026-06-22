@@ -148,7 +148,7 @@ namespace _Scripts.MainGame.Enemies
                 enemy.transform.SetParent(_enemyParent);
             }
 
-            ZombieController zc = enemy.GetComponent<ZombieController>();
+            EnemyController zc = enemy.GetComponent<EnemyController>();
             zc.SetPlayer(playerTransform);
         }
 
