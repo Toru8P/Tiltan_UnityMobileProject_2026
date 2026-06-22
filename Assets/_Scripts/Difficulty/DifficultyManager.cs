@@ -28,11 +28,12 @@ namespace _Scripts.Difficulty
             if (Instance == null)
             {
                 Instance = this;
-                // Move initial setup to Awake so it's ready for Start() of other components
                 if (progression != null)
-                {
                     UpdateDifficulty(0f);
-                }
+
+                // Apply any saved baseline difficulty from the options menu
+                // (OptionsManager uses DontDestroyOnLoad so it survives scene loads)
+                Managers.OptionsManager.Instance?.ApplyDifficultyToManager();
             }
             else
             {
@@ -80,6 +81,14 @@ namespace _Scripts.Difficulty
         {
             _currentTime = 0f;
             UpdateDifficulty(0f);
+        }
+
+        // Jumps the timer to a specific time — used by OptionsManager to apply the player's
+        // chosen baseline difficulty (e.g. starting at t=120 skips straight to Normal tier).
+        public void SetBaseTime(float time)
+        {
+            _currentTime = Mathf.Max(0f, time);
+            UpdateDifficulty(_currentTime);
         }
     }
 }

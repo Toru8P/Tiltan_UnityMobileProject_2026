@@ -31,6 +31,10 @@ namespace _Scripts
         private Rigidbody _rb;
         private Animator _animator;
         private PlayerAnimationController _animationController;
+        private PlayerEquipment _equipment;
+
+        [Header("Audio")]
+        [SerializeField] private AudioClip swingSound;
 
         private const float MoveDeadzoneSqr = 0.01f;
 
@@ -41,6 +45,7 @@ namespace _Scripts
             _rb = GetComponent<Rigidbody>();
             _animator = GetComponentInChildren<Animator>();
             _animationController = GetComponent<PlayerAnimationController>();
+            _equipment = GetComponent<PlayerEquipment>();
 
             _rb.constraints = RigidbodyConstraints.FreezeRotation;
         }
@@ -69,6 +74,20 @@ namespace _Scripts
             if (!_isRolling && _attackCooldownTimer <= 0f)
             {
                 _attackCooldownTimer = attackCooldown;
+
+                // Play swing sound if holding a tool or weapon
+                if (_equipment != null && _equipment.CurrentItem != null)
+                {
+                    ItemCategory cat = _equipment.CurrentItem.category;
+                    if (cat == ItemCategory.Tool || cat == ItemCategory.Weapon)
+                    {
+                        if (swingSound != null)
+                        {
+                            AudioManager.Instance.PlaySFX(swingSound);
+                        }
+                    }
+                }
+
                 if (_animationController != null)
                     _animationController.PlayAttack();
                 else if (_animator != null)
