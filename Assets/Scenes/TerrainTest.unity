@@ -557,6 +557,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1782702501690864755, guid: 60770bdb4dc667c45bea53db0339dc05, type: 3}
       insertIndex: -1
       addedObject: {fileID: 93648751}
+    - targetCorrespondingSourceObject: {fileID: 1782702501690864755, guid: 60770bdb4dc667c45bea53db0339dc05, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 93648752}
   m_SourcePrefab: {fileID: 100100000, guid: 60770bdb4dc667c45bea53db0339dc05, type: 3}
 --- !u!1 &93648742 stripped
 GameObject:
@@ -829,10 +832,32 @@ MonoBehaviour:
   initialStats:
     MaxHealth: 500
     CurrentHealth: 100
+    MaxShield: 100
+    CurrentShield: 10
+    HpRegenerationAmount: 1
+    ShieldRegenerationAmount: 10
   currentStats:
     MaxHealth: 0
     CurrentHealth: 0
-  amountBarDriver: {fileID: 0}
+    MaxShield: 0
+    CurrentShield: 0
+    HpRegenerationAmount: 0
+    ShieldRegenerationAmount: 0
+  hpBarDriver: {fileID: 1060844443}
+  shieldBarDriver: {fileID: 793438947}
+--- !u!114 &93648752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 93648742}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c58aa2e00074eca9d61759dfcd5d6d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Player.PlayerAdaptor
+  hitSfx: {fileID: 0}
 --- !u!1 &98307040
 GameObject:
   m_ObjectHideFlags: 0
@@ -6280,7 +6305,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Enemies.EnemySpawner
   playerTransform: {fileID: 93648750}
-  enemyPool: {fileID: 0}
+  enemyPool: {fileID: 11400000, guid: a304c513baca10b4f8d4251aa76039be, type: 2}
   spawnDistance: 25
   sideVariance: 15
   despawnRange: 40
@@ -13820,6 +13845,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca124866a52640969c890a9873156a03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.SingletonPoint
+  audioManager: {fileID: 1910068471}
   difficultyManager: {fileID: 1805698530}
 --- !u!1 &2015978926
 GameObject:

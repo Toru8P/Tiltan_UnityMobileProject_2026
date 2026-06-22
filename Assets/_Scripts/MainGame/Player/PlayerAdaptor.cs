@@ -7,6 +7,8 @@ namespace _Scripts.MainGame.Player
     {
         private PlayerStatsController _statsController;
         private PlayerAnimationController _animationController;
+        
+        [SerializeField] private AudioClip hitSfx;
 
         private void Awake()
         {
@@ -18,6 +20,7 @@ namespace _Scripts.MainGame.Player
         {
             _statsController.DealDamage(damage);
             _animationController.PlayHit();
+            SingletonPoint.Instance.AudioManager.PlaySFX(hitSfx);
         }
     }
 }
