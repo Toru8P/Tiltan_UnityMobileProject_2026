@@ -52,7 +52,7 @@ namespace _Scripts.Enemies
         private Vector3 _moveDirection;
         private ZombieState _lastLoggedState;
         private bool _loggedMissingPlayer;
-        private PlayerStatsController _playerStatsController;
+        private PlayerAdaptor _playerAdaptor;
         
         private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
         private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
@@ -61,7 +61,7 @@ namespace _Scripts.Enemies
         public void SetPlayer(Transform target)
         {
             player = target;
-            _playerStatsController = player.GetComponent<PlayerStatsController>();
+            _playerAdaptor = player.GetComponent<PlayerAdaptor>();
 
             if (enableDebugLogs)
             {
@@ -378,7 +378,7 @@ namespace _Scripts.Enemies
                 animator.SetTrigger(AttackTriggerHash);
             }
             
-            _playerStatsController.DealDamage(currentDamage);
+            _playerAdaptor.DealDamage(currentDamage);
         }
 
         public void TakeDamage(int dmg)
