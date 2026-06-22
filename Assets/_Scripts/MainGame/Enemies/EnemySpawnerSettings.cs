@@ -1,5 +1,4 @@
-﻿using _Scripts.Difficulty;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace _Scripts.MainGame.Enemies
 {

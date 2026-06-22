@@ -1,5 +1,7 @@
 ﻿using System;
-using _Scripts.MainGame.Canvas;
+using System.Collections;
+using System.Collections.Generic;
+using _Scripts.MainGame.UI;
 using UnityEngine;
 
 namespace _Scripts.MainGame.Player
@@ -12,7 +14,8 @@ namespace _Scripts.MainGame.Player
         [SerializeField] private PlayerStats currentStats = new PlayerStats();
         
         [Header("UI")]
-        [SerializeField] private HpBarInUIDriver hpBarDriver;
+        [SerializeField] private AmountBarInUIDriver hpBarDriver;
+        [SerializeField] private AmountBarInUIDriver shieldBarDriver;
 
         private void Start()
         {
@@ -20,12 +23,52 @@ namespace _Scripts.MainGame.Player
             if (startWithFullHp)
             {
                 currentStats.CurrentHealth = currentStats.MaxHealth;
+                currentStats.CurrentShield = currentStats.MaxShield;
             }
+
+            UpdateBars();
+            
+            StartCoroutine(Regenerate());
+        }
+
+        private IEnumerator Regenerate()
+        {
+            while (true)
+            {
+                yield return new WaitForSeconds(1);
+                if (currentStats.CurrentHealth == 0) break;
+                currentStats.CurrentHealth = Mathf.Min(currentStats.CurrentHealth + currentStats.HpRegenerationAmount, currentStats.MaxHealth);
+                currentStats.CurrentShield = Mathf.Min(currentStats.CurrentShield + currentStats.ShieldRegenerationAmount, currentStats.MaxShield);
+                UpdateBars();
+            }
+        }
+
+        private void UpdateBars()
+        {
             hpBarDriver.SetFill(currentStats.CurrentHealth, currentStats.MaxHealth);
+            shieldBarDriver.SetFill(currentStats.CurrentShield, currentStats.MaxShield);
         }
 
         public void DealDamage(int damage)
         {
+            if (currentStats.CurrentShield > 0)
+            {
+                currentStats.CurrentShield -= damage;
+                if (currentStats.CurrentShield < 0)
+                {
+                    damage = -currentStats.CurrentShield; // Remaining damage after shield is depleted
+                    currentStats.CurrentShield = 0;
+                }
+                else
+                {
+                    damage = 0; // All damage absorbed by shield
+                }
+                shieldBarDriver.SetFill(currentStats.CurrentShield, currentStats.MaxShield);
+                
+            }
+            
+            if (damage <= 0) return; // No damage left to apply to health
+            
             currentStats.CurrentHealth -= damage;
             if  (currentStats.CurrentHealth <= 0) 
             {
@@ -40,11 +83,19 @@ namespace _Scripts.MainGame.Player
     {
         public int MaxHealth;
         public int CurrentHealth;
+        public int MaxShield;
+        public int CurrentShield;
+        public int HpRegenerationAmount;
+        public int ShieldRegenerationAmount;
 
         public void Fill(PlayerStats stats)
         {
             CurrentHealth = stats.CurrentHealth;
             MaxHealth = stats.MaxHealth;
+            CurrentShield = stats.CurrentShield;
+            MaxShield = stats.MaxShield;
+            HpRegenerationAmount = stats.HpRegenerationAmount;
+            ShieldRegenerationAmount = stats.ShieldRegenerationAmount;
         }
     }
 }

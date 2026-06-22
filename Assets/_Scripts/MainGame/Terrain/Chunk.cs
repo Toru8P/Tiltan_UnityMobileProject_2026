@@ -46,6 +46,7 @@ namespace _Scripts.MainGame.Terrain
                 instance.transform.localPosition = objectData.localPosition;
                 instance.transform.localRotation = objectData.localRotation;
                 instance.SetActive(true);
+
                 _activeObjects[objectData] = instance;
             }
         }

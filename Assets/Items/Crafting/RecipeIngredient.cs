@@ -1,3 +1,4 @@
+using _Scripts.MainGame.Inventory;
 using UnityEngine;
 
 [System.Serializable]

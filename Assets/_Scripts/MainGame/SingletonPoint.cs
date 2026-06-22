@@ -1,4 +1,5 @@
 ﻿using System;
+using _Scripts.MainGame.Audio;
 using _Scripts.MainGame.Difficulty;
 using UnityEngine;
 
@@ -14,19 +15,16 @@ namespace _Scripts.MainGame
             {
                 throw new Exception("SingletonPoint instance already exists! There should only be one in the scene.");
             }
-            else
-            {
-                Instance = this;
-            }
+
+            Instance = this;
         }
 
+        [SerializeField] private AudioManager audioManager;
+        
         [SerializeField] private GeneralDifficultyManager difficultyManager;
         
         public GeneralDifficultyManager DifficultyManager {
-            get
-            {
-              return difficultyManager;  
-            }
+            get => difficultyManager;
             private set
             {
                 if (difficultyManager)
@@ -37,7 +35,19 @@ namespace _Scripts.MainGame
                 difficultyManager = value;
             } 
         }
-        
-        
+
+        public AudioManager AudioManager
+        {
+            get => audioManager;
+            private set
+            {
+                if (audioManager)
+                {
+                    throw new Exception("AudioManager can only be set once!");
+                }
+
+                audioManager = value;
+            }
+        }
     }
 }

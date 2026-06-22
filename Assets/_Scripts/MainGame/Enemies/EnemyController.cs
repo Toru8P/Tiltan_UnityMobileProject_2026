@@ -1,4 +1,4 @@
-using _Scripts.Difficulty;
+using _Scripts.MainGame.Difficulty.Deprecated;
 using _Scripts.MainGame.Player;
 using UnityEngine;
 
@@ -142,13 +142,8 @@ namespace _Scripts.Enemies
 
         private void OnDisable()
         {
-            if (EnemySpawner.Instance)
-                EnemySpawner.Instance.UnregisterEnemy(gameObject);
-
             if (enableDebugLogs)
-            {
                 Debug.Log($"{name} OnDisable", this);
-            }
         }
 
         private void OnDestroy()
@@ -432,20 +427,13 @@ namespace _Scripts.Enemies
                 _rb.angularVelocity = Vector3.zero;
             }
 
-            StartCoroutine(ReturnToPoolAfterDelay(5f));
+            StartCoroutine(DeactivateAfterDelay(5f));
         }
 
-        private System.Collections.IEnumerator ReturnToPoolAfterDelay(float delay)
+        private System.Collections.IEnumerator DeactivateAfterDelay(float delay)
         {
             yield return new WaitForSeconds(delay);
-
-            if (EnemySpawner.Instance)
-                EnemySpawner.Instance.UnregisterEnemy(gameObject);
-
-            if (Pooling.PoolManager.Instance)
-                Pooling.PoolManager.Instance.Return(gameObject);
-            else
-                gameObject.SetActive(false);
+            gameObject.SetActive(false);
         }
 
         private float DistanceToPlayer()

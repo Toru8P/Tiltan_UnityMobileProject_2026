@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using _Scripts.Difficulty;
 using _Scripts.Enemies;
 using _Scripts.MainGame.Difficulty;
+using _Scripts.MainGame.Pool;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -18,25 +18,24 @@ namespace _Scripts.MainGame.Enemies
 
     public class EnemySpawner : MonoBehaviour
     {
-        [Header("References")] 
+        [Header("References")]
         [SerializeField] private Transform playerTransform;
+        [SerializeField] private ObjectPool enemyPool;
 
-        [Header("Spawn Settings")] 
+        [Header("Spawn Settings")]
         [SerializeField] private float spawnDistance = 25f;
-
         [SerializeField] private float sideVariance = 15f;
-        
+        [SerializeField] private float despawnRange = 40f;
         [SerializeField] private string terrainLayerName = "TerrainGround";
-        
-        [Header("Difficulty Settings")] 
+
+        [Header("Difficulty Settings")]
         [SerializeField] private List<DifficultySpawnerEntry> settingsList = new();
 
         private readonly Dictionary<DifficultyPhase, EnemySpawnerSettings> settingsByDifficulty = new();
-
         private DifficultyPhase _currentDifficulty = DifficultyPhase.None;
 
         private Transform _enemyParent;
-        private int _activeEnemies = 0;
+        private List<GameObject> _activeEnemies = new();
 
         private void Awake()
         {
@@ -53,29 +52,41 @@ namespace _Scripts.MainGame.Enemies
         private void OnEnable()
         {
             if (SingletonPoint.Instance?.DifficultyManager)
-            {
                 SingletonPoint.Instance.DifficultyManager.SubscribeOnChange(HandleDifficultyChanged);
-            }
         }
 
         private void OnDisable()
         {
             if (SingletonPoint.Instance?.DifficultyManager)
-            {
                 SingletonPoint.Instance.DifficultyManager.UnsubscribeOnChange(HandleDifficultyChanged);
+        }
+
+        private void Update()
+        {
+            if (!playerTransform) return;
+
+            for (int i = _activeEnemies.Count - 1; i >= 0; i--)
+            {
+                GameObject enemy = _activeEnemies[i];
+                if (!enemy || !enemy.activeInHierarchy)
+                {
+                    _activeEnemies.RemoveAt(i);
+                    if (enemy) enemyPool.Return(enemy);
+                    continue;
+                }
+
+                if (Vector3.Distance(enemy.transform.position, playerTransform.position) > despawnRange)
+                    ReturnEnemyToPool(enemy);
             }
         }
 
         private void RebuildSettingsDictionary()
         {
             settingsByDifficulty.Clear();
-
-            for (int i = 0; i < settingsList.Count; i++)
+            foreach (DifficultySpawnerEntry entry in settingsList)
             {
-                DifficultySpawnerEntry entry = settingsList[i];
-                if (entry == null) continue;
-
-                settingsByDifficulty[entry.phase] = entry.settings;
+                if (entry != null)
+                    settingsByDifficulty[entry.phase] = entry.settings;
             }
         }
 
@@ -88,24 +99,15 @@ namespace _Scripts.MainGame.Enemies
         {
             while (true)
             {
-                if (settingsByDifficulty.TryGetValue(_currentDifficulty, out var currentSettings))
+                if (settingsByDifficulty.TryGetValue(_currentDifficulty, out EnemySpawnerSettings currentSettings) &&
+                    currentSettings &&
+                    currentSettings.enemyTypeDistribution != null &&
+                    currentSettings.enemyTypeDistribution.Length > 0)
                 {
-                    if (currentSettings &&
-                        currentSettings.enemyTypeDistribution != null &&
-                        currentSettings.enemyTypeDistribution.Length > 0)
-                    {
-                        float actualInterval = currentSettings.spawnInterval;
-                        yield return new WaitForSeconds(actualInterval);
+                    yield return new WaitForSeconds(currentSettings.spawnInterval);
 
-                        if (_activeEnemies < currentSettings.maxActiveEnemies)
-                        {
-                            SpawnEnemy(currentSettings);
-                        }
-                    }
-                    else
-                    {
-                        yield return new WaitForSeconds(1f);
-                    }
+                    if (_activeEnemies.Count < currentSettings.maxActiveEnemies)
+                        SpawnEnemy(currentSettings);
                 }
                 else
                 {
@@ -116,53 +118,44 @@ namespace _Scripts.MainGame.Enemies
 
         private void SpawnEnemy(EnemySpawnerSettings settings)
         {
-            if (!playerTransform) return;
+            if (!playerTransform || enemyPool == null) return;
 
             GameObject prefab = GetWeightedRandomPrefab(settings);
             if (!prefab) return;
 
-            Vector3 spawnPos =
-                playerTransform.position +
-                (playerTransform.forward * spawnDistance) +
-                (playerTransform.right * Random.Range(-sideVariance, sideVariance));
-            
-            int terrainMask = LayerMask.GetMask(terrainLayerName);
-            Vector3 rayOrigin = spawnPos + Vector3.up * 200f;
+            Vector3 spawnPos = playerTransform.position
+                + playerTransform.forward * spawnDistance
+                + playerTransform.right * Random.Range(-sideVariance, sideVariance);
 
-            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit terrainHit, 500f, terrainMask, QueryTriggerInteraction.Ignore))
-            {
-                spawnPos.y = terrainHit.point.y;
-            }
+            int terrainMask = LayerMask.GetMask(terrainLayerName);
+            if (Physics.Raycast(spawnPos + Vector3.up * 200f, Vector3.down, out RaycastHit hit, 500f, terrainMask, QueryTriggerInteraction.Ignore))
+                spawnPos.y = hit.point.y;
             else
-            {
                 return;
-            }
 
             Quaternion rotation = Quaternion.LookRotation(-playerTransform.forward);
+            GameObject enemy = enemyPool.Get(prefab, spawnPos, rotation);
+            enemy.transform.SetParent(_enemyParent);
 
-            GameObject enemy;
-            enemy = Pooling.PoolManager.Instance ? Pooling.PoolManager.Instance.Get(prefab, spawnPos, rotation) : Instantiate(prefab, spawnPos, rotation);
+            EnemyController ec = enemy.GetComponent<EnemyController>();
+            if (ec) ec.SetPlayer(playerTransform);
 
-            if (_enemyParent)
-            {
-                enemy.transform.SetParent(_enemyParent);
-            }
+            _activeEnemies.Add(enemy);
+        }
 
-            EnemyController zc = enemy.GetComponent<EnemyController>();
-            zc.SetPlayer(playerTransform);
+        public void ReturnEnemyToPool(GameObject enemy)
+        {
+            _activeEnemies.Remove(enemy);
+            enemyPool.Return(enemy);
         }
 
         private GameObject GetWeightedRandomPrefab(EnemySpawnerSettings settings)
         {
             float totalWeight = 0f;
-
             foreach (var entry in settings.enemyTypeDistribution)
-            {
                 totalWeight += entry.weight;
-            }
 
-            if (totalWeight <= 0f)
-                return null;
+            if (totalWeight <= 0f) return null;
 
             float randomValue = Random.Range(0f, totalWeight);
             float currentWeight = 0f;
@@ -171,9 +164,7 @@ namespace _Scripts.MainGame.Enemies
             {
                 currentWeight += entry.weight;
                 if (randomValue <= currentWeight)
-                {
                     return entry.prefab;
-                }
             }
 
             return null;
