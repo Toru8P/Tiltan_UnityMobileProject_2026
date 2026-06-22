@@ -16,7 +16,7 @@ namespace _Scripts.MainGame.Terrain
         public GameObject[] rockPrefabs;
         public GameObject[] bushPrefabs;
         public GameObject[] smallNaturePrefabs;
-        [SerializeField] private LayerMask terrainMask;
+        [SerializeField] private string terrainLayerName = "TerrainGround";
 
         [Header("Probabilities")] [Range(0, 1)]
         public float treeChance = 0.25f; // Increased
@@ -83,6 +83,7 @@ namespace _Scripts.MainGame.Terrain
 
             Vector3 offset = new Vector3(col * width, 0, row * height);
             GameObject chunkObj = new GameObject($"TerrainFace_{row}_{col}");
+            chunkObj.layer = LayerMask.NameToLayer(terrainLayerName);
             chunkObj.transform.parent = this.transform;
 
             Chunk terrainChunk = chunkObj.AddComponent<Chunk>();
@@ -91,7 +92,6 @@ namespace _Scripts.MainGame.Terrain
             terrainChunk.CreateMesh();
             terrainChunk.CreatePlayerZone(50f, () =>
             {
-                Debug.Log("Player entered terrain face at (" + row + ", " + col + ")");
                 UpdateFacesAroundPlayer(row, col);
             });
             terrainChunks[key] = terrainChunk;

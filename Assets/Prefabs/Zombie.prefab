@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 459184421625360259}
   - component: {fileID: 4007767463090511106}
   - component: {fileID: 8578641009815334558}
-  - component: {fileID: 4171589102122149084}
   - component: {fileID: 2906009126789721261}
   - component: {fileID: 7968971138102060877}
   m_Layer: 0
@@ -34,8 +33,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4506265146993292117}
-  - {fileID: 7196754202217307374}
+  - {fileID: 5565313296448983035}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &4007767463090511106
@@ -75,11 +73,12 @@ MonoBehaviour:
   state: 0
   player: {fileID: 0}
   animator: {fileID: 4007767463090511106}
-  agent: {fileID: 4171589102122149084}
   detectionRange: 10
   attackRange: 1.8
-  wanderRadius: 5
-  wanderDelay: 3
+  moveSpeed: 3.5
+  rotationSpeed: 8
+  attackDuration: 1.2
+  modelYawOffset: 0
   baseSpeed: 3.5
   baseMaxHealth: 50
   baseDamage: 10
@@ -87,29 +86,7 @@ MonoBehaviour:
   currentHealth: 50
   isDead: 0
   currentDamage: 10
-  attackDuration: 1.2
---- !u!195 &4171589102122149084
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 29499875973665485}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 3.5
-  m_Acceleration: 30
-  avoidancePriority: 50
-  m_AngularSpeed: 400
-  m_StoppingDistance: 1.2
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
+  enableDebugLogs: 1
 --- !u!54 &2906009126789721261
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1503,6 +1480,39 @@ Transform:
   - {fileID: 1063407858260697833}
   m_Father: {fileID: 638023717600977771}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5759234485703652629
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5565313296448983035}
+  m_Layer: 0
+  m_Name: ZombieVisual
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5565313296448983035
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5759234485703652629}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4506265146993292117}
+  - {fileID: 7196754202217307374}
+  m_Father: {fileID: 459184421625360259}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5870471747607601556
 GameObject:
   m_ObjectHideFlags: 0
@@ -1622,13 +1632,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6776520341822077808}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2671498365983540976}
-  m_Father: {fileID: 459184421625360259}
+  m_Father: {fileID: 5565313296448983035}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7078218518138222285
 GameObject:
@@ -1846,12 +1856,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7702004775843162421}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0, y: -0.0030059998, z: -0.000574}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: -0.0030059814, z: -0.00057399273}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 459184421625360259}
+  m_Father: {fileID: 5565313296448983035}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!137 &7801313132527562633
 SkinnedMeshRenderer:

@@ -1,24 +1,32 @@
 using _Scripts.Difficulty;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace _Scripts.Enemies
 {
     public class ZombieController : MonoBehaviour, IDifficultyScalable
     {
-        public enum ZombieState { Idle, Wander, Chase, Attack, Dead }
+        public enum ZombieState
+        {
+            Idle,
+            Chase,
+            Attack,
+            Dead
+        }
+
         public ZombieState state = ZombieState.Idle;
 
         [Header("References")]
-        public Transform player;
-        public Animator animator;
-        public NavMeshAgent agent;
+        [SerializeField] private Transform player;
+        [SerializeField] private Animator animator;
 
         [Header("Settings")]
-        public float detectionRange = 10f;
-        public float attackRange = 1.8f;
-        public float wanderRadius = 5f;
-        public float wanderDelay = 3f;
+        [SerializeField] private float detectionRange = 10f;
+        [SerializeField] private float attackRange = 1.8f;
+        [SerializeField] private float moveSpeed = 3.5f;
+        [SerializeField] private float rotationSpeed = 8f;
+        [SerializeField] private float attackDuration = 1.2f;
+        [SerializeField] private float modelYawOffset = 0f;
+
 
         [Header("Base Stats")]
         [SerializeField] private float baseSpeed = 3.5f;
@@ -26,114 +34,126 @@ namespace _Scripts.Enemies
         [SerializeField] private float baseDamage = 10f;
 
         [Header("Health")]
-        public int maxHealth = 50;
-        public int currentHealth;
-        public bool isDead = false;
+        [SerializeField] private int maxHealth = 50;
+        [SerializeField] private int currentHealth;
+        [SerializeField] private bool isDead = false;
 
         [Header("Active Stats")]
-        public float currentDamage = 10f;
+        [SerializeField] private float currentDamage = 10f;
 
-        private bool isAttacking = false;
-        private float attackTimer = 0f;
-        public float attackDuration = 1.2f;
+        [Header("Debug")]
+        [SerializeField] private bool enableDebugLogs = true;
 
-        private float wanderTimer = 0f;
-        private float _pathUpdateTimer = 0f;
-        private const float PathUpdateInterval = 0.5f; // Update path twice a second
+        private bool isAttacking;
+        private float attackTimer;
         private Collider[] _cachedColliders;
+        private Rigidbody _rb;
+        private Vector3 _moveDirection;
+        private ZombieState _lastLoggedState;
+        private bool _loggedMissingPlayer;
+
         private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
         private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
         private static readonly int AttackTriggerHash = Animator.StringToHash("ZombieAttack");
 
-        // Called whenever the difficulty changes. Rescales this zombie's stats based on the new multipliers.
-        // We preserve the current health *percentage* (so a half-dead zombie stays half-dead after rescaling),
-        // and update agent speed, damage, and turning responsiveness all at once.
+        public void SetPlayer(Transform target)
+        {
+            player = target;
+
+            if (enableDebugLogs)
+            {
+                Debug.Log($"{name} SetPlayer called. Target = {(player ? player.name : "NULL")}", this);
+            }
+        }
+
         public void ApplyDifficulty(DifficultySettings settings)
         {
-            if (isDead) return;
+            if (isDead || settings == null) return;
 
-            // Update Max Health
             float healthRatio = maxHealth > 0 ? (float)currentHealth / maxHealth : 1f;
             maxHealth = Mathf.RoundToInt(baseMaxHealth * settings.enemyMaxHealthMultiplier);
             currentHealth = Mathf.RoundToInt(maxHealth * healthRatio);
 
-            // Update Speed and Responsiveness
-            if (agent != null)
-            {
-                agent.speed = baseSpeed * settings.enemySpeedMultiplier;
-                agent.acceleration = 30f * settings.enemySpeedMultiplier; // Scale responsiveness
-                agent.angularSpeed = 400f * settings.enemySpeedMultiplier;
-            }
-
-            // Update Damage
+            moveSpeed = baseSpeed * settings.enemySpeedMultiplier;
             currentDamage = baseDamage * settings.enemyDamageMultiplier;
 
-            Debug.Log($"{name} updated: Speed={agent.speed}, Health={maxHealth}, Damage={currentDamage}");
+            if (enableDebugLogs)
+            {
+                Debug.Log($"{name} ApplyDifficulty -> moveSpeed={moveSpeed}, maxHealth={maxHealth}, currentDamage={currentDamage}", this);
+            }
         }
 
-        // Runs once when the zombie first spawns.
-        // Grabs components, sets initial speed and health, finds the player, and subscribes to difficulty changes.
-        void Start()
+        private void Awake()
         {
-            if (!agent) agent = GetComponent<NavMeshAgent>();
-            
-            // Apply base speed to agent initially
-            if (agent) agent.speed = baseSpeed;
+            if (!animator)
+                animator = GetComponentInChildren<Animator>();
 
-            if (currentHealth <= 0 && !isDead) 
-            {
-                currentHealth = maxHealth;
-            }
-        
-            if (!animator) animator = GetComponentInChildren<Animator>();
             _cachedColliders = GetComponentsInChildren<Collider>();
-        
-            FindPlayer();
-        
-            if (!isDead)
-            {
-                RestoreComponents();
-            }
+            _rb = GetComponent<Rigidbody>();
 
-            // Apply and subscribe
-            if (DifficultyManager.Instance != null)
+            if (enableDebugLogs)
+            {
+                Debug.Log(
+                    $"{name} Awake | rb={(_rb ? "YES" : "NO")} | animator={(animator ? "YES" : "NO")} | player={(player ? player.name : "NULL")} | constraints={(_rb ? _rb.constraints.ToString() : "NONE")}",
+                    this
+                );
+            }
+        }
+
+        private void Start()
+        {
+            if (currentHealth <= 0 && !isDead)
+                currentHealth = maxHealth;
+
+            if (!isDead)
+                RestoreComponents();
+
+            if (DifficultyManager.Instance)
             {
                 DifficultyManager.Instance.OnDifficultyChanged.AddListener(ApplyDifficulty);
-                if (DifficultyManager.Instance.CurrentSettings != null)
-                {
+
+                if (DifficultyManager.Instance.CurrentSettings)
                     ApplyDifficulty(DifficultyManager.Instance.CurrentSettings);
-                }
             }
-        }
-
-        // Unsubscribe from difficulty events when destroyed — avoids leaks.
-        private void OnDestroy()
-        {
-            if (DifficultyManager.Instance != null)
+            else
             {
-                DifficultyManager.Instance.OnDifficultyChanged.RemoveListener(ApplyDifficulty);
+                moveSpeed = baseSpeed;
+                currentDamage = baseDamage;
+            }
+
+            if (enableDebugLogs)
+            {
+                Debug.Log($"{name} Start | currentHealth={currentHealth} | player={(player ? player.name : "NULL")}", this);
             }
         }
 
-        // OnEnable fires every time the zombie is activated — including when it's reused from the pool.
-        // We reset its state so a recycled corpse comes back as a fresh enemy.
-        void OnEnable()
+        private void OnEnable()
         {
             ResetState();
-        }
 
-        // When the object is disabled (returned to pool), make sure to unregister it from the spawner
-        // so the spawner knows it can spawn more. This covers both death and distance-based cleanup.
-        void OnDisable()
-        {
-            if (EnemySpawner.Instance != null)
+            if (enableDebugLogs)
             {
-                EnemySpawner.Instance.UnregisterEnemy(gameObject);
+                Debug.Log($"{name} OnEnable", this);
             }
         }
 
-        // Resets every variable to its starting value so a pooled zombie behaves like a brand-new one.
-        // Important: pooled objects do NOT re-run Start(), so we need this manual reset.
+        private void OnDisable()
+        {
+            if (EnemySpawner.Instance)
+                EnemySpawner.Instance.UnregisterEnemy(gameObject);
+
+            if (enableDebugLogs)
+            {
+                Debug.Log($"{name} OnDisable", this);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (DifficultyManager.Instance)
+                DifficultyManager.Instance.OnDifficultyChanged.RemoveListener(ApplyDifficulty);
+        }
+
         public void ResetState()
         {
             isDead = false;
@@ -141,285 +161,294 @@ namespace _Scripts.Enemies
             state = ZombieState.Idle;
             isAttacking = false;
             attackTimer = 0f;
-            wanderTimer = 0f;
-            _pathUpdateTimer = 0f;
+            _moveDirection = Vector3.zero;
+            _loggedMissingPlayer = false;
+            _lastLoggedState = state;
 
             if (animator != null)
             {
-                // Using Rebind is the most reliable way to reset the animator state machine for pooling.
-                // Since we now spawn enemies over multiple frames, the one-time cost is acceptable.
                 animator.Rebind();
-                animator.Update(0);
+                animator.Update(0f);
+                animator.SetBool(IsDeadHash, false);
+                animator.SetBool(IsWalkingHash, false);
             }
 
             RestoreComponents();
 
-            if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh)
+            if (enableDebugLogs)
             {
-                agent.isStopped = false;
-            }
-
-            Rigidbody rb = GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.isKinematic = true; // Kinematic while alive to prevent slipping/physics fighting
+                Debug.Log($"{name} ResetState", this);
             }
         }
 
-        // Turns the NavMeshAgent and all colliders back on, and warps the zombie onto the NavMesh
-        // if it spawned slightly off it. Without this, a pooled zombie might be invisible/non-interactive.
-        void RestoreComponents()
+        private void RestoreComponents()
         {
-            if (agent) agent.enabled = true;
-        
-            if (_cachedColliders == null) _cachedColliders = GetComponentsInChildren<Collider>();
-            foreach (Collider col in _cachedColliders) col.enabled = true;
-        
-            if (agent && agent.isActiveAndEnabled && !agent.isOnNavMesh)
+            if (_cachedColliders == null)
+                _cachedColliders = GetComponentsInChildren<Collider>();
+
+            foreach (Collider col in _cachedColliders)
+                col.enabled = true;
+
+            if (_rb)
             {
-                NavMeshHit hit;
-                if (NavMesh.SamplePosition(transform.position, out hit, 5.0f, NavMesh.AllAreas))
-                {
-                    agent.Warp(hit.position);
-                }
+                _rb.linearVelocity = Vector3.zero;
+                _rb.angularVelocity = Vector3.zero;
+            }
+
+            if (enableDebugLogs)
+            {
+                Debug.Log(
+                    $"{name} RestoreComponents | rb={(_rb ? "YES" : "NO")} | isKinematic={(_rb ? _rb.isKinematic.ToString() : "N/A")} | constraints={(_rb ? _rb.constraints.ToString() : "N/A")}",
+                    this
+                );
             }
         }
 
-        // The main "brain" loop. Every frame:
-        // 1. Kill the zombie if health hit zero.
-        // 2. If dead, skip everything else.
-        // 3. Make sure we have a player reference.
-        // 4. Run the right state handler based on the current state (Idle, Wander, Chase, Attack).
-        void Update()
+        private void Update()
         {
             if (!isDead && currentHealth <= 0)
-            {
                 Die();
-            }
 
             if (isDead)
             {
                 state = ZombieState.Dead;
+                _moveDirection = Vector3.zero;
                 return;
             }
 
-            if (!player) FindPlayer();
-
-            switch (state)
+            if (!player)
             {
-                case ZombieState.Idle: IdleUpdate(); break;
-                case ZombieState.Wander: WanderUpdate(); break;
-                case ZombieState.Chase: ChaseUpdate(); break;
-                case ZombieState.Attack: AttackUpdate(); break;
-            }
-        }
+                state = ZombieState.Idle;
+                _moveDirection = Vector3.zero;
 
-        // ReSharper disable Unity.PerformanceAnalysis
-        // Locates the player in the scene by tag (or name as a fallback) and caches the reference.
-        void FindPlayer()
-        {
-            if (player != null) return;
-            GameObject pObj = GameObject.FindWithTag("Player");
-            if (!pObj) pObj = GameObject.Find("Player");
-            if (pObj) player = pObj.transform;
-        }
-
-        // IDLE STATE: standing still. After waiting `wanderDelay` seconds, switch to wandering.
-        // If the player gets close enough, switch straight to chasing.
-        void IdleUpdate()
-        {
-            if (animator) animator.SetBool(IsWalkingHash, false);
-            if (PlayerInRange(detectionRange))
-            {
-                state = ZombieState.Chase;
-                return;
-            }
-            wanderTimer += Time.deltaTime;
-            if (wanderTimer >= wanderDelay)
-            {
-                wanderTimer = 0f;
-                state = ZombieState.Wander;
-            }
-        }
-
-        // WANDER STATE: pick a random point within wanderRadius and walk there.
-        // Once we arrive, go back to Idle. If the player shows up nearby, abandon wandering and start chasing.
-        void WanderUpdate()
-        {
-            if (animator) animator.SetBool(IsWalkingHash, true);
-            if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh)
-            {
-                if (!agent.hasPath && !agent.pathPending)
+                if (!_loggedMissingPlayer && enableDebugLogs)
                 {
-                    Vector3 randomPos = RandomNavSphere(transform.position, wanderRadius);
-                    if (randomPos != Vector3.zero) agent.SetDestination(randomPos);
+                    _loggedMissingPlayer = true;
+                    Debug.LogWarning($"{name} has NO player assigned. It cannot move.", this);
                 }
-                if (!agent.pathPending && agent.remainingDistance < 0.5f) state = ZombieState.Idle;
-            }
-            if (PlayerInRange(detectionRange)) state = ZombieState.Chase;
-        }
 
-        // Optimization: Throttle SetDestination to reduce CPU usage.
-        private void ChaseUpdate()
-        {
-            if (animator) 
-                animator.SetBool(IsWalkingHash, true);
-            
-            if (!player) 
-            { state = ZombieState.Idle; return; }
-            
-            _pathUpdateTimer += Time.deltaTime;
-            if (_pathUpdateTimer >= PathUpdateInterval)
-            {
-                _pathUpdateTimer = 0f;
-                if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh) 
-                    agent.SetDestination(player.position);
+                if (animator) animator.SetBool(IsWalkingHash, false);
+                return;
             }
 
             float dist = DistanceToPlayer();
-            
+
             if (dist <= attackRange)
-            {
                 state = ZombieState.Attack;
-                if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh) agent.ResetPath();
+            else if (dist <= detectionRange)
+                state = ZombieState.Chase;
+            else
+                state = ZombieState.Idle;
+
+            if (enableDebugLogs && state != _lastLoggedState)
+            {
+                Debug.Log($"{name} State changed: {_lastLoggedState} -> {state} | distance={dist:F2}", this);
+                _lastLoggedState = state;
             }
-            else if (dist > detectionRange * 1.5f) state = ZombieState.Idle;
+
+            switch (state)
+            {
+                case ZombieState.Idle:
+                    IdleUpdate();
+                    break;
+                case ZombieState.Chase:
+                    ChaseUpdate();
+                    break;
+                case ZombieState.Attack:
+                    AttackUpdate();
+                    break;
+            }
         }
 
-        // ATTACK STATE: stop, face the player, and play the attack animation for `attackDuration` seconds.
-        // After the swing finishes, either attack again (player still in range) or chase (player ran).
+        private void FixedUpdate()
+        {
+            if (isDead || state != ZombieState.Chase)
+                return;
+
+            if (!_rb)
+            {
+                if (enableDebugLogs)
+                    Debug.LogWarning($"{name} has no Rigidbody, cannot MovePosition.", this);
+                return;
+            }
+
+            Vector3 nextPosition = _rb.position + _moveDirection * (moveSpeed * Time.fixedDeltaTime);
+            _rb.MovePosition(nextPosition);
+
+            if (enableDebugLogs)
+            {
+                Debug.Log(
+                    $"{name} FixedUpdate Move | current={_rb.position} | next={nextPosition} | dir={_moveDirection} | speed={moveSpeed} | constraints={_rb.constraints}",
+                    this
+                );
+            }
+        }
+
+        private void IdleUpdate()
+        {
+            _moveDirection = Vector3.zero;
+
+            if (animator)
+                animator.SetBool(IsWalkingHash, false);
+        }
+
+        private void ChaseUpdate()
+        {
+            if (!player) return;
+
+            if (animator)
+                animator.SetBool(IsWalkingHash, true);
+
+            Vector3 toPlayer = player.position - transform.position;
+            toPlayer.y = 0f;
+
+            if (enableDebugLogs)
+            {
+                Debug.Log($"{name} ChaseUpdate | self={transform.position} | player={player.position} | toPlayer={toPlayer}", this);
+            }
+
+            if (toPlayer.sqrMagnitude <= 0.001f)
+            {
+                _moveDirection = Vector3.zero;
+
+                if (enableDebugLogs)
+                {
+                    Debug.LogWarning($"{name} toPlayer is almost zero, no movement.", this);
+                }
+
+                return;
+            }
+
+            _moveDirection = toPlayer.normalized;
+            RotateTowardsPlayer();
+
+            if (enableDebugLogs)
+            {
+                Debug.Log($"{name} Chase direction set to {_moveDirection}", this);
+            }
+        }
+        
+        private void RotateTowardsPlayer()
+        {
+            if (!player) return;
+
+            Vector3 flatDir = player.position - _rb.position;
+            flatDir.y = 0f;
+
+            if (flatDir.sqrMagnitude < 0.001f)
+                return;
+
+            Quaternion targetRotation = Quaternion.LookRotation(flatDir.normalized, Vector3.up);
+            Quaternion newRotation = Quaternion.Slerp(_rb.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+
+            _rb.MoveRotation(newRotation);
+        }
+
         private void AttackUpdate()
         {
+            _moveDirection = Vector3.zero;
+
+            if (!player) return;
+
+            RotateTowardsPlayer();
+
+
             if (isAttacking)
             {
                 attackTimer -= Time.deltaTime;
 
-                // Attack finished
                 if (attackTimer <= 0f)
-                {
                     isAttacking = false;
 
-                    // Re-enable movement
-                    if (agent && agent.isActiveAndEnabled)
-                        agent.isStopped = false;
-
-                    // If player moved away, chase again
-                    if (DistanceToPlayer() > attackRange)
-                        state = ZombieState.Chase;
-                    else
-                        state = ZombieState.Attack; // ready for next attack
-                }
-
+                if (animator)
+                    animator.SetBool(IsWalkingHash, false);
 
                 return;
             }
 
-            // Start a new attack
             isAttacking = true;
             attackTimer = attackDuration;
+
+            if (enableDebugLogs)
+            {
+                Debug.Log($"{name} started attack.", this);
+            }
 
             if (animator)
             {
                 animator.SetBool(IsWalkingHash, false);
                 animator.SetTrigger(AttackTriggerHash);
             }
-
-            // Stop movement during attack
-            if (agent && agent.isActiveAndEnabled && agent.isOnNavMesh)
-            {
-                agent.ResetPath();
-                agent.isStopped = true;
-            }
-
-            // Face the player
-            if (player != null)
-            {
-                Vector3 lookPos = player.position;
-                lookPos.y = transform.position.y;
-                transform.LookAt(lookPos);
-            }
         }
 
-
-        // Called by the player's attack hitbox. Subtracts damage and triggers Die() if health hits zero.
         public void TakeDamage(int dmg)
         {
             if (isDead) return;
+
             currentHealth -= dmg;
-            if (currentHealth <= 0) Die();
+
+            if (enableDebugLogs)
+            {
+                Debug.Log($"{name} TakeDamage {dmg} -> currentHealth={currentHealth}", this);
+            }
+
+            if (currentHealth <= 0)
+                Die();
         }
 
-        // ReSharper disable Unity.PerformanceAnalysis
-        // Handles death: marks the zombie as dead, plays the death animation, disables agent/colliders/physics
-        // so the corpse doesn't interfere with the game, and schedules a return to the pool in 5 seconds.
-        void Die()
+        private void Die()
         {
             if (isDead) return;
+
             isDead = true;
             state = ZombieState.Dead;
-            if (animator) animator.SetBool(IsDeadHash, true);
-            if (agent != null)
+            _moveDirection = Vector3.zero;
+
+            if (enableDebugLogs)
             {
-                if (agent.isOnNavMesh) agent.isStopped = true;
-                agent.enabled = false;
-            }
-            if (_cachedColliders == null) _cachedColliders = GetComponentsInChildren<Collider>();
-            foreach (Collider col in _cachedColliders) col.enabled = false;
-            Rigidbody rb = GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.isKinematic = true;
-                rb.linearVelocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
+                Debug.Log($"{name} Die()", this);
             }
 
-            // Return to pool after a delay
+            if (animator)
+            {
+                animator.SetBool(IsWalkingHash, false);
+                animator.SetBool(IsDeadHash, true);
+            }
+
+            if (_cachedColliders == null)
+                _cachedColliders = GetComponentsInChildren<Collider>();
+
+            foreach (Collider col in _cachedColliders)
+                col.enabled = false;
+
+            if (_rb)
+            {
+                _rb.linearVelocity = Vector3.zero;
+                _rb.angularVelocity = Vector3.zero;
+            }
+
             StartCoroutine(ReturnToPoolAfterDelay(5f));
         }
 
-        // Coroutine: wait `delay` seconds (so the death animation can play), then return the zombie to the pool
-        // so it can be reused for the next spawn. Also tells the spawner we're gone so it can spawn another.
         private System.Collections.IEnumerator ReturnToPoolAfterDelay(float delay)
         {
             yield return new WaitForSeconds(delay);
-            
-            if (EnemySpawner.Instance != null)
+
+            if (EnemySpawner.Instance)
                 EnemySpawner.Instance.UnregisterEnemy(gameObject);
 
-            if (Pooling.PoolManager.Instance != null)
-            {
+            if (Pooling.PoolManager.Instance)
                 Pooling.PoolManager.Instance.Return(gameObject);
-            }
             else
-            {
                 gameObject.SetActive(false);
-            }
         }
 
-        // Quick helper: is the player within `range` units of this zombie?
-        bool PlayerInRange(float range)
-        {
-            return DistanceToPlayer() <= range;
-        }
-
-        // Returns the distance to the player. Returns infinity if there's no player reference
-        // so range checks always return false until the player is found.
-        float DistanceToPlayer()
+        private float DistanceToPlayer()
         {
             if (!player)
                 return Mathf.Infinity;
+
             return Vector3.Distance(transform.position, player.position);
-        }
-        // Picks a random point within `dist` of `origin` that's actually on the NavMesh (so the zombie can walk there).
-        // Returns Vector3.zero if no valid point was found.
-        public static Vector3 RandomNavSphere(Vector3 origin, float dist)
-        {
-            Vector3 randomDirection = Random.insideUnitSphere * dist;
-            randomDirection += origin;
-            NavMeshHit navHit;
-            if (NavMesh.SamplePosition(randomDirection, out navHit, dist, NavMesh.AllAreas)) 
-                return navHit.position;
-            return Vector3.zero;
         }
     }
 }
