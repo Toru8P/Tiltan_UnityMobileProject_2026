@@ -265,8 +265,12 @@ namespace _Scripts.Enemies
 
         private void FixedUpdate()
         {
-            if (isDead || state != ZombieState.Chase)
-                return;
+            if (isDead || !_rb) return;
+
+            if (state == ZombieState.Chase || state == ZombieState.Attack)
+                RotateTowardsPlayer();
+
+            if (state != ZombieState.Chase) return;
 
             if (!_rb)
             {
@@ -323,7 +327,6 @@ namespace _Scripts.Enemies
             }
 
             _moveDirection = toPlayer.normalized;
-            RotateTowardsPlayer();
 
             if (enableDebugLogs)
             {
@@ -352,8 +355,6 @@ namespace _Scripts.Enemies
             _moveDirection = Vector3.zero;
 
             if (!player) return;
-
-            RotateTowardsPlayer();
 
             if (isAttacking)
             {
