@@ -42,5 +42,17 @@ namespace _Scripts.MainGame.Player
         {
             animator.SetTrigger("Death");
         }
+
+        // Fires the roll animation.
+        public void PlayRoll()
+        {
+            animator.SetTrigger("Roll");
+        }
+
+        // Resets the hit trigger to prevent it from playing if it was queued during an immune state.
+        public void ResetHit()
+        {
+            animator.ResetTrigger("Hit");
+        }
     }
 }

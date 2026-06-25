@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(rm \"C:\\\\Users\\\\famil\\\\Tiltan_UnityMobileProject_2026\\\\SCRIPT_NOTES.md\")",
-      "WebFetch(domain:my.microsoftpersonalcontent.com)"
+      "WebFetch(domain:my.microsoftpersonalcontent.com)",
+      "Bash(xargs grep -l \"class.*Survival\\\\|class.*Timer\\\\|class.*Score\")",
+      "Bash(xargs grep -l \"class.*TextTimer\")",
+      "Bash(xargs grep -l \"SurvivalHub\")",
+      "Bash(xargs grep -l \"Timer\")",
+      "Bash(xargs grep -l \"class.*Timer\")"
     ]
   }
 }

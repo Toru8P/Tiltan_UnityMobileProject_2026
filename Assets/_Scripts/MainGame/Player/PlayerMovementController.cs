@@ -19,10 +19,14 @@ namespace _Scripts.MainGame.Player
         private Vector3 _moveDirection;
 
         private bool _isRolling = false;
+        public bool IsRolling => _isRolling;
         private float _rollTimer = 0f;
         private float _rollCooldownTimer = 0f;
         public float RollCooldownTimer => _rollCooldownTimer;
         private Vector3 _rollDirection;
+
+        private float _staggerTimer = 0f;
+        public bool IsStaggered => _staggerTimer > 0f;
 
         [Header("Attack Settings")]
         public float attackCooldown = 0.5f;
@@ -64,7 +68,7 @@ namespace _Scripts.MainGame.Player
         // Called when the Roll button is pressed. Only rolls if not already rolling and cooldown is done.
         public void PerformRoll()
         {
-            if (!_isRolling && _rollCooldownTimer <= 0f)
+            if (!_isRolling && _rollCooldownTimer <= 0f && !IsStaggered)
                 StartRoll();
         }
 
@@ -99,8 +103,22 @@ namespace _Scripts.MainGame.Player
         // Physics update — runs at a fixed timestep, perfect for moving Rigidbodies.
         // While rolling, run the roll instead of normal movement.
         // Otherwise: walk, rotate, and tick the cooldown timers down.
+        public void Stagger(float duration)
+        {
+            _isRolling = false;
+            _staggerTimer = duration;
+            _rb.linearVelocity = new Vector3(0, _rb.linearVelocity.y, 0);
+            _animationController?.SetMoving(false);
+        }
+
         private void FixedUpdate()
-{
+        {
+            if (_staggerTimer > 0f)
+            {
+                _staggerTimer -= Time.fixedDeltaTime;
+                return;
+            }
+
             if (_isRolling)
             {
                 ApplyRoll();
@@ -180,7 +198,15 @@ namespace _Scripts.MainGame.Player
             _rollTimer = rollDuration;
             _rollCooldownTimer = rollCooldown;
 
-            _animator?.SetTrigger("Roll");
+            if (_animationController)
+            {
+                _animationController.ResetHit();
+                _animationController.PlayRoll();
+            }
+            else
+            {
+                _animator?.SetTrigger("Roll");
+            }
         }
 
         // Runs every physics frame while rolling. Pushes the player at full rollForce in the roll direction,

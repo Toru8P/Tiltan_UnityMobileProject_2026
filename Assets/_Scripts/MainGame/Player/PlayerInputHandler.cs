@@ -33,6 +33,8 @@ namespace _Scripts.MainGame.Player
         // the input to the movement controller. "performed" means the button was fully pressed (not just touched).
         private void HandleAction(InputAction.CallbackContext context)
         {
+            if (!_movementController.enabled) return;
+
             string actionName = context.action.name;
 
             if (actionName == "Move")

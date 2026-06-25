@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using _Scripts.MainGame.UI;
@@ -16,6 +16,9 @@ namespace _Scripts.MainGame.Player
         [Header("UI")]
         [SerializeField] private AmountBarInUIDriver hpBarDriver;
         [SerializeField] private AmountBarInUIDriver shieldBarDriver;
+
+        public int CurrentHealth => currentStats.CurrentHealth;
+        public bool IsDead => currentStats.CurrentHealth <= 0;
 
         private void Start()
         {

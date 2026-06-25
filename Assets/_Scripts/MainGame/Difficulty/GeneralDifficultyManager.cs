@@ -31,8 +31,10 @@ namespace _Scripts.MainGame.Difficulty
         [SerializeField] private DifficultyPhaseChangedEvent onDifficultyPhaseChanged = new();
 
         private DifficultyPhase _currentPhase = DifficultyPhase.None;
+        private float _elapsedTime;
 
         public DifficultyPhase CurrentPhase => _currentPhase;
+        public float ElapsedTime => _elapsedTime;
         public IReadOnlyList<DifficultyPhaseEntry> DifficultyEntries => difficultyEntries;
 
         public void SubscribeOnChange(UnityAction<DifficultyPhase> subscriber)
@@ -55,14 +57,20 @@ namespace _Scripts.MainGame.Difficulty
 
         private void Start()
         {
+            _elapsedTime = 0f;
             StartCoroutine(CheckPhaseRoutine());
+        }
+
+        private void Update()
+        {
+            _elapsedTime += Time.deltaTime;
         }
 
         private IEnumerator CheckPhaseRoutine()
         {
             while (true)
             {
-                DifficultyPhase phase = GetPhaseForTime(Time.time);
+                DifficultyPhase phase = GetPhaseForTime(_elapsedTime);
 
                 if (phase != _currentPhase)
                 {
