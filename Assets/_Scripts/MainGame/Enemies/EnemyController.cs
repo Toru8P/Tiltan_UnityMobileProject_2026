@@ -200,6 +200,8 @@ private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
             {
                 _rb.linearVelocity = Vector3.zero;
                 _rb.angularVelocity = Vector3.zero;
+                _rb.useGravity = true;
+                _rb.isKinematic = false;
             }
 
             if (enableDebugLogs)
@@ -396,6 +398,11 @@ private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
 
             currentHealth -= dmg;
 
+            if (IndicatorManager.Instance != null)
+            {
+                IndicatorManager.Instance.SpawnDamageZombie(transform.position, dmg);
+            }
+
             if (enableDebugLogs)
             {
                 Debug.Log($"{name} TakeDamage {dmg} -> currentHealth={currentHealth}", this);
@@ -413,9 +420,15 @@ private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
             state = ZombieState.Dead;
             _moveDirection = Vector3.zero;
 
+            double points = baseScorePoints * _scoreMultiplier;
             if (SurvivalHUDController.Instance != null)
             {
-                SurvivalHUDController.Instance.AddScore(baseScorePoints * _scoreMultiplier);
+                SurvivalHUDController.Instance.AddScore(points);
+            }
+
+            if (IndicatorManager.Instance != null)
+            {
+                IndicatorManager.Instance.SpawnPoints(transform.position, points);
             }
 
             RollForLoot();
@@ -441,6 +454,8 @@ private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
             {
                 _rb.linearVelocity = Vector3.zero;
                 _rb.angularVelocity = Vector3.zero;
+                _rb.useGravity = false;
+                _rb.isKinematic = true;
             }
 
             StartCoroutine(DeactivateAfterDelay(5f));

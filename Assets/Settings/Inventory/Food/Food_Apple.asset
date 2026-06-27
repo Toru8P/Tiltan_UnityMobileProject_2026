@@ -17,8 +17,13 @@ MonoBehaviour:
   description: A fresh apple from the kitchen.
   icon: {fileID: 21300000, guid: 72de03231a6bb1548851d3c35465cecb, type: 3}
   category: 1
+  armorSlot: 0
+  armorModelPath: 
+  armorColor: {r: 1, g: 1, b: 1, a: 1}
   maxStackSize: 10
   isConsumable: 1
   hungerRestore: 15
+  healthRestore: 10
   heldPrefab: {fileID: 4940626800380959196, guid: 2e83e0d2def586942bef8529eb0825d6, type: 3}
+  holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}

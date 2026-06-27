@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using _Scripts.MainGame.Audio;
 using _Scripts.MainGame.Difficulty;
 using UnityEngine;
@@ -20,11 +20,11 @@ namespace _Scripts.MainGame
         }
 
         [SerializeField] private AudioManager audioManager;
-        
         [SerializeField] private GeneralDifficultyManager difficultyManager;
+        [SerializeField] private _Scripts.MainGame.Player.PlayerStatsController playerStats;
         
         public GeneralDifficultyManager DifficultyManager {
-            get => difficultyManager;
+get => difficultyManager;
             private set
             {
                 if (difficultyManager)
@@ -36,8 +36,10 @@ namespace _Scripts.MainGame
             } 
         }
 
+        public _Scripts.MainGame.Player.PlayerStatsController PlayerStats => playerStats;
+
         public AudioManager AudioManager
-        {
+{
             get => audioManager;
             private set
             {

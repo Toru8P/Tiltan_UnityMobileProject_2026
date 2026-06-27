@@ -54,6 +54,7 @@ namespace _Scripts.MainGame.Player
 
         public void DealDamage(int damage)
         {
+            int totalDamage = damage;
             if (currentStats.CurrentShield > 0)
             {
                 currentStats.CurrentShield -= damage;
@@ -67,17 +68,40 @@ namespace _Scripts.MainGame.Player
                     damage = 0; // All damage absorbed by shield
                 }
                 shieldBarDriver.SetFill(currentStats.CurrentShield, currentStats.MaxShield);
-                
             }
             
-            if (damage <= 0) return; // No damage left to apply to health
-            
-            currentStats.CurrentHealth -= damage;
-            if  (currentStats.CurrentHealth <= 0) 
+            if (damage > 0)
             {
-                currentStats.CurrentHealth = 0;
+                currentStats.CurrentHealth -= damage;
+                if (currentStats.CurrentHealth <= 0) 
+                {
+                    currentStats.CurrentHealth = 0;
+                }
+                hpBarDriver.SetFill(currentStats.CurrentHealth, currentStats.MaxHealth);
             }
-            hpBarDriver.SetFill(currentStats.CurrentHealth, currentStats.MaxHealth);
+
+            if (IndicatorManager.Instance != null && totalDamage > 0)
+            {
+                IndicatorManager.Instance.SpawnDamagePlayer(transform.position, totalDamage);
+            }
+        }
+
+        public void Heal(int amount)
+        {
+            if (amount <= 0 || currentStats.CurrentHealth >= currentStats.MaxHealth) return;
+
+            int oldHealth = currentStats.CurrentHealth;
+            currentStats.CurrentHealth = Mathf.Min(currentStats.CurrentHealth + amount, currentStats.MaxHealth);
+            int actualHeal = currentStats.CurrentHealth - oldHealth;
+
+            if (actualHeal > 0)
+            {
+                UpdateBars();
+                if (IndicatorManager.Instance != null)
+                {
+                    IndicatorManager.Instance.SpawnHealing(transform.position, actualHeal);
+                }
+            }
         }
     }
 

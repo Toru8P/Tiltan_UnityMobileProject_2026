@@ -300,10 +300,30 @@ private int lastClickIndex = -1;
                     return;
                 }
 
-                // Assuming UseItem exists on InventoryManager or similar
-// For now just log or call a placeholder
-                Debug.Log($"Using {slot.item.displayName}");
-                // InventoryManager.Instance.UseItem(slot.item);
+                if (slot.item.isConsumable)
+                {
+                    // Apply effects
+                    if (slot.item.healthRestore > 0)
+                    {
+                        SingletonPoint.Instance.PlayerStats.Heal(slot.item.healthRestore);
+                    }
+
+                    // Hunger logic if it exists (placeholder for now as no hunger script visible)
+                    if (slot.item.hungerRestore > 0)
+                    {
+                        Debug.Log($"Restored {slot.item.hungerRestore} hunger.");
+                    }
+
+                    // Consume item
+                    slot.quantity--;
+                    if (slot.quantity <= 0) slot.Clear();
+                    InventoryManager.Instance.NotifySlotChanged(selectedIndex);
+                    
+                    Debug.Log($"Consumed {slot.item.displayName}");
+                    return;
+                }
+
+                Debug.Log($"Cannot use {slot.item.displayName} - Not consumable or armor.");
             }
         }
 

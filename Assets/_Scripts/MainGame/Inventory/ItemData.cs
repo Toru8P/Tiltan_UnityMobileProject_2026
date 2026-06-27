@@ -17,10 +17,11 @@ namespace _Scripts.MainGame.Inventory
         public string armorModelPath;
         public Color armorColor = Color.white;
         public int maxStackSize = 100;
-public bool isConsumable;
+        public bool isConsumable;
         public int hungerRestore;
+        public int healthRestore;
         public GameObject heldPrefab;
-        public Vector3 holdPosition;
+public Vector3 holdPosition;
         public Vector3 holdRotation;
     }
 }

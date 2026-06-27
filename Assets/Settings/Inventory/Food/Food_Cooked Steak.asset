@@ -17,7 +17,13 @@ MonoBehaviour:
   description: A fresh cooked steak from the kitchen.
   icon: {fileID: 0}
   category: 1
+  armorSlot: 0
+  armorModelPath: 
+  armorColor: {r: 1, g: 1, b: 1, a: 1}
   maxStackSize: 10
   isConsumable: 1
   hungerRestore: 15
-  weight: 0.25
+  healthRestore: 25
+  heldPrefab: {fileID: 0}
+  holdPosition: {x: 0, y: 0, z: 0}
+  holdRotation: {x: 0, y: 0, z: 0}
