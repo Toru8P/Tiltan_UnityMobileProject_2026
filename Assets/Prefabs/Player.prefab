@@ -3264,6 +3264,9 @@ GameObject:
   - component: {fileID: 7376743923781949030}
   - component: {fileID: 3424280485353391396}
   - component: {fileID: 7576203923315148407}
+  - component: {fileID: 951452593385509006}
+  - component: {fileID: 147836556778051692}
+  - component: {fileID: 568250202078670494}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -3279,7 +3282,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4021885863237934328}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.9976154, z: -0, w: -0.06901812}
+  m_LocalRotation: {x: 0, y: 0.9976156, z: -0, w: -0.06901635}
   m_LocalPosition: {x: 1.4791547, y: 3.7, z: -0.31697845}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3379,6 +3382,7 @@ MonoBehaviour:
   rollDuration: 0.35
   rollCooldown: 0.8
   attackCooldown: 0.5
+  swingSound: {fileID: 0}
 --- !u!114 &3403340720081645657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3566,6 +3570,62 @@ MonoBehaviour:
   elbowR: {fileID: 4634929866159920151}
   holdElbowRotation: {x: 0, y: 0, z: -45}
   unlockItemForEditing: 0
+--- !u!114 &951452593385509006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4021885863237934328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8db6840b5e5e4d389fbfd55c5ecee260, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Player.PlayerStatsController
+  startWithFullHp: 0
+  initialStats:
+    MaxHealth: 0
+    CurrentHealth: 0
+    MaxShield: 0
+    CurrentShield: 0
+    HpRegenerationAmount: 0
+    ShieldRegenerationAmount: 0
+  currentStats:
+    MaxHealth: 0
+    CurrentHealth: 0
+    MaxShield: 0
+    CurrentShield: 0
+    HpRegenerationAmount: 0
+    ShieldRegenerationAmount: 0
+  hpBarDriver: {fileID: 0}
+  shieldBarDriver: {fileID: 0}
+--- !u!114 &147836556778051692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4021885863237934328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c58aa2e00074eca9d61759dfcd5d6d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Player.PlayerAdaptor
+  hitSfx: {fileID: 0}
+  staggerDuration: 0.4
+--- !u!114 &568250202078670494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4021885863237934328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d6cab92b3750a408b45c866cead2cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.PlayerArmorManager
+  armorParent: {fileID: 0}
 --- !u!1 &4031047315772819942
 GameObject:
   m_ObjectHideFlags: 0

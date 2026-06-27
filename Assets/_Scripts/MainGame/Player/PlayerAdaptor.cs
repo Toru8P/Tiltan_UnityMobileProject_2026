@@ -11,19 +11,29 @@ namespace _Scripts.MainGame.Player
         
         [SerializeField] private AudioClip hitSfx;
         [SerializeField] private float staggerDuration = 0.4f;
+        [SerializeField] private float invincibilityDuration = 1.0f;
+        private float _invincibilityTimer = 0f;
 
         private void Awake()
-        {
+{
             _animationController = GetComponent<PlayerAnimationController>();
             _statsController = GetComponent<PlayerStatsController>();
             _movementController = GetComponent<PlayerMovementController>();
         }
 
+        private void Update()
+        {
+            if (_invincibilityTimer > 0f)
+            {
+                _invincibilityTimer -= Time.deltaTime;
+            }
+        }
+
         private bool _isDead;
-        
+
         public void DealDamage(int damage)
         {
-            if (_isDead) return;
+            if (_isDead || _invincibilityTimer > 0f) return;
 
             // Roll immunity
             if (_movementController != null && _movementController.IsRolling)
@@ -31,6 +41,7 @@ namespace _Scripts.MainGame.Player
                 return;
             }
 
+            _invincibilityTimer = invincibilityDuration;
             _statsController.DealDamage(damage);
 
             if (_statsController.IsDead)
