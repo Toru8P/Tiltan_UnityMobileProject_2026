@@ -29,7 +29,7 @@ namespace _Scripts.MainGame.UI
                 contentPanel.SetActive(true);
 
             if (scoreValueText != null)
-                scoreValueText.text = ((int)score).ToString(); // Still display as int
+                scoreValueText.text = ScoreFormatter.FormatScore(score);
 
             if (timeValueText != null)
                 timeValueText.text = time;

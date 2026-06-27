@@ -30,8 +30,11 @@ namespace _Scripts.MainGame.Player
 
         [Header("Attack Settings")]
         public float attackCooldown = 0.5f;
+        public float attackRange = 1.5f;
+        public int attackDamage = 25;
+        public float attackAngle = 90f;
         private float _attackCooldownTimer = 0f;
-        public float AttackCooldownTimer => _attackCooldownTimer;
+public float AttackCooldownTimer => _attackCooldownTimer;
         private bool _isAttackHeld = false;
 
         private Rigidbody _rb;
@@ -86,7 +89,7 @@ public void PerformRoll()
             {
                 _attackCooldownTimer = attackCooldown;
 
-                // Play swing sound if holding a tool or weapon
+                // 1. Visuals and Sound
                 if (_equipment && _equipment.CurrentItem)
                 {
                     ItemCategory cat = _equipment.CurrentItem.category;
@@ -103,7 +106,54 @@ public void PerformRoll()
                     _animationController.PlayAttack();
                 else if (_animator)
                     _animator.SetTrigger("Attack");
+
+                // 2. Hit Detection
+                ApplyAttackDamage();
             }
+        }
+
+        private void ApplyAttackDamage()
+        {
+            // Center of the attack sphere is slightly in front of the player
+            Vector3 attackCenter = transform.position + transform.forward * (attackRange * 0.5f) + Vector3.up * 1f;
+            Collider[] hits = Physics.OverlapSphere(attackCenter, attackRange);
+
+            foreach (var hit in hits)
+            {
+                // Look for EnemyController in the hit object or its parents
+                _Scripts.Enemies.EnemyController enemy = hit.GetComponentInParent<_Scripts.Enemies.EnemyController>();
+                
+                if (enemy != null)
+                {
+                    // Check if the enemy is within the attack angle
+                    Vector3 dirToEnemy = (enemy.transform.position - transform.position).normalized;
+                    float angle = Vector3.Angle(transform.forward, dirToEnemy);
+
+                    if (angle <= attackAngle * 0.5f)
+                    {
+                        enemy.TakeDamage(attackDamage);
+                    }
+                }
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            // Visualize attack range
+            Gizmos.color = Color.red;
+            Vector3 attackCenter = transform.position + transform.forward * (attackRange * 0.5f) + Vector3.up * 1f;
+            Gizmos.DrawWireSphere(attackCenter, attackRange);
+            
+            // Visualize attack angle
+            Gizmos.color = Color.yellow;
+            Vector3 forward = transform.forward * attackRange;
+            Quaternion leftRayRotation = Quaternion.AngleAxis(-attackAngle * 0.5f, Vector3.up);
+            Quaternion rightRayRotation = Quaternion.AngleAxis(attackAngle * 0.5f, Vector3.up);
+            Vector3 leftRayDirection = leftRayRotation * forward;
+            Vector3 rightRayDirection = rightRayRotation * forward;
+            
+            Gizmos.DrawRay(transform.position + Vector3.up * 1f, leftRayDirection);
+            Gizmos.DrawRay(transform.position + Vector3.up * 1f, rightRayDirection);
         }
 
         // Physics update — runs at a fixed timestep, perfect for moving Rigidbodies.

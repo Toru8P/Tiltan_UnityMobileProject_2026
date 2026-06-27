@@ -78,14 +78,10 @@ namespace _Scripts.MainGame.Player
                 var gameOverUI = Object.FindAnyObjectByType<_Scripts.MainGame.UI.GameOverUIController>();
                 if (gameOverUI != null)
                 {
-                    // Format time similar to HUD
-                    int minutes = Mathf.FloorToInt(hud.SurvivalTime / 60f);
-                    int seconds = Mathf.FloorToInt(hud.SurvivalTime % 60f);
-                    string formattedTime = $"{minutes:00}:{seconds:00}";
-                    
+                    string formattedTime = _Scripts.MainGame.UI.TimeFormatter.FormatTime(hud.SurvivalTime);
                     gameOverUI.Show(hud.Score, formattedTime, hud.CurrentPhase.ToString());
                 }
-            }
+}
         }
     }
 }

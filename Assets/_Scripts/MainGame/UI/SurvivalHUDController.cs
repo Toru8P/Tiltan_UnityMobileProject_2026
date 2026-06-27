@@ -104,16 +104,12 @@ namespace _Scripts.MainGame.UI
         private void UpdateHUD()
         {
             if (timeText != null)
-                timeText.text = FormatTime(_survivalTime);
+                timeText.text = TimeFormatter.FormatTime(_survivalTime);
 
             if (scoreText != null)
             {
-                int displayedScore = (int)((_score / 10) * 10); 
-                if (displayedScore != _lastDisplayedScore)
-                {
-                    scoreText.text = $"Score: {displayedScore}";
-                    _lastDisplayedScore = displayedScore;
-                }
+                string formattedScore = ScoreFormatter.FormatScore(_score);
+                scoreText.text = $"Score: {formattedScore}";
             }
         }
 
@@ -139,13 +135,6 @@ namespace _Scripts.MainGame.UI
                 DifficultyPhase.Expert => Color.red,
                 _ => Color.white
             };
-        }
-
-        private string FormatTime(float time)
-        {
-            int minutes = Mathf.FloorToInt(time / 60f);
-            int seconds = Mathf.FloorToInt(time % 60f);
-            return $"{minutes:00}:{seconds:00}";
         }
     }
 }
