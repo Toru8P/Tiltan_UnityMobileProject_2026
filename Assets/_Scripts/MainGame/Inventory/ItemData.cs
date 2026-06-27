@@ -4,6 +4,15 @@ namespace _Scripts.MainGame.Inventory
 {
     public enum ItemCategory { Resource, Food, Tool, Weapon, Armor, Potion, Consumable }
     public enum ArmorSlot { None, Helmet, Chest, Shoulders, Gloves, Pants, Boots }
+    public enum StatType { Attack, Defense, MovementSpeed, AttackSpeed }
+
+    [System.Serializable]
+    public struct ItemStatModifier
+    {
+        public StatType statType;
+        public float flatAmount;
+        public float percentageAmount; // 0.1f = 10%
+    }
 
     [CreateAssetMenu(fileName = "NewItem", menuName = "Survival/Item")]
     public class ItemData : ScriptableObject
@@ -21,7 +30,10 @@ namespace _Scripts.MainGame.Inventory
         public int hungerRestore;
         public int healthRestore;
         public GameObject heldPrefab;
-public Vector3 holdPosition;
+        public Vector3 holdPosition;
         public Vector3 holdRotation;
+
+        [Header("Stats")]
+        public ItemStatModifier[] statModifiers;
     }
 }

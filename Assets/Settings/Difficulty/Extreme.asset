@@ -51,3 +51,10 @@ MonoBehaviour:
   enemyMaxHealthMultiplier: 3
   enemyDamageMultiplier: 1
   scoreMultiplier: 2
+  lootTable:
+  - targetEnemyPrefab: {fileID: 0}
+    item: {fileID: 0}
+    dropChance: 0
+    minQuantity: 0
+    maxQuantity: 0
+  worldItemPrefab: {fileID: 0}

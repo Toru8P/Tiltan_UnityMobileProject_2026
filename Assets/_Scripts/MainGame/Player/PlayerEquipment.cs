@@ -18,6 +18,8 @@ namespace _Scripts.MainGame.Player
         private GameObject currentHeldItem;
         private HotbarUI hotbar;
 
+        public event System.Action<ItemData> OnItemEquipped;
+
         private void Start()
         {
             hotbar = Object.FindAnyObjectByType<HotbarUI>();
@@ -74,6 +76,7 @@ namespace _Scripts.MainGame.Player
                 currentHeldItem.transform.localPosition = item.holdPosition;
                 currentHeldItem.transform.localRotation = Quaternion.Euler(item.holdRotation);
             }
+            OnItemEquipped?.Invoke(item);
         }
     }
 }

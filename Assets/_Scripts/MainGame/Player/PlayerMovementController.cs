@@ -47,6 +47,8 @@ private Animator _animator;
 
         private const float MoveDeadzoneSqr = 0.01f;
 
+        private PlayerStatsController _stats;
+
         // Runs once when the game starts. Grabs references to Rigidbody and Animator,
         // and locks rotation on the Rigidbody so physics collisions don't spin the player.
         private void Start()
@@ -55,6 +57,7 @@ private Animator _animator;
             _animator = GetComponentInChildren<Animator>();
             _animationController = GetComponent<PlayerAnimationController>();
             _equipment = GetComponent<PlayerEquipment>();
+            _stats = GetComponent<PlayerStatsController>();
 
             _rb.constraints = RigidbodyConstraints.FreezeRotation;
         }
@@ -87,7 +90,8 @@ public void PerformRoll()
         {
             if (!_isRolling && _attackCooldownTimer <= 0f)
             {
-                _attackCooldownTimer = attackCooldown;
+                float atkSpd = _stats != null ? _stats.EffectiveAttackSpeed : 1f;
+                _attackCooldownTimer = attackCooldown / atkSpd;
 
                 // 1. Visuals and Sound
                 if (_equipment && _equipment.CurrentItem)
@@ -100,6 +104,11 @@ public void PerformRoll()
                             SingletonPoint.Instance.AudioManager.PlaySFX(swingSound);
                         }
                     }
+                }
+
+                if (_animator)
+                {
+                    _animator.SetFloat("AttackSpeedMultiplier", atkSpd);
                 }
 
                 if (_animationController)
@@ -131,7 +140,8 @@ public void PerformRoll()
 
                     if (angle <= attackAngle * 0.5f)
                     {
-                        enemy.TakeDamage(attackDamage);
+                        int damage = _stats != null ? _stats.EffectiveAttack : (int)attackDamage;
+                        enemy.TakeDamage(damage);
                     }
                 }
             }
@@ -213,7 +223,7 @@ _rollCooldownTimer -= Time.fixedDeltaTime;
             // World-space movement (NOT camera-relative)
             _moveDirection = new Vector3(_moveInput.x, 0f, _moveInput.y).normalized;
 
-            float currentSpeed = moveSpeed * inputMagnitude;
+            float currentSpeed = (_stats != null ? _stats.EffectiveMoveSpeed : moveSpeed) * inputMagnitude;
 
             Vector3 desiredVelocity = new Vector3(
                 _moveDirection.x * currentSpeed,
