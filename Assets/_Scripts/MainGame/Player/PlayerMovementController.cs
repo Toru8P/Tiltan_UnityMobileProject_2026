@@ -32,9 +32,10 @@ namespace _Scripts.MainGame.Player
         public float attackCooldown = 0.5f;
         private float _attackCooldownTimer = 0f;
         public float AttackCooldownTimer => _attackCooldownTimer;
+        private bool _isAttackHeld = false;
 
         private Rigidbody _rb;
-        private Animator _animator;
+private Animator _animator;
         private PlayerAnimationController _animationController;
         private PlayerEquipment _equipment;
 
@@ -65,8 +66,13 @@ namespace _Scripts.MainGame.Player
                 _moveInput = Vector2.zero;
         }
 
+        public void SetAttackHeld(bool held)
+        {
+            _isAttackHeld = held;
+        }
+
         // Called when the Roll button is pressed. Only rolls if not already rolling and cooldown is done.
-        public void PerformRoll()
+public void PerformRoll()
         {
             if (!_isRolling && _rollCooldownTimer <= 0f && !IsStaggered)
                 StartRoll();
@@ -128,8 +134,11 @@ namespace _Scripts.MainGame.Player
             MovePlayer();
             RotatePlayer();
 
+            if (_isAttackHeld)
+                PerformAttack();
+
             if (_rollCooldownTimer > 0f)
-                _rollCooldownTimer -= Time.fixedDeltaTime;
+_rollCooldownTimer -= Time.fixedDeltaTime;
 
             if (_attackCooldownTimer > 0f)
                 _attackCooldownTimer -= Time.fixedDeltaTime;

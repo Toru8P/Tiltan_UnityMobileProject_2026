@@ -1,5 +1,7 @@
 using _Scripts.MainGame.Difficulty.Deprecated;
 using _Scripts.MainGame.Player;
+using _Scripts.MainGame.UI;
+using _Scripts.MainGame.Inventory;
 using UnityEngine;
 
 namespace _Scripts.Enemies
@@ -19,6 +21,7 @@ namespace _Scripts.Enemies
         [Header("References")]
         [SerializeField] private Transform player;
         [SerializeField] private Animator animator;
+        [SerializeField] private GameObject identityPrefab;
 
         [Header("Settings")]
         [SerializeField] private float detectionRange = 10f;
@@ -42,8 +45,12 @@ namespace _Scripts.Enemies
         [Header("Active Stats")]
         [SerializeField] private int currentDamage = 10;
 
+        [Header("Points")]
+        [SerializeField] private double baseScorePoints = 100;
+        private float _scoreMultiplier = 1f;
+
         [Header("Debug")]
-        [SerializeField] private bool enableDebugLogs = true;
+[SerializeField] private bool enableDebugLogs = true;
 
         private bool isAttacking;
         private float attackTimer;
@@ -53,9 +60,10 @@ namespace _Scripts.Enemies
         private ZombieState _lastLoggedState;
         private bool _loggedMissingPlayer;
         private PlayerAdaptor _playerAdaptor;
+        private DifficultySettings _currentSettings;
         
         private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
-        private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
+private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
         private static readonly int AttackTriggerHash = Animator.StringToHash("ZombieAttack");
 
         public void SetPlayer(Transform target)
@@ -79,9 +87,10 @@ namespace _Scripts.Enemies
 
             moveSpeed = baseSpeed * settings.enemySpeedMultiplier;
             currentDamage = (int)(baseDamage * settings.enemyDamageMultiplier);
+            _scoreMultiplier = settings.scoreMultiplier;
 
             if (enableDebugLogs)
-            {
+{
                 Debug.Log($"{name} ApplyDifficulty -> moveSpeed={moveSpeed}, maxHealth={maxHealth}, currentDamage={currentDamage}", this);
             }
         }
@@ -404,6 +413,13 @@ namespace _Scripts.Enemies
             state = ZombieState.Dead;
             _moveDirection = Vector3.zero;
 
+            if (SurvivalHUDController.Instance != null)
+            {
+                SurvivalHUDController.Instance.AddScore(baseScorePoints * _scoreMultiplier);
+            }
+
+            RollForLoot();
+
             if (enableDebugLogs)
             {
                 Debug.Log($"{name} Die()", this);
@@ -428,6 +444,40 @@ namespace _Scripts.Enemies
             }
 
             StartCoroutine(DeactivateAfterDelay(5f));
+        }
+
+        private void RollForLoot()
+        {
+            if (_currentSettings == null || _currentSettings.lootTable == null) return;
+
+            foreach (var drop in _currentSettings.lootTable)
+            {
+                if (drop.item == null) continue;
+
+                if (drop.targetEnemyPrefab != null && drop.targetEnemyPrefab != identityPrefab)
+                    continue;
+
+                float roll = Random.value;
+                if (roll <= drop.dropChance)
+                {
+                    int qty = Random.Range(drop.minQuantity, drop.maxQuantity + 1);
+                    SpawnLoot(drop.item, qty);
+                }
+            }
+        }
+
+        private void SpawnLoot(ItemData item, int quantity)
+        {
+            GameObject prefab = _currentSettings.worldItemPrefab;
+            if (prefab == null) return;
+
+            GameObject lootObj = Instantiate(prefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
+            WorldItem worldItem = lootObj.GetComponent<WorldItem>();
+            if (worldItem != null)
+            {
+                worldItem.itemData = item;
+                worldItem.quantity = quantity;
+            }
         }
 
         private System.Collections.IEnumerator DeactivateAfterDelay(float delay)

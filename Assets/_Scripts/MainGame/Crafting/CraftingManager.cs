@@ -54,7 +54,7 @@ namespace _Scripts.MainGame.Crafting
         /// Finds a recipe that matches the exact set of items provided.
         /// Useful for "Combination" UI where items are placed in specific slots.
         /// </summary>
-        public CraftingRecipe FindRecipe(List<ItemData> inputItems)
+        public CraftingRecipe FindRecipe(List<ItemData> inputItems, bool exactMatch = true)
         {
             if (inputItems == null || inputItems.Count == 0) return null;
 
@@ -64,15 +64,15 @@ namespace _Scripts.MainGame.Crafting
                 bool workstationMatch = !recipe.requiresWorkstation || recipe.requiredWorkstation == activeWorkstation;
                 if (!workstationMatch) continue;
 
-                if (IsMatch(recipe, inputItems))
+                if (IsMatch(recipe, inputItems, exactMatch))
                     return recipe;
             }
             return null;
         }
 
-        private bool IsMatch(CraftingRecipe recipe, List<ItemData> inputItems)
+        private bool IsMatch(CraftingRecipe recipe, List<ItemData> inputItems, bool exactMatch = true)
         {
-            // For "Combination" UI, we sum up the quantities of each item provided
+            // Group provided input items by ID
             Dictionary<string, int> inputCounts = new Dictionary<string, int>();
             foreach (var item in inputItems)
             {
@@ -83,14 +83,41 @@ namespace _Scripts.MainGame.Crafting
                     inputCounts[item.itemId] = 1;
             }
 
-            // Compare with recipe ingredients
-            if (recipe.ingredients.Length != inputCounts.Count) return false;
-
+            // Group recipe ingredients by ID
+            Dictionary<string, int> recipeCounts = new Dictionary<string, int>();
             foreach (var ingredient in recipe.ingredients)
             {
-                if (ingredient.item == null) return false;
-                if (!inputCounts.ContainsKey(ingredient.item.itemId)) return false;
-                if (inputCounts[ingredient.item.itemId] != ingredient.quantity) return false;
+                if (ingredient.item == null) continue;
+                if (recipeCounts.ContainsKey(ingredient.item.itemId))
+                    recipeCounts[ingredient.item.itemId] += ingredient.quantity;
+                else
+                    recipeCounts[ingredient.item.itemId] = ingredient.quantity;
+            }
+
+            // If we have no items provided but recipe needs some, or vice versa
+            if (recipeCounts.Count == 0 && inputCounts.Count == 0) return true;
+            if (recipeCounts.Count == 0 || inputCounts.Count == 0) return false;
+
+            // In exact match, we must have EXACTLY the number of unique item types
+            if (exactMatch && recipeCounts.Count != inputCounts.Count) return false;
+            // In non-exact match (merge shortcut), we must at least have all ingredient types
+            if (!exactMatch && inputCounts.Count < recipeCounts.Count) return false;
+
+            foreach (var pair in recipeCounts)
+            {
+                string itemId = pair.Key;
+                int requiredQty = pair.Value;
+
+                if (!inputCounts.ContainsKey(itemId)) return false;
+                
+                if (exactMatch)
+                {
+                    if (inputCounts[itemId] != requiredQty) return false;
+                }
+                else
+                {
+                    if (inputCounts[itemId] < requiredQty) return false;
+                }
             }
 
             return true;
@@ -103,44 +130,50 @@ namespace _Scripts.MainGame.Crafting
             return a.itemId == b.itemId;
         }
 
-        /// <summary>
-        /// Attempts to merge items from two inventory slots.
-        /// </summary>
         public bool TryMergeSlots(int index1, int index2)
         {
             var slot1 = InventoryManager.Instance.slots[index1];
             var slot2 = InventoryManager.Instance.slots[index2];
 
-            if (slot1.IsEmpty || slot2.IsEmpty) return false;
+            if (slot1.IsEmpty || slot2.IsEmpty) 
+            {
+                Debug.Log($"TryMergeSlots: One of the slots is empty ({index1}:{slot1.IsEmpty}, {index2}:{slot2.IsEmpty})");
+                return false;
+            }
 
-            // Collect items for matching. 
-            // We treat this as "merging the contents of these two slots"
+            Debug.Log($"TryMergeSlots: Attempting to merge {slot1.item.displayName} (x{slot1.quantity}) and {slot2.item.displayName} (x{slot2.quantity})");
+
+            // Collect TOTAL items available in these two slots
             List<ItemData> inputs = new List<ItemData>();
-        
-            // If they are the same item, we are merging two stacks of the same thing.
-            // We need to decide how many items we are "putting in".
-            // Simple approach: Check if a recipe exists for (slot1.item x qty1 + slot2.item x qty2)
-            // Or more likely: Check if a recipe exists that can be satisfied by these two slots.
-        
-            // Let's try matching with just 1 of each first, then if that fails, try with full quantities?
-            // User said "dragging them on each other", which usually means "Combine these two".
-        
-            // Try all combinations of quantities? No, that's too much.
-            // Let's try matching with the TOTAL quantities available in these two specific slots.
-            if (slot1.item == slot2.item)
+            for (int i = 0; i < slot1.quantity; i++) inputs.Add(slot1.item);
+            if (slot1 != slot2) 
             {
-                for (int q = 0; q < slot1.quantity + slot2.quantity; q++)
-                    inputs.Add(slot1.item);
-            }
-            else
-            {
-                for (int q = 0; q < slot1.quantity; q++) inputs.Add(slot1.item);
-                for (int q = 0; q < slot2.quantity; q++) inputs.Add(slot2.item);
+                for (int i = 0; i < slot2.quantity; i++) inputs.Add(slot2.item);
             }
 
-            var recipe = FindRecipe(inputs);
+            // We look for a recipe that can be satisfied by these two slots.
+            // We use exactMatch=false because the user might have extra items in the stacks.
+            var recipe = FindRecipe(inputs, false);
+            
             if (recipe != null)
             {
+                Debug.Log($"TryMergeSlots: Found potential recipe: {recipe.recipeName}");
+                
+                // Get unique ingredient types required by the recipe
+                var uniqueRecipeIngredients = new HashSet<string>();
+                foreach (var ing in recipe.ingredients)
+                {
+                    if (ing.item != null) uniqueRecipeIngredients.Add(ing.item.itemId);
+                }
+
+                int uniqueInSlots = (slot1.item.itemId == slot2.item.itemId) ? 1 : 2;
+
+                if (uniqueRecipeIngredients.Count > uniqueInSlots) 
+                {
+                    Debug.Log($"TryMergeSlots: Recipe {recipe.recipeName} needs {uniqueRecipeIngredients.Count} unique ingredient types, but we only have {uniqueInSlots} types in these slots.");
+                    return false;
+                }
+
                 // Consume specific quantities from these slots
                 foreach (var ingredient in recipe.ingredients)
                 {
@@ -176,6 +209,7 @@ namespace _Scripts.MainGame.Crafting
                 return true;
             }
 
+            Debug.Log("TryMergeSlots: No matching recipe found for these ingredients.");
             return false;
         }
 

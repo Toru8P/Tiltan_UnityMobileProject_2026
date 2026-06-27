@@ -14,6 +14,16 @@ namespace _Scripts.MainGame.Difficulty.Deprecated
         public float weight;
     }
 
+    [System.Serializable]
+    public struct ItemDrop
+    {
+        public GameObject targetEnemyPrefab;
+        public _Scripts.MainGame.Inventory.ItemData item;
+        [Range(0, 1)] public float dropChance;
+        public int minQuantity;
+        public int maxQuantity;
+    }
+
     [CreateAssetMenu(fileName = "NewDifficultySettings", menuName = "Difficulty/Settings")]
     public class DifficultySettings : ScriptableObject
     {
@@ -37,5 +47,9 @@ namespace _Scripts.MainGame.Difficulty.Deprecated
         
         [Header("Progression Settings")]
         public float scoreMultiplier = 1f;
+
+        [Header("Loot Settings")]
+        public ItemDrop[] lootTable;
+        public GameObject worldItemPrefab;
     }
 }

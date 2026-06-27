@@ -33,8 +33,9 @@ namespace _Scripts.MainGame.Inventory
         private int selectedIndex = -1;
         private int draggingIndex = -1;
         private int movingIndex = -1;
+        public int GetDraggingIndex() => draggingIndex;
         private float lastClickTime;
-        private int lastClickIndex = -1;
+private int lastClickIndex = -1;
         [SerializeField] private float doubleClickThreshold = 0.3f;
 
         void Awake()
@@ -238,10 +239,18 @@ namespace _Scripts.MainGame.Inventory
                 itemIcon.sprite = slot.item.icon;
                 itemIcon.enabled = slot.item.icon != null;
             }
-        }
-
-        private void UpdateCategoryBadge(ItemCategory category)
+        if (useButton != null)
         {
+            var text = useButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (text != null)
+            {
+                text.text = slot.item.category == ItemCategory.Armor ? "EQUIP" : "USE";
+            }
+        }
+    }
+
+    private void UpdateCategoryBadge(ItemCategory category)
+{
             if (itemCategoryText == null || itemCategoryBg == null) return;
 
             Color bgColor, textColor;
@@ -279,8 +288,20 @@ namespace _Scripts.MainGame.Inventory
             var slot = InventoryManager.Instance.slots[selectedIndex];
             if (!slot.IsEmpty)
             {
+                if (slot.item.category == ItemCategory.Armor)
+                {
+                    ItemData armor = slot.item;
+                    if (PlayerArmorManager.Instance.Equip(armor))
+                    {
+                        slot.quantity--;
+                        if (slot.quantity <= 0) slot.Clear();
+                        InventoryManager.Instance.NotifySlotChanged(selectedIndex);
+                    }
+                    return;
+                }
+
                 // Assuming UseItem exists on InventoryManager or similar
-                // For now just log or call a placeholder
+// For now just log or call a placeholder
                 Debug.Log($"Using {slot.item.displayName}");
                 // InventoryManager.Instance.UseItem(slot.item);
             }

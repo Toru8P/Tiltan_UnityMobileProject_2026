@@ -23,13 +23,13 @@ namespace _Scripts.MainGame.UI
                 restartButton.onClick.AddListener(RestartGame);
         }
 
-        public void Show(int score, string time, string difficulty)
+        public void Show(double score, string time, string difficulty)
         {
             if (contentPanel != null)
                 contentPanel.SetActive(true);
 
             if (scoreValueText != null)
-                scoreValueText.text = score.ToString();
+                scoreValueText.text = ((int)score).ToString(); // Still display as int
 
             if (timeValueText != null)
                 timeValueText.text = time;

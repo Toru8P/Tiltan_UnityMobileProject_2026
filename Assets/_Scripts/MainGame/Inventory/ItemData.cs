@@ -3,6 +3,7 @@ using UnityEngine;
 namespace _Scripts.MainGame.Inventory
 {
     public enum ItemCategory { Resource, Food, Tool, Weapon, Armor, Potion, Consumable }
+    public enum ArmorSlot { None, Helmet, Chest, Shoulders, Gloves, Pants, Boots }
 
     [CreateAssetMenu(fileName = "NewItem", menuName = "Survival/Item")]
     public class ItemData : ScriptableObject
@@ -12,8 +13,11 @@ namespace _Scripts.MainGame.Inventory
         [TextArea] public string description;
         public Sprite icon;
         public ItemCategory category;
+        public ArmorSlot armorSlot;
+        public string armorModelPath;
+        public Color armorColor = Color.white;
         public int maxStackSize = 100;
-        public bool isConsumable;
+public bool isConsumable;
         public int hungerRestore;
         public GameObject heldPrefab;
         public Vector3 holdPosition;

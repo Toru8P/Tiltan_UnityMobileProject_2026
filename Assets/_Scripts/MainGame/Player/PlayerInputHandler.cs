@@ -50,11 +50,20 @@ namespace _Scripts.MainGame.Player
             }
             else if (actionName == "Attack")
             {
+                if (context.started)
+                {
+                    _movementController.SetAttackHeld(true);
+                }
+                else if (context.canceled)
+                {
+                    _movementController.SetAttackHeld(false);
+                }
+
                 if (context.performed)
                 {
                     _movementController.PerformAttack();
                 }
             }
-        }
+}
     }
 }

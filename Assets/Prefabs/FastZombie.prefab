@@ -1994,11 +1994,13 @@ MonoBehaviour:
   state: 0
   player: {fileID: 0}
   animator: {fileID: 7406832415961267931}
+  identityPrefab: {fileID: 6965602527386248432}
   detectionRange: 10
   attackRange: 1.8
   moveSpeed: 3.5
   rotationSpeed: 8
   attackDuration: 1.2
+  modelYawOffset: 0
   baseSpeed: 10
   baseMaxHealth: 50
   baseDamage: 10
@@ -2006,6 +2008,8 @@ MonoBehaviour:
   currentHealth: 50
   isDead: 0
   currentDamage: 10
+  baseScorePoints: 100
+  enableDebugLogs: 1
 --- !u!54 &2718987773432466157
 Rigidbody:
   m_ObjectHideFlags: 0

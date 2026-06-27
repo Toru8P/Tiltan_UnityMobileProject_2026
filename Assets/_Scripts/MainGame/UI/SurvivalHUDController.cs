@@ -6,6 +6,8 @@ namespace _Scripts.MainGame.UI
 {
     public class SurvivalHUDController : MonoBehaviour
     {
+        public static SurvivalHUDController Instance { get; private set; }
+
         [Header("References")]
         [SerializeField] private GeneralDifficultyManager difficultyManager;
 
@@ -18,7 +20,8 @@ namespace _Scripts.MainGame.UI
         [SerializeField] private float scoreBaseMultiplier = 10f;
 
         private float _survivalTime;
-        private int _score;
+        private double _score;
+        private double _bonusScore;
         private int _lastDisplayedScore = -1;
         private DifficultyPhase _currentPhase = DifficultyPhase.None;
 
@@ -26,21 +29,41 @@ namespace _Scripts.MainGame.UI
         private const float UpdateInterval = 0.1f;
 
         public float SurvivalTime => _survivalTime;
-        public int Score => _score;
+        public double Score => _score;
         public DifficultyPhase CurrentPhase => _currentPhase;
 
         private bool _isStopped = false;
+
+        private void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
 
         private void Start()
         {
             _survivalTime = 0f;
             _score = 0;
+            _bonusScore = 0;
             _lastDisplayedScore = -1;
             _isStopped = false;
 
             if (difficultyManager != null)
                 difficultyManager.SubscribeOnChange(OnPhaseChanged);
 
+            UpdateHUD();
+        }
+
+        public void AddScore(double amount)
+        {
+            if (_isStopped) return;
+            _bonusScore += amount;
             UpdateHUD();
         }
 
@@ -65,7 +88,7 @@ namespace _Scripts.MainGame.UI
             if (_updateTimer < UpdateInterval) return;
             _updateTimer = 0f;
 
-            _score = Mathf.FloorToInt(_survivalTime * scoreBaseMultiplier * GetPhaseMultiplier());
+            _score = (_survivalTime * scoreBaseMultiplier * GetPhaseMultiplier()) + _bonusScore;
             UpdateHUD();
         }
 
@@ -85,7 +108,7 @@ namespace _Scripts.MainGame.UI
 
             if (scoreText != null)
             {
-                int displayedScore = (_score / 100) * 100;
+                int displayedScore = (int)((_score / 10) * 10); 
                 if (displayedScore != _lastDisplayedScore)
                 {
                     scoreText.text = $"Score: {displayedScore}";
