@@ -7,6 +7,7 @@ namespace _Scripts.MainGame.Inventory
 {
     public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
     {
+        // Forcing recompile to ensure dragging logic is updated.
         [Header("Slot References")]
         public Image slotBackground;
         public Image itemIcon;
@@ -105,32 +106,23 @@ namespace _Scripts.MainGame.Inventory
         {
             if (InventoryManager.Instance.slots[slotIndex].IsEmpty) return;
 
-            originalPosition = rectTransform.anchoredPosition;
             canvasGroup.alpha = 0.6f;
             canvasGroup.blocksRaycasts = false;
         
-            // Bring to front
-            transform.SetAsLastSibling();
-        
-            InventoryUI.Instance.OnBeginDrag(slotIndex);
+            InventoryUI.Instance.OnBeginDrag(slotIndex, itemIcon.sprite);
         }
 
         public void OnDrag(PointerEventData eventData)
         {
             if (InventoryManager.Instance.slots[slotIndex].IsEmpty) return;
-            rectTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
+            InventoryUI.Instance.OnDrag();
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
             canvasGroup.alpha = 1f;
             canvasGroup.blocksRaycasts = true;
-            rectTransform.anchoredPosition = originalPosition;
         
-            // Ensure it goes back to its correct sibling index if needed, 
-            // but InitializeSlots re-parents them anyway.
-            // Actually, LayoutGroup handles position, so anchoredPosition reset is good.
-
             InventoryUI.Instance.OnEndDrag();
         }
 

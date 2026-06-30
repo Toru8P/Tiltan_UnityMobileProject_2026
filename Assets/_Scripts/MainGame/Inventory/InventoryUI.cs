@@ -26,6 +26,7 @@ namespace _Scripts.MainGame.Inventory
 
         [Header("Unified UI Integration")]
         [SerializeField] private GameObject inventoryContent;
+        [SerializeField] private UnityEngine.UI.Image dragIcon;
 
         public static InventoryUI Instance { get; private set; }
 
@@ -41,6 +42,7 @@ private int lastClickIndex = -1;
         void Awake()
         {
             if (Instance == null) Instance = this;
+            if (dragIcon != null) dragIcon.gameObject.SetActive(false);
         }
 
         void Start()
@@ -55,16 +57,31 @@ private int lastClickIndex = -1;
             if (combineItemButton != null) combineItemButton.gameObject.SetActive(false);
         }
 
-        public void OnBeginDrag(int index)
+        public void OnBeginDrag(int index, Sprite icon)
         {
             draggingIndex = index;
+            if (dragIcon != null)
+            {
+                dragIcon.sprite = icon;
+                dragIcon.gameObject.SetActive(true);
+                dragIcon.transform.position = Input.mousePosition;
+            }
             // Selection follows drag
             HandleSingleClick(index);
+        }
+
+        public void OnDrag()
+        {
+            if (dragIcon != null)
+            {
+                dragIcon.transform.position = Input.mousePosition;
+            }
         }
 
         public void OnEndDrag()
         {
             draggingIndex = -1;
+            if (dragIcon != null) dragIcon.gameObject.SetActive(false);
         }
 
         public void OnDropOnSlot(int targetIndex)

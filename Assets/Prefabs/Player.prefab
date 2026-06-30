@@ -3267,6 +3267,7 @@ GameObject:
   - component: {fileID: 951452593385509006}
   - component: {fileID: 147836556778051692}
   - component: {fileID: 568250202078670494}
+  - component: {fileID: 4375509186860252514}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -3382,6 +3383,9 @@ MonoBehaviour:
   rollDuration: 0.35
   rollCooldown: 0.8
   attackCooldown: 0.5
+  attackRange: 1.5
+  attackDamage: 25
+  attackAngle: 90
   swingSound: {fileID: 0}
 --- !u!114 &3403340720081645657
 MonoBehaviour:
@@ -3590,6 +3594,10 @@ MonoBehaviour:
     CurrentShield: 0
     HpRegenerationAmount: 0
     ShieldRegenerationAmount: 0
+    BaseAttack: 0
+    BaseDefense: 0
+    BaseMoveSpeed: 0
+    BaseAttackSpeed: 0
   currentStats:
     MaxHealth: 0
     CurrentHealth: 0
@@ -3597,6 +3605,14 @@ MonoBehaviour:
     CurrentShield: 0
     HpRegenerationAmount: 0
     ShieldRegenerationAmount: 0
+    BaseAttack: 0
+    BaseDefense: 0
+    BaseMoveSpeed: 0
+    BaseAttackSpeed: 0
+  effectiveAttack: 0
+  effectiveDefense: 0
+  effectiveMoveSpeed: 0
+  effectiveAttackSpeed: 0
   hpBarDriver: {fileID: 0}
   shieldBarDriver: {fileID: 0}
 --- !u!114 &147836556778051692
@@ -3613,6 +3629,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Player.PlayerAdaptor
   hitSfx: {fileID: 0}
   staggerDuration: 0.4
+  invincibilityDuration: 1
 --- !u!114 &568250202078670494
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3626,6 +3643,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.PlayerArmorManager
   armorParent: {fileID: 0}
+--- !u!114 &4375509186860252514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4021885863237934328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32c39eb93701d824da569fbecc3315cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.CharacterCreation.CharacterAppearanceApplicator
+  skinRenderers:
+  - {fileID: 7396242811454571566}
+  - {fileID: 2439579051051274606}
+  - {fileID: 5796964508761464187}
+  - {fileID: 5095967672635650900}
+  - {fileID: 1087815200425364881}
+  - {fileID: 8250762443662460253}
+  - {fileID: 3739712376762632641}
+  outfitRenderers:
+  - {fileID: 9122761682537345546}
+  - {fileID: 6719838343738242711}
+  - {fileID: 6424070562780182720}
+  - {fileID: 1914661735608137444}
+  - {fileID: 7561076141320425550}
+  - {fileID: 280614345263058488}
+  - {fileID: 6099834600843073851}
+  - {fileID: 4101311933953502970}
+  - {fileID: 3776704814231600665}
+  - {fileID: 386874038666841660}
 --- !u!1 &4031047315772819942
 GameObject:
   m_ObjectHideFlags: 0
