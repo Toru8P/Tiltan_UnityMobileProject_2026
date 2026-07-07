@@ -1,5 +1,6 @@
 using _Scripts.MainGame.Audio;
 using _Scripts.MainGame.Inventory;
+using _Scripts.MainGame.Combat;
 using UnityEngine;
 
 namespace _Scripts.MainGame.Player
@@ -97,7 +98,7 @@ public void PerformRoll()
                 if (_equipment && _equipment.CurrentItem)
                 {
                     ItemCategory cat = _equipment.CurrentItem.category;
-                    if (cat == ItemCategory.Tool || cat == ItemCategory.Weapon)
+                    if (cat == ItemCategory.Tool || cat == ItemCategory.Weapon || cat == ItemCategory.Bow)
                     {
                         if (swingSound)
                         {
@@ -117,7 +118,31 @@ public void PerformRoll()
                     _animator.SetTrigger("Attack");
 
                 // 2. Hit Detection
-                ApplyAttackDamage();
+                if (_equipment && _equipment.CurrentItem && _equipment.CurrentItem.category == ItemCategory.Bow)
+                {
+                    ShootProjectile();
+                }
+                else
+                {
+                    ApplyAttackDamage();
+                }
+            }
+        }
+
+        private void ShootProjectile()
+        {
+            if (_equipment && _equipment.CurrentItem && _equipment.CurrentItem.projectilePrefab)
+            {
+                int damage = _stats != null ? _stats.EffectiveAttack : (int)attackDamage;
+
+                // Spawn position: slightly in front and up
+                Vector3 spawnPos = transform.position + transform.forward * 1f + Vector3.up * 1f;
+                GameObject projectileObj = Instantiate(_equipment.CurrentItem.projectilePrefab, spawnPos, transform.rotation);
+
+                if (projectileObj.TryGetComponent(out Projectile projectile))
+                {
+                    projectile.Initialize(damage);
+                }
             }
         }
 

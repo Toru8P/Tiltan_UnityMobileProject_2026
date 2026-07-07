@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace _Scripts.MainGame.Inventory
 {
-    public enum ItemCategory { Resource, Food, Tool, Weapon, Armor, Potion, Consumable }
+    public enum ItemCategory { Resource, Food, Tool, Weapon, Armor, Potion, Consumable, Bow }
     public enum ArmorSlot { None, Helmet, Chest, Shoulders, Gloves, Pants, Boots }
     public enum StatType { Attack, Defense, MovementSpeed, AttackSpeed }
 
@@ -32,6 +32,9 @@ namespace _Scripts.MainGame.Inventory
         public GameObject heldPrefab;
         public Vector3 holdPosition;
         public Vector3 holdRotation;
+
+        [Header("Bow Settings")]
+        public GameObject projectilePrefab;
 
         [Header("Stats")]
         public ItemStatModifier[] statModifiers;

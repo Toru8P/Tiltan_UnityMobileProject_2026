@@ -4098,8 +4098,8 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 1
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
+  m_Color: {r: 1, g: 0.95, b: 0.85, a: 1}
+  m_Intensity: 1.2
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -14014,6 +14014,85 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1001 &1606925050
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3506155302366884379, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.15552264
+      objectReference: {fileID: 0}
+    - target: {fileID: 3506155302366884379, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 7.1111145
+      objectReference: {fileID: 0}
+    - target: {fileID: 3506155302366884379, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.32982543
+      objectReference: {fileID: 0}
+    - target: {fileID: 3506155302366884379, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3506155302366884379, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3506155302366884379, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3506155302366884379, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3506155302366884379, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3506155302366884379, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3506155302366884379, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4859983822099075691, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      propertyPath: m_Name
+      value: ScytheHandleBlack
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4859983822099075691, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1606925052}
+  m_SourcePrefab: {fileID: 100100000, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+--- !u!1 &1606925051 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4859983822099075691, guid: 8e46279ac928b8c40ad4407f53310903, type: 3}
+  m_PrefabInstance: {fileID: 1606925050}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1606925052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1606925051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3591ac09f1cbe6043857e877505aca48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.WorldItem
+  itemData: {fileID: 11400000, guid: 83ba0d2d45548504e94f1e3d8b56447e, type: 2}
+  quantity: 1
 --- !u!1 &1610191212
 GameObject:
   m_ObjectHideFlags: 0
@@ -19469,3 +19548,4 @@ SceneRoots:
   - {fileID: 381339845}
   - {fileID: 625691545}
   - {fileID: 552676408}
+  - {fileID: 1606925050}
