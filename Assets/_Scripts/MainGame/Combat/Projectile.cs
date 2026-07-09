@@ -1,5 +1,6 @@
 using UnityEngine;
 using _Scripts.Enemies;
+using _Scripts.MainGame.Enemies;
 
 namespace _Scripts.MainGame.Combat
 {

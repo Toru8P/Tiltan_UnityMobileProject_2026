@@ -1,10 +1,16 @@
+using _Scripts.MainGame.Inventory;
 using UnityEngine;
 
-namespace _Scripts.MainGame.Inventory
+namespace _Scripts.MainGame.Loot
 {
-    public class WorldItem : MonoBehaviour
+    public class WorldItem : Lootable
     {
-        public ItemData itemData;
+        public void SpawnSetup(ItemData itemData, int quantity)
+        {
+            this.itemData = itemData;
+            this.quantity = quantity;
+        }
+        
         public int quantity = 1;
 
         private void OnTriggerEnter(Collider other)

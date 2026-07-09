@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using _Scripts.MainGame.Loot;
 using _Scripts.MainGame.Pool;
 using UnityEngine;
 
@@ -48,6 +49,17 @@ namespace _Scripts.MainGame.Terrain
                 instance.SetActive(true);
 
                 _activeObjects[objectData] = instance;
+
+                Lootable lootable = instance.GetComponent<Lootable>();
+                if (lootable)
+                {
+                    lootable.SubscribeOnLoot(() =>
+                    {
+                        objects.Remove(objectData);
+                        pool.Return(instance);
+                        _activeObjects.Remove(objectData);
+                    });
+                }
             }
         }
 

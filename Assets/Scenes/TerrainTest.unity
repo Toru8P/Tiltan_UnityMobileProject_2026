@@ -7977,7 +7977,6 @@ MonoBehaviour:
   width: 10
   height: 10
   renderDistance: 5
-  pool: {fileID: 11400000, guid: a304c513baca10b4f8d4251aa76039be, type: 2}
 --- !u!1 &960951047
 GameObject:
   m_ObjectHideFlags: 0
@@ -14092,6 +14091,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.WorldItem
   itemData: {fileID: 11400000, guid: 83ba0d2d45548504e94f1e3d8b56447e, type: 2}
+  itemData: {fileID: 11400000, guid: 83ba0d2d45548504e94f1e3d8b56447e, type: 2}
   quantity: 1
 --- !u!1 &1610191212
 GameObject:
@@ -17642,7 +17642,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.SingletonPoint
   audioManager: {fileID: 1910068471}
   difficultyManager: {fileID: 1805698530}
-  playerStats: {fileID: 0}
+  playerStats: {fileID: 1438546959309691310}
+  objectPool: {fileID: 11400000, guid: a304c513baca10b4f8d4251aa76039be, type: 2}
 --- !u!1 &1997627133
 GameObject:
   m_ObjectHideFlags: 0
@@ -19533,6 +19534,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1438546959266459337, guid: 60770bdb4dc667c45bea53db0339dc05, type: 3}
   m_PrefabInstance: {fileID: 93648741}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1438546959309691310 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1425600639503566549, guid: 60770bdb4dc667c45bea53db0339dc05, type: 3}
+  m_PrefabInstance: {fileID: 93648741}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8db6840b5e5e4d389fbfd55c5ecee260, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Player.PlayerStatsController
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

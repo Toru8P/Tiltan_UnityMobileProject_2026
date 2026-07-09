@@ -32,9 +32,6 @@ namespace _Scripts.MainGame.Terrain
         private Dictionary<Vector2Int, Chunk> terrainChunks = new Dictionary<Vector2Int, Chunk>();
         private List<Chunk> _activeChunks = new List<Chunk>();
 
-        [SerializeField] private ObjectPool pool;
-
-
         public void Start()
         {
             ActivateChunk(GenerateOrGetChunkAt(-1, -1));
@@ -53,7 +50,7 @@ namespace _Scripts.MainGame.Terrain
         private void ActivateChunk(Chunk chunk)
         {
             if (_activeChunks.Contains(chunk)) return;
-            chunk.Fill(pool);
+            chunk.Fill(SingletonPoint.Instance.ObjectPool);
             chunk.gameObject.SetActive(true);
             _activeChunks.Add(chunk);
         }
@@ -61,7 +58,7 @@ namespace _Scripts.MainGame.Terrain
         private void DeactivateChunk(Chunk chunk)
         {
             chunk.gameObject.SetActive(false);
-            chunk.Unfill(pool);
+            chunk.Unfill(SingletonPoint.Instance.ObjectPool);
             _activeChunks.Remove(chunk);
         }
 

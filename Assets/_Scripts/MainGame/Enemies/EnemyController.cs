@@ -1,10 +1,11 @@
 using _Scripts.MainGame.Difficulty.Deprecated;
+using _Scripts.MainGame.Inventory;
+using _Scripts.MainGame.Loot;
 using _Scripts.MainGame.Player;
 using _Scripts.MainGame.UI;
-using _Scripts.MainGame.Inventory;
 using UnityEngine;
 
-namespace _Scripts.Enemies
+namespace _Scripts.MainGame.Enemies
 {
     public class EnemyController : MonoBehaviour, IDifficultyScalable
     {
@@ -484,14 +485,13 @@ private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
         private void SpawnLoot(ItemData item, int quantity)
         {
             GameObject prefab = _currentSettings.worldItemPrefab;
-            if (prefab == null) return;
+            if (!prefab) return;
 
             GameObject lootObj = Instantiate(prefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
             WorldItem worldItem = lootObj.GetComponent<WorldItem>();
-            if (worldItem != null)
+            if (worldItem)
             {
-                worldItem.itemData = item;
-                worldItem.quantity = quantity;
+                worldItem.SpawnSetup(item, quantity);
             }
         }
 

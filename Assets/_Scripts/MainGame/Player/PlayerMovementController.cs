@@ -1,6 +1,8 @@
 using _Scripts.MainGame.Audio;
 using _Scripts.MainGame.Inventory;
 using _Scripts.MainGame.Combat;
+using _Scripts.MainGame.Enemies;
+using _Scripts.MainGame.Loot;
 using UnityEngine;
 
 namespace _Scripts.MainGame.Player
@@ -155,9 +157,9 @@ public void PerformRoll()
             foreach (var hit in hits)
             {
                 // Look for EnemyController in the hit object or its parents
-                _Scripts.Enemies.EnemyController enemy = hit.GetComponentInParent<_Scripts.Enemies.EnemyController>();
+                EnemyController enemy = hit.GetComponentInParent<EnemyController>();
                 
-                if (enemy != null)
+                if (enemy)
                 {
                     // Check if the enemy is within the attack angle
                     Vector3 dirToEnemy = (enemy.transform.position - transform.position).normalized;
@@ -165,9 +167,16 @@ public void PerformRoll()
 
                     if (angle <= attackAngle * 0.5f)
                     {
-                        int damage = _stats != null ? _stats.EffectiveAttack : (int)attackDamage;
+                        int damage = _stats ? _stats.EffectiveAttack : (int)attackDamage;
                         enemy.TakeDamage(damage);
                     }
+                }
+                
+                Resource resource = hit.GetComponentInParent<Resource>();
+                if (resource)
+                {
+                    int amount = resource.GatherResource(1);
+                    InventoryManager.Instance.AddItem(resource.ItemData, amount);
                 }
             }
         }
