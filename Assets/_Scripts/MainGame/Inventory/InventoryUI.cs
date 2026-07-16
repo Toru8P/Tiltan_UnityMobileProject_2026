@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using _Scripts.MainGame.Crafting;
+using _Scripts.MainGame.Player;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
+using System.Text;
 
 namespace _Scripts.MainGame.Inventory
 {
@@ -19,9 +22,10 @@ namespace _Scripts.MainGame.Inventory
         public TextMeshProUGUI itemCategoryText;
         public Image itemCategoryBg;
         public TextMeshProUGUI itemDescriptionText;
+        public TextMeshProUGUI itemStatsText;
         public TextMeshProUGUI itemStackText;
         public Image itemIcon;
-        public Button useButton;
+public Button useButton;
         public Button combineItemButton;
 
         [Header("Unified UI Integration")]
@@ -251,8 +255,10 @@ private int lastClickIndex = -1;
             if (itemDescriptionText != null) itemDescriptionText.text = slot.item.description;
             if (itemStackText != null) itemStackText.text = $"Stack {slot.quantity}/{slot.item.maxStackSize}";
         
+            UpdateStatsDisplay(slot.item);
+
             if (itemIcon != null) 
-            {
+{
                 itemIcon.sprite = slot.item.icon;
                 itemIcon.enabled = slot.item.icon != null;
             }
@@ -299,8 +305,108 @@ private int lastClickIndex = -1;
             itemCategoryText.color = textColor;
         }
 
-        public void UseItem()
+        private void UpdateStatsDisplay(ItemData item)
         {
+            if (itemStatsText == null) return;
+
+            bool isStatItem = item.category == ItemCategory.Weapon || 
+                              item.category == ItemCategory.Armor || 
+                              item.category == ItemCategory.Tool || 
+                              item.category == ItemCategory.Bow;
+
+            if (!isStatItem)
+            {
+                itemStatsText.gameObject.SetActive(false);
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            ItemData equippedItem = GetEquippedItemForComparison(item);
+
+            // Collect all unique stats from current and equipped item
+            var currentStats = item.statModifiers.GroupBy(m => m.statType).ToDictionary(g => g.Key, g => g.First());
+            var equippedStats = equippedItem != null ? equippedItem.statModifiers.GroupBy(m => m.statType).ToDictionary(g => g.Key, g => g.First()) : new Dictionary<StatType, ItemStatModifier>();
+
+            var allTypes = currentStats.Keys.Concat(equippedStats.Keys).Distinct().ToList();
+
+            foreach (var type in allTypes)
+            {
+                currentStats.TryGetValue(type, out var currentMod);
+                equippedStats.TryGetValue(type, out var equippedMod);
+
+                float currentVal = currentMod.flatAmount;
+                float currentPerc = currentMod.percentageAmount;
+                float equippedVal = equippedMod.flatAmount;
+                float equippedPerc = equippedMod.percentageAmount;
+
+                string label = GetStatLabel(type);
+                
+                // Primary line: Stat value
+                sb.Append($"{label}: ");
+                if (currentVal != 0) sb.Append($"{currentVal.ToString("F0")}");
+                if (currentVal != 0 && currentPerc != 0) sb.Append(" + ");
+                if (currentPerc != 0) sb.Append($"{(currentPerc * 100).ToString("F0")}%");
+
+                // Comparison
+                if (equippedItem != null)
+                {
+                    float diffFlat = currentVal - equippedVal;
+                    float diffPerc = currentPerc - equippedPerc;
+
+                    if (Mathf.Abs(diffFlat) > 0.01f || Mathf.Abs(diffPerc) > 0.01f)
+                    {
+                        bool isBetter = (diffFlat + diffPerc) > 0; // Simple heuristic for "better"
+                        string color = isBetter ? "#50C878" : "#FF4D4D";
+                        string sign = (diffFlat + diffPerc) > 0 ? "+" : "";
+                        
+                        sb.Append($" <color={color}>({sign}");
+                        if (Mathf.Abs(diffFlat) > 0.01f) sb.Append($"{diffFlat.ToString("F0")}");
+                        if (Mathf.Abs(diffFlat) > 0.01f && Mathf.Abs(diffPerc) > 0.01f) sb.Append("/");
+                        if (Mathf.Abs(diffPerc) > 0.01f) sb.Append($"{(diffPerc * 100).ToString("F0")}%");
+                        sb.Append(")</color>");
+                    }
+                }
+                sb.AppendLine();
+            }
+
+            itemStatsText.text = sb.ToString();
+            itemStatsText.gameObject.SetActive(sb.Length > 0);
+        }
+
+        private string GetStatLabel(StatType type)
+        {
+            switch (type)
+            {
+                case StatType.Attack: return "ATK";
+                case StatType.Defense: return "DEF";
+                case StatType.MovementSpeed: return "SPD";
+                case StatType.AttackSpeed: return "A.SPD";
+                default: return type.ToString().ToUpper();
+            }
+        }
+
+        private ItemData GetEquippedItemForComparison(ItemData item)
+        {
+            if (item.category == ItemCategory.Weapon || item.category == ItemCategory.Bow || item.category == ItemCategory.Tool)
+            {
+                return PlayerEquipment.Instance != null ? PlayerEquipment.Instance.CurrentItem : null;
+            }
+            if (item.category == ItemCategory.Armor)
+            {
+                return PlayerArmorManager.Instance != null ? PlayerArmorManager.Instance.GetEquippedItem(item.armorSlot) : null;
+            }
+            return null;
+        }
+
+        private float GetStatValue(ItemData item, StatType type)
+        {
+            var mod = item.statModifiers.FirstOrDefault(m => m.statType == type);
+            // Default to 0 if not found, unless we want to handle non-existent stats differently
+            return mod.flatAmount; 
+        }
+
+        public void UseItem()
+{
             if (selectedIndex == -1) return;
             var slot = InventoryManager.Instance.slots[selectedIndex];
             if (!slot.IsEmpty)

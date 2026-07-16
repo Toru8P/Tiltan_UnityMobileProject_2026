@@ -5,8 +5,16 @@ namespace _Scripts.MainGame.Player
 {
     public class PlayerEquipment : MonoBehaviour
     {
+        public static PlayerEquipment Instance { get; private set; }
+
+        private void Awake()
+        {
+            if (Instance == null) Instance = this;
+            else Destroy(gameObject);
+        }
+
         [SerializeField] private Transform rightHandMount;
-        [SerializeField] private Transform elbowR;
+[SerializeField] private Transform elbowR;
         [SerializeField] private Vector3 holdElbowRotation = new Vector3(0, 0, -45);
 
         [Header("Item Tweak Tools")]
