@@ -13,13 +13,14 @@ ShaderImporter:
   - _Texture0: {fileID: 2800000, guid: b76fe68d69ca53f43a4e6f66d135dd90, type: 3}
   - _COATOFARMSMASK: {fileID: 2800000, guid: d294e9544b9eca64188ea9d2482ea8a1, type: 3}
   nonModifiableTextures: []
+  preprocessorOverride: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 
 AssetOrigin:
   serializedVersion: 1
   productId: 199890
-  packageName: Lowpoly Modular Armors - Free - MEDIEVAL FANTASY SERIES
-  packageVersion: 1.2
-  assetPath: Assets/Polytope Studio/Lowpoly_Characters/Sources/Modular_Armors/Shaders/PT_Armors_Shader_Toon.shader
-  uploadId: 626399
+  packageName: Low Poly Modular Armors - Free - LOWPOLY MEDIEVAL FANTASY SERIES
+  packageVersion: 1.3.0
+  assetPath: Assets/ExternalAssets/Polytope Studio/Lowpoly_Characters/Sources/Modular_Armors/Shaders/PT_Armors_Shader_Toon.shader
+  uploadId: 942460
