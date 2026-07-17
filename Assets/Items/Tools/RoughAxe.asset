@@ -27,6 +27,10 @@ MonoBehaviour:
   heldPrefab: {fileID: 6728992476826767089, guid: 08a0b1a44bebeef4dbb9a5d4ac4e5305, type: 3}
   holdPosition: {x: -0.12129429, y: -0.0020641405, z: -0.047723167}
   holdRotation: {x: 358.22733, y: 169.07224, z: 4.565223}
+  projectilePrefab: {fileID: 0}
+  toolType: 1
+  tier: 1
+  effectiveness: 1
   statModifiers:
   - statType: 3
     flatAmount: 0

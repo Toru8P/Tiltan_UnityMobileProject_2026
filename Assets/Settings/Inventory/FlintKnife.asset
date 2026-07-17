@@ -17,7 +17,18 @@ MonoBehaviour:
   description: 'Fast, light melee weapon. Damage: 12.'
   icon: {fileID: 0}
   category: 3
+  armorSlot: 0
+  armorModelPath: 
+  armorColor: {r: 1, g: 1, b: 1, a: 1}
   maxStackSize: 1
   isConsumable: 0
   hungerRestore: 0
-  weight: 0.7
+  healthRestore: 0
+  heldPrefab: {fileID: 0}
+  holdPosition: {x: 0, y: 0, z: 0}
+  holdRotation: {x: 0, y: 0, z: 0}
+  projectilePrefab: {fileID: 0}
+  toolType: 0
+  tier: 1
+  effectiveness: 1
+  statModifiers: []

@@ -17,8 +17,18 @@ MonoBehaviour:
   description: A simple pickaxe. Can be used to mine stone faster
   icon: {fileID: 21300000, guid: 2f09d6ca6572b1d438c414c5ee308bc5, type: 3}
   category: 2
+  armorSlot: 0
+  armorModelPath: 
+  armorColor: {r: 1, g: 1, b: 1, a: 1}
   maxStackSize: 1
   isConsumable: 0
   hungerRestore: 0
+  healthRestore: 0
   heldPrefab: {fileID: 6170791478243889133, guid: 3e7a1e5aa1f393548a94e42ac73ea257, type: 3}
+  holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 90, z: 0}
+  projectilePrefab: {fileID: 0}
+  toolType: 2
+  tier: 1
+  effectiveness: 1
+  statModifiers: []

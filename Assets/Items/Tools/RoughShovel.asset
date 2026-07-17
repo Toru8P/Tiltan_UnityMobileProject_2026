@@ -17,9 +17,18 @@ MonoBehaviour:
   description: A simple shovel. Can be used to harvest Clay from the ground
   icon: {fileID: 21300000, guid: c4961014f767e8a4faaa63ecdba9a4eb, type: 3}
   category: 2
+  armorSlot: 0
+  armorModelPath: 
+  armorColor: {r: 1, g: 1, b: 1, a: 1}
   maxStackSize: 1
   isConsumable: 0
   hungerRestore: 0
+  healthRestore: 0
   heldPrefab: {fileID: 3631743804569562876, guid: dd60299c4ee23d64db38d2cde51ff312, type: 3}
   holdPosition: {x: -0.096, y: -0.168, z: -0.112}
   holdRotation: {x: 21.726568, y: 5.282802, z: 195.60844}
+  projectilePrefab: {fileID: 0}
+  toolType: 4
+  tier: 1
+  effectiveness: 1
+  statModifiers: []

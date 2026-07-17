@@ -175,10 +175,23 @@ public void PerformRoll()
                 Resource resource = hit.GetComponentInParent<Resource>();
                 if (resource)
                 {
-                    int amount = resource.GatherResource(1);
-                    InventoryManager.Instance.AddItem(resource.ItemData, amount);
+                    ItemData equipped = PlayerEquipment.Instance != null ? PlayerEquipment.Instance.CurrentItem : null;
+                    
+                    if (resource.RequiredTool == ToolType.None || (equipped != null && equipped.toolType == resource.RequiredTool))
+                    {
+                        float effectiveness = equipped != null ? equipped.effectiveness : 1f;
+                        int amount = resource.GatherResource(effectiveness);
+                        if (amount > 0)
+                        {
+                            InventoryManager.Instance.AddItem(resource.ItemData, amount);
+                        }
+                    }
+                    else if (resource.RequiredTool != ToolType.None)
+                    {
+                        Debug.Log($"<color=yellow>You need a {resource.RequiredTool} to harvest this!</color>");
+                    }
                 }
-            }
+}
         }
 
         private void OnDrawGizmosSelected()

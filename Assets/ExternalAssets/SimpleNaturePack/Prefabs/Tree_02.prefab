@@ -274,3 +274,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Loot.WoodResource
   itemData: {fileID: 11400000, guid: 91ea529e0c44e8548b0445feeb7dfbcb, type: 2}
   amount: 1
+  resourceType: 0
+  requiredTool: 1
+  health: 5
+  shakeDuration: 0.1
+  shakeAmount: 0.1
+  flashColor: {r: 1, g: 0, b: 0, a: 1}
+  flashDuration: 0.1

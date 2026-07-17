@@ -325,6 +325,28 @@ private int lastClickIndex = -1;
             }
 
             StringBuilder sb = new StringBuilder();
+
+            // Show Tool Specifics
+            if (item.category == ItemCategory.Tool)
+            {
+                sb.AppendLine($"Tier: {item.tier}");
+                sb.Append($"Power: {item.effectiveness}");
+                
+                ItemData equippedTool = GetEquippedItemForComparison(item);
+                if (equippedTool != null && equippedTool != item && equippedTool.category == ItemCategory.Tool)
+                {
+                    float diff = item.effectiveness - equippedTool.effectiveness;
+                    if (Mathf.Abs(diff) > 0.01f)
+                    {
+                        string color = diff > 0 ? "#50C878" : "#FF4D4D";
+                        string sign = diff > 0 ? "+" : "";
+                        sb.Append($" <color={color}>({sign}{diff.ToString("F1")})</color>");
+                    }
+                }
+                sb.AppendLine();
+                sb.AppendLine("------------------");
+            }
+
             ItemData equippedItem = GetEquippedItemForComparison(item);
 
             // Collect all unique stats from current and equipped item
