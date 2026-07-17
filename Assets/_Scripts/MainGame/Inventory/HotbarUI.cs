@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+    using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,7 +30,7 @@ namespace _Scripts.MainGame.Inventory
 
         private void InitializeHotbar()
         {
-            foreach (Transform child in slotParent) 
+            foreach (Transform child in slotParent)
             {
                 if (Application.isPlaying) Destroy(child.gameObject);
                 else DestroyImmediate(child.gameObject);
@@ -43,7 +43,7 @@ namespace _Scripts.MainGame.Inventory
                 obj.name = $"HotbarSlot_{i}";
                 InventorySlotUI slotUI = obj.GetComponent<InventorySlotUI>();
                 slotUI.Init(i);
-            
+
                 Button btn = obj.GetComponent<Button>();
                 if (btn != null)
                 {
@@ -76,7 +76,7 @@ namespace _Scripts.MainGame.Inventory
                     slots[i].SetSelected(i == selectedHotbarIndex);
                     slots[i].Refresh(slot);
                     currentItems.Add(slot.item);
-                
+
                     // If this is the selected slot, ensure it's equipped
                     if (i == selectedHotbarIndex)
                     {
@@ -100,7 +100,7 @@ namespace _Scripts.MainGame.Inventory
         private void OnSlotClicked(int index)
         {
             SelectSlot(index);
-        
+
             if (index < 0 || index >= currentItems.Count) return;
             ItemData item = currentItems[index];
             if (item != null)
@@ -123,9 +123,10 @@ namespace _Scripts.MainGame.Inventory
 
         private bool IsHotbarCategory(ItemCategory category)
         {
-            return category == ItemCategory.Tool || 
-                   category == ItemCategory.Food || 
-                   category == ItemCategory.Potion;
+            return category == ItemCategory.Tool ||
+                   category == ItemCategory.Food ||
+                   category == ItemCategory.Potion ||
+                   category == ItemCategory.Weapon;
         }
     }
 }

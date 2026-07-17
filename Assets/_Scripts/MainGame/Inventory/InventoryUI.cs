@@ -25,7 +25,9 @@ namespace _Scripts.MainGame.Inventory
         public TextMeshProUGUI itemStatsText;
         public TextMeshProUGUI itemStackText;
         public Image itemIcon;
-public Button useButton;
+        public Button useButton;
+        public Button dropOneButton;
+        public Button dropAllButton;
         public Button combineItemButton;
 
         [Header("Unified UI Integration")]
@@ -57,6 +59,8 @@ private int lastClickIndex = -1;
 
             InventoryManager.Instance.OnSlotChanged += UpdateSlot;
             if (useButton != null) useButton.onClick.AddListener(UseItem);
+            if (dropOneButton != null) dropOneButton.onClick.AddListener(DropOne);
+            if (dropAllButton != null) dropAllButton.onClick.AddListener(DropAll);
             // Combine button is no longer needed with drag-and-drop merge
             if (combineItemButton != null) combineItemButton.gameObject.SetActive(false);
         }
@@ -406,11 +410,13 @@ private int lastClickIndex = -1;
         }
 
         public void UseItem()
-{
+        {
             if (selectedIndex == -1) return;
             var slot = InventoryManager.Instance.slots[selectedIndex];
+            
             if (!slot.IsEmpty)
             {
+                // Handle Armor equipping
                 if (slot.item.category == ItemCategory.Armor)
                 {
                     ItemData armor = slot.item;
@@ -423,6 +429,16 @@ private int lastClickIndex = -1;
                     return;
                 }
 
+                // Handle Food/Potion consumption
+                bool isFoodOrPotion = slot.item.category == ItemCategory.Food || 
+                                      slot.item.category == ItemCategory.Potion;
+
+                if (!isFoodOrPotion)
+                {
+                    Debug.Log($"Cannot use {slot.item.displayName} - Use button is for Food/Potions only.");
+                    return;
+                }
+
                 if (slot.item.isConsumable)
                 {
                     // Apply effects
@@ -431,7 +447,7 @@ private int lastClickIndex = -1;
                         SingletonPoint.Instance.PlayerStats.Heal(slot.item.healthRestore);
                     }
 
-                    // Hunger logic if it exists (placeholder for now as no hunger script visible)
+                    // Hunger logic
                     if (slot.item.hungerRestore > 0)
                     {
                         Debug.Log($"Restored {slot.item.hungerRestore} hunger.");
@@ -445,8 +461,6 @@ private int lastClickIndex = -1;
                     Debug.Log($"Consumed {slot.item.displayName}");
                     return;
                 }
-
-                Debug.Log($"Cannot use {slot.item.displayName} - Not consumable or armor.");
             }
         }
 

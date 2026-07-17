@@ -1,0 +1,139 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &8105008661677002960
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 457032054627280408, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 902449340409108935, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1361260778860348396, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4328330020670301462, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_Name
+      value: ReaperScythe
+      objectReference: {fileID: 0}
+    - target: {fileID: 5749738939330332006, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5749738939330332006, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.15552264
+      objectReference: {fileID: 0}
+    - target: {fileID: 5749738939330332006, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 7.1111145
+      objectReference: {fileID: 0}
+    - target: {fileID: 5749738939330332006, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.32982543
+      objectReference: {fileID: 0}
+    - target: {fileID: 5749738939330332006, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5749738939330332006, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5749738939330332006, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5749738939330332006, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5749738939330332006, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5749738939330332006, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5749738939330332006, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6378464992497054719, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7225936718126665853, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8116289312031585843, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8687587944790127020, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4328330020670301462, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3920410538606190665}
+    - targetCorrespondingSourceObject: {fileID: 4328330020670301462, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5891219155028922610}
+  m_SourcePrefab: {fileID: 100100000, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+--- !u!1 &5506661370047673798 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4328330020670301462, guid: 346513840f1b4644c9464a00cfdf02e0, type: 3}
+  m_PrefabInstance: {fileID: 8105008661677002960}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3920410538606190665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5506661370047673798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3591ac09f1cbe6043857e877505aca48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.WorldItem
+  itemData: {fileID: 11400000, guid: 83ba0d2d45548504e94f1e3d8b56447e, type: 2}
+  quantity: 1
+--- !u!136 &5891219155028922610
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5506661370047673798}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1.7116213
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.35581064, z: 0}
