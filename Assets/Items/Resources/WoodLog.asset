@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
-  m_Name: Rock
-  m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemId: Rock
-  displayName: Rock
-  description: A small rock picked from the ground
-  icon: {fileID: 21300000, guid: 08bad63dd215b3d4eaf37587a3eeb5f7, type: 3}
+  m_Name: WoodLog
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.ItemData
+  itemId: Wood Log
+  displayName: Wood Log
+  description: A log that was harvested from a tree. Used in crafting
+  icon: {fileID: 21300000, guid: 9beadd07c4b8f7c4999825fd8225a471, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 

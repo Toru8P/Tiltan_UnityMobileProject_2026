@@ -51,10 +51,10 @@ namespace _Scripts.MainGame.Enemies
         private float _scoreMultiplier = 1f;
 
         [Header("Debug")]
-[SerializeField] private bool enableDebugLogs = true;
+        [SerializeField] private bool enableDebugLogs = false;
 
         private bool isAttacking;
-        private float attackTimer;
+private float attackTimer;
         private Collider[] _cachedColliders;
         private Rigidbody _rb;
         private Vector3 _moveDirection;

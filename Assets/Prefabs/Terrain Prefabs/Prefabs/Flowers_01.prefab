@@ -100,6 +100,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5186735023777053022}
   - component: {fileID: 5777168012237853380}
+  - component: {fileID: 7874733065720766889}
+  - component: {fileID: 1619034708134063621}
   m_Layer: 0
   m_Name: Flowers_01
   m_TagString: Untagged
@@ -147,6 +149,43 @@ LODGroup:
     renderers:
     - renderer: {fileID: 3144868257754437983}
   m_Enabled: 1
+--- !u!114 &7874733065720766889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5186735023776687486}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3591ac09f1cbe6043857e877505aca48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Loot.WorldItem
+  itemData: {fileID: 11400000, guid: dc445e8a15e766242af39f1907dabbb1, type: 2}
+  quantity: 1
+--- !u!136 &1619034708134063621
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5186735023776687486}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5440194995934546347
 GameObject:
   m_ObjectHideFlags: 0

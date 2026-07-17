@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using _Scripts.MainGame.Inventory;
 using UnityEngine;
 
@@ -11,9 +11,14 @@ namespace _Scripts.MainGame.Loot
         public ItemData ItemData { get => itemData; private set => itemData = value; }
         
         private event System.Action OnLoot;
-        
-        public void SubscribeOnLoot(System.Action callback)
+
+        protected virtual void OnDisable()
         {
+            OnLoot = null;
+        }
+
+        public void SubscribeOnLoot(System.Action callback)
+{
             OnLoot += callback;
         }
         
