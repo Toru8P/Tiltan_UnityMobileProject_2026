@@ -5,14 +5,21 @@ using UnityEngine;
 
 namespace _Scripts.CharacterCreation
 {
-    // Scans the save directory and populates a ScrollView with save slot entries.
-    // Requires a SaveSlotManager in the scene. Assign slotPrefab (SaveSlotUI prefab) and
-    // slotContainer (the ScrollView Content transform) in the inspector.
+    // Shows one row per save slot. The rows are authored directly in the scene under slotContainer
+    // (no prefab, no instantiation): the controller just collects them once, then binds + activates
+    // the ones with a save and deactivates the rest. Add/remove rows by editing the scene hierarchy.
     public class LoadGameScreenController : MonoBehaviour
     {
-        [SerializeField] private SaveSlotUI slotPrefab;
         [SerializeField] private Transform slotContainer;
         [SerializeField] private TextMeshProUGUI emptyLabel;
+
+        private SaveSlotUI[] _rows;
+
+        private void Awake()
+        {
+            // Grab the slot rows placed under the container (include inactive ones).
+            _rows = slotContainer.GetComponentsInChildren<SaveSlotUI>(true);
+        }
 
         private void OnEnable()
         {
@@ -21,24 +28,31 @@ namespace _Scripts.CharacterCreation
 
         public void Refresh()
         {
-            foreach (Transform child in slotContainer)
-                Destroy(child.gameObject);
-
             if (!SaveSlotManager.Instance)
             {
                 ShowEmpty(true);
+                SetActiveRows(0);
                 return;
             }
 
             List<SaveSlotData> slots = SaveSlotManager.Instance.LoadAllSlots();
-
             ShowEmpty(slots.Count == 0);
 
-            foreach (SaveSlotData data in slots)
+            for (int i = 0; i < _rows.Length; i++)
             {
-                SaveSlotUI entry = Instantiate(slotPrefab, slotContainer);
-                entry.Init(data);
+                bool hasData = i < slots.Count;
+                _rows[i].gameObject.SetActive(hasData);
+                if (hasData) _rows[i].Bind(slots[i], Refresh);
             }
+
+            if (slots.Count > _rows.Length)
+                Debug.LogWarning($"[LoadGame] {slots.Count} saves but only {_rows.Length} slot rows in the scene; extras won't show.");
+        }
+
+        private void SetActiveRows(int count)
+        {
+            for (int i = 0; i < _rows.Length; i++)
+                _rows[i].gameObject.SetActive(i < count);
         }
 
         private void ShowEmpty(bool isEmpty)

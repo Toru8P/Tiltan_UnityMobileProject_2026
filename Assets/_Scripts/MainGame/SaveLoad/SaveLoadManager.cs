@@ -11,11 +11,19 @@ namespace _Scripts.MainGame.SaveLoad
     // (SetActiveSlot). Terrain and Inventory read/write only their own section of Current, then call Save().
     public class SaveLoadManager : MonoBehaviour
     {
+        [Tooltip("Seconds between real disk writes. Changes are staged in memory (cheap) and flushed to " +
+                 "disk on this interval, so frequent updates don't cause hitches.")]
+        [SerializeField] private float saveInterval = 15f;
+
         // Which slot's world we read/write. Static so it survives the menu -> gameplay scene change.
         private static int _activeSlot;
 
         private GameSave _current;
         private int _loadedSlot = -1;
+
+        // Set when the cached save has unwritten changes; flushed to disk on the interval.
+        private bool _dirty;
+        private float _timer;
 
         public int ActiveSlot => _activeSlot;
 
@@ -46,12 +54,26 @@ namespace _Scripts.MainGame.SaveLoad
             };
         }
 
-        // Points the manager at a specific slot (e.g. from the new-game flow) and drops any cached state.
-        public void SetActiveSlot(int slot)
+        // Points the save system at a specific slot (e.g. from the new-game flow) before the gameplay
+        // scene loads. Static because the menu scene has no gameplay SaveLoadManager instance.
+        // Any live instance reloads automatically on next access (EnsureLoaded compares slots).
+        public static void SetActiveSlot(int slot)
         {
             _activeSlot = slot;
-            _current = null;
-            _loadedSlot = -1;
+        }
+
+        // Begins a new game on the given slot with a chosen seed. Writes a fresh world file that records
+        // the seed but has no terrain yet (hasTerrain = false), so the gameplay scene generates exactly
+        // that world. Static so it can run from the menu scene, which has no SaveLoadManager instance.
+        public static void StartNewGame(int slot, int seed)
+        {
+            _activeSlot = slot;
+
+            GameSave save = new GameSave();
+            save.terrain.seed = seed;
+
+            Directory.CreateDirectory(SaveSlotManager.SaveDirectory);
+            File.WriteAllText(WorldPath(slot), SaveSerialization.Serialize(save));
         }
 
         private void EnsureLoaded()
@@ -65,12 +87,55 @@ namespace _Scripts.MainGame.SaveLoad
                 : new GameSave();
         }
 
-        // Persists the active slot's world state to disk.
+        // Stages changes: the cached save (Current) is written to disk on the next interval, not now.
+        // Use this for frequent updates (chunk crossings, inventory changes) to avoid per-change hitches.
+        public void MarkDirty()
+        {
+            _dirty = true;
+        }
+
+        private void Update()
+        {
+            if (!_dirty) return;
+
+            _timer += Time.deltaTime;
+            if (_timer >= saveInterval)
+                Flush();
+        }
+
+        // Writes the cached save to disk immediately if there are pending changes, and resets the timer.
+        // Called on the interval, and on pause/quit so nothing is lost.
+        public void Flush()
+        {
+            _timer = 0f;
+            if (!_dirty) return;
+            _dirty = false;
+                WriteToDisk();
+        }
+
+        // Forces an immediate write regardless of the dirty flag (explicit "save now").
         public void Save()
+        {
+            _dirty = false;
+            _timer = 0f;
+            WriteToDisk();
+        }
+
+        private void WriteToDisk()
         {
             EnsureLoaded();
             Directory.CreateDirectory(SaveSlotManager.SaveDirectory);
             File.WriteAllText(CurrentWorldPath, SaveSerialization.Serialize(_current));
+        }
+
+        private void OnApplicationPause(bool paused)
+        {
+            if (paused) Flush(); // mobile: app backgrounded — persist now
+        }
+
+        private void OnApplicationQuit()
+        {
+            Flush();
         }
 
         // Deletes the active slot's world file and resets in-memory state.
@@ -79,6 +144,8 @@ namespace _Scripts.MainGame.SaveLoad
             if (File.Exists(CurrentWorldPath)) File.Delete(CurrentWorldPath);
             _current = new GameSave();
             _loadedSlot = _activeSlot;
+            _dirty = false; // don't let a pending flush recreate the file we just deleted
+            _timer = 0f;
         }
     }
 }

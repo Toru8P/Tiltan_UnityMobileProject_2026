@@ -22,6 +22,8 @@ namespace _Scripts.MainGame.SaveLoad
         private const string SaveFolder = "Saves";
         private const string SlotFilePrefix = "slot_";
         private const string SlotFileExtension = ".json";
+        // World-state files live in the same folder as slot_N_world.json; used to tell them apart from metadata.
+        private const string WorldFileSuffix = "_world.json";
 
         // Shared by the world-state save system so slot metadata and world files live together.
         public static string SaveDirectory => Path.Combine(Application.persistentDataPath, SaveFolder);
@@ -73,6 +75,9 @@ namespace _Scripts.MainGame.SaveLoad
 
             foreach (string file in Directory.GetFiles(SaveDirectory, $"{SlotFilePrefix}*{SlotFileExtension}"))
             {
+                // World-state files (slot_N_world.json) share the slot_*.json pattern — they are not slot metadata.
+                if (file.EndsWith(WorldFileSuffix)) continue;
+
                 try
                 {
                     string json = File.ReadAllText(file);
@@ -113,6 +118,32 @@ namespace _Scripts.MainGame.SaveLoad
 
             string world = SaveLoadManager.WorldPath(slotIndex);
             if (File.Exists(world)) File.Delete(world);
+        }
+
+        // Returns the lowest slot index not used by any existing slot (metadata OR world file),
+        // so a new game always lands on a fresh slot instead of overwriting an old one.
+        public int GetNextFreeSlot()
+        {
+            var used = new HashSet<int>();
+
+            foreach (SaveSlotData data in LoadAllSlots())
+                used.Add(data.slotIndex);
+
+            if (Directory.Exists(SaveDirectory))
+            {
+                foreach (string file in Directory.GetFiles(SaveDirectory, $"{SlotFilePrefix}*{WorldFileSuffix}"))
+                {
+                    string name = Path.GetFileNameWithoutExtension(file); // e.g. "slot_2_world"
+                    string mid = name.Substring(SlotFilePrefix.Length);    // "2_world"
+                    int underscore = mid.IndexOf('_');
+                    if (underscore > 0 && int.TryParse(mid.Substring(0, underscore), out int idx))
+                        used.Add(idx);
+                }
+            }
+
+            int slot = 0;
+            while (used.Contains(slot)) slot++;
+            return slot;
         }
 
         // --- Load trigger ---

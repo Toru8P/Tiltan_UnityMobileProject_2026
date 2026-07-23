@@ -8,6 +8,9 @@ using Random = UnityEngine.Random;
 
 namespace _Scripts.MainGame.Terrain
 {
+    // Runs early so the world is generated/loaded before systems that depend on it (e.g. the player
+    // restoring its saved position, which needs the ground under it to be streamed in).
+    [DefaultExecutionOrder(-100)]
     public class Terrain : MonoBehaviour
     {
         [Header("Noise Settings")] [SerializeField]
@@ -53,6 +56,10 @@ namespace _Scripts.MainGame.Terrain
         // The seed that actually produced the current world (after any randomization).
         public int Seed => seed;
 
+        // Fired after the player crosses into a new chunk (and the world is saved), so other
+        // systems can persist their own state on the same cadence.
+        public event Action PlayerChangedChunk;
+
         // Returns the shared save manager, or null (with a warning) if this scene isn't wired for saving.
         // Never throws, so terrain always generates even when the save system is missing.
         private SaveLoadManager SaveOrNull()
@@ -81,7 +88,13 @@ namespace _Scripts.MainGame.Terrain
                 return;
             }
 
-            Generate(NextSeed());
+            // A new-game slot has a world file carrying the chosen seed (but no terrain yet) — use it.
+            // Otherwise (debug reset, or no save system) fall back to the inspector/random seed.
+            int worldSeed = (!createNewTerrain && save != null && save.HasSaveFile)
+                ? save.Current.terrain.seed
+                : NextSeed();
+
+            Generate(worldSeed);
             SaveToFile();
         }
 
@@ -180,6 +193,18 @@ namespace _Scripts.MainGame.Terrain
 
         private void UpdateFacesAroundPlayer(int row, int col)
         {
+            UpdateChunksAround(row, col);
+
+            // Let other systems (e.g. player position) stage their save section first...
+            PlayerChangedChunk?.Invoke();
+
+            // ...then persist the whole world once, every time the player crosses into a new chunk.
+            SaveToFile();
+        }
+
+        // Activates chunks within render distance of (row, col) and deactivates the rest. No saving.
+        private void UpdateChunksAround(int row, int col)
+        {
             List<Chunk> chunksToDeactivate = new List<Chunk>(_activeChunks);
             List<Chunk> chunksToActivate = new List<Chunk>();
 
@@ -211,9 +236,16 @@ namespace _Scripts.MainGame.Terrain
 
             chunksToActivate.ForEach(ActivateChunk);
             chunksToDeactivate.ForEach(DeactivateChunk);
+        }
 
-            // Persist the world every time the player crosses into a new chunk.
-            SaveToFile();
+        // Re-streams chunks around a world position (e.g. a player restored far from origin on load),
+        // so the ground under them is active. Does not save.
+        public void ActivateAroundWorld(Vector3 worldPos)
+        {
+            Vector3 local = worldPos - transform.position;
+            int col = Mathf.RoundToInt(local.x / Mathf.Max(1, width));
+            int row = Mathf.RoundToInt(local.z / Mathf.Max(1, height));
+            UpdateChunksAround(row, col);
         }
 
         private void FillNewChunk(Chunk chunk, SeededRandom rng)
@@ -304,7 +336,7 @@ namespace _Scripts.MainGame.Terrain
 
             save.Current.terrain = BuildSaveData();
             save.Current.hasTerrain = true;
-            save.Save();
+            save.MarkDirty(); // staged in memory; SaveLoadManager flushes to disk on its interval
         }
 
         public void Load(TerrainSaveData data)

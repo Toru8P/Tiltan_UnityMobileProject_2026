@@ -1,3 +1,5 @@
+using System;
+using _Scripts.MainGame.SaveLoad;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -20,6 +22,25 @@ namespace _Scripts.CharacterCreation
             ShowMain();
         }
 
+        private void OnEnable()
+        {
+            // Actually perform the scene load when a slot's Load button fires the request.
+            SaveSlotManager.OnLoadRequested += HandleLoadRequested;
+        }
+
+        private void OnDisable()
+        {
+            SaveSlotManager.OnLoadRequested -= HandleLoadRequested;
+        }
+
+        private void HandleLoadRequested(SaveSlotData data)
+        {
+            if (data == null) return;
+            // SaveLoadManager's own hook has already set the active slot; we just switch scenes.
+            string scene = !string.IsNullOrEmpty(data.sceneName) ? data.sceneName : gameplaySceneName;
+            SceneManager.LoadScene(scene);
+        }
+
         public void ShowMain()
         {
             SetPanels(main: true, loadGame: false, confirm: false);
@@ -37,6 +58,26 @@ namespace _Scripts.CharacterCreation
 
         public void ConfirmNewGame()
         {
+            // Allocate a fresh slot so a new game never overwrites an existing save.
+            int slot = SaveSlotManager.Instance != null ? SaveSlotManager.Instance.GetNextFreeSlot() : 0;
+
+            // Generate the world seed now and bake it into the new save so the world is reproducible.
+            int seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+            SaveLoadManager.StartNewGame(slot, seed);
+
+            // Create the slot's metadata up-front so it appears in the Load list and reserves the index.
+            if (SaveSlotManager.Instance != null)
+            {
+                SaveSlotManager.Instance.SaveSlot(new SaveSlotData
+                {
+                    slotIndex = slot,
+                    characterName = GameInitData.HasCustomization ? GameInitData.Customization.PlayerName : "New Character",
+                    sceneName = gameplaySceneName,
+                    saveDate = DateTime.UtcNow.ToString("o"),
+                    playtimeSeconds = 0
+                });
+            }
+
             SceneManager.LoadScene(gameplaySceneName);
         }
 

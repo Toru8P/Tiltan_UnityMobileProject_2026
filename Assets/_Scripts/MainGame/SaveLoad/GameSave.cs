@@ -12,5 +12,8 @@ namespace _Scripts.MainGame.SaveLoad
 
         public bool hasInventory;
         public InventorySave inventory = new InventorySave();
+
+        public bool hasPlayer;
+        public PlayerSaveData player = new PlayerSaveData();
     }
 }

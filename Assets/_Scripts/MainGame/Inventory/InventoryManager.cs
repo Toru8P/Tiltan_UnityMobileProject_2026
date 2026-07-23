@@ -212,7 +212,7 @@ namespace _Scripts.MainGame.Inventory
 
             save.Current.inventory = BuildSaveData();
             save.Current.hasInventory = true;
-            save.Save();
+            save.MarkDirty(); // staged in memory; SaveLoadManager flushes to disk on its interval
         }
 
         // Restores slots from saved data, resolving itemIds back to ItemData assets.

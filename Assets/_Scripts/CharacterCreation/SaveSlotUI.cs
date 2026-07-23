@@ -1,3 +1,4 @@
+using System;
 using _Scripts.MainGame.SaveLoad;
 using TMPro;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.UI;
 namespace _Scripts.CharacterCreation
 {
     // Drives a single save-slot row in the Load Game scroll list.
-    // Call Init() after instantiation.
+    // Rows are pooled and reused, so Bind() must fully reset the row's state each time.
     public class SaveSlotUI : MonoBehaviour
     {
         [SerializeField] private RawImage thumbnailImage;
@@ -17,23 +18,38 @@ namespace _Scripts.CharacterCreation
         [SerializeField] private Button deleteButton;
 
         private SaveSlotData _data;
+        private Action _onChanged;
 
-        public void Init(SaveSlotData data)
+        // Binds this (possibly reused) row to a slot. onChanged is invoked after a delete so the
+        // owning list can refresh its pooled rows.
+        public void Bind(SaveSlotData data, Action onChanged)
         {
             _data = data;
+            _onChanged = onChanged;
 
-            if (characterNameText != null) characterNameText.text = data.characterName;
-            if (playtimeText != null) playtimeText.text = data.FormattedPlaytime();
-            if (dateText != null) dateText.text = data.FormattedDate();
+            if (characterNameText) characterNameText.text = data.characterName;
+            if (playtimeText) playtimeText.text = data.FormattedPlaytime();
+            if (dateText) dateText.text = data.FormattedDate();
 
+            // Clear any texture from a previous binding before the new one loads in.
+            if (thumbnailImage) thumbnailImage.texture = null;
+
+            // Re-bind buttons cleanly — reused rows would otherwise stack listeners.
+            loadButton.onClick.RemoveAllListeners();
             loadButton.onClick.AddListener(OnLoadClicked);
-            if (deleteButton != null) deleteButton.onClick.AddListener(OnDeleteClicked);
+            if (deleteButton)
+            {
+                deleteButton.onClick.RemoveAllListeners();
+                deleteButton.onClick.AddListener(OnDeleteClicked);
+            }
 
-            if (!string.IsNullOrEmpty(data.thumbnailFileName) && SaveSlotManager.Instance != null)
+            // Cancel a pending thumbnail load from a previous binding, then start the new one.
+            StopAllCoroutines();
+            if (!string.IsNullOrEmpty(data.thumbnailFileName) && SaveSlotManager.Instance)
                 StartCoroutine(SaveSlotManager.Instance.LoadThumbnail(data.thumbnailFileName, ApplyThumbnail));
         }
 
-        private void ApplyThumbnail(UnityEngine.Texture2D tex)
+        private void ApplyThumbnail(Texture2D tex)
         {
             if (thumbnailImage != null && tex != null)
                 thumbnailImage.texture = tex;
@@ -47,7 +63,7 @@ namespace _Scripts.CharacterCreation
         private void OnDeleteClicked()
         {
             SaveSlotManager.Instance?.DeleteSlot(_data.slotIndex);
-            Destroy(gameObject);
+            _onChanged?.Invoke(); // let the list re-pool instead of destroying this row
         }
     }
 }
