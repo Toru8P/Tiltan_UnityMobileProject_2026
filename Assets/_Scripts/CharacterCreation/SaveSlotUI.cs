@@ -1,3 +1,4 @@
+using _Scripts.MainGame.SaveLoad;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,8 +29,8 @@ namespace _Scripts.CharacterCreation
             loadButton.onClick.AddListener(OnLoadClicked);
             if (deleteButton != null) deleteButton.onClick.AddListener(OnDeleteClicked);
 
-            if (!string.IsNullOrEmpty(data.thumbnailFileName) && SaveManager.Instance != null)
-                StartCoroutine(SaveManager.Instance.LoadThumbnail(data.thumbnailFileName, ApplyThumbnail));
+            if (!string.IsNullOrEmpty(data.thumbnailFileName) && SaveSlotManager.Instance != null)
+                StartCoroutine(SaveSlotManager.Instance.LoadThumbnail(data.thumbnailFileName, ApplyThumbnail));
         }
 
         private void ApplyThumbnail(UnityEngine.Texture2D tex)
@@ -40,12 +41,12 @@ namespace _Scripts.CharacterCreation
 
         private void OnLoadClicked()
         {
-            SaveManager.Instance?.RequestLoad(_data);
+            SaveSlotManager.Instance?.RequestLoad(_data);
         }
 
         private void OnDeleteClicked()
         {
-            SaveManager.Instance?.DeleteSlot(_data.slotIndex);
+            SaveSlotManager.Instance?.DeleteSlot(_data.slotIndex);
             Destroy(gameObject);
         }
     }

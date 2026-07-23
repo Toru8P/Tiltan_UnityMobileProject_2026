@@ -47,9 +47,9 @@ namespace _Scripts.CharacterCreation
 
         private void SetPanels(bool main, bool loadGame, bool confirm)
         {
-            if (mainPanel != null) mainPanel.SetActive(main);
-            if (loadGamePanel != null) loadGamePanel.SetActive(loadGame);
-            if (newGameConfirmPanel != null) newGameConfirmPanel.SetActive(confirm);
+            if (mainPanel) mainPanel.SetActive(main);
+            if (loadGamePanel) loadGamePanel.SetActive(loadGame);
+            if (newGameConfirmPanel) newGameConfirmPanel.SetActive(confirm);
         }
     }
 }

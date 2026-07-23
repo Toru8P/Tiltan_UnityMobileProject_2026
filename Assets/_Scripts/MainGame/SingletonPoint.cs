@@ -2,6 +2,7 @@ using System;
 using _Scripts.MainGame.Audio;
 using _Scripts.MainGame.Difficulty;
 using _Scripts.MainGame.Pool;
+using _Scripts.MainGame.SaveLoad;
 using UnityEngine;
 
 namespace _Scripts.MainGame
@@ -22,10 +23,14 @@ namespace _Scripts.MainGame
 
         [SerializeField] private AudioManager audioManager;
         [SerializeField] private GeneralDifficultyManager difficultyManager;
-        [SerializeField] private _Scripts.MainGame.Player.PlayerStatsController playerStats;
+        [SerializeField] private Player.PlayerStatsController playerStats;
         [SerializeField] private ObjectPool objectPool;
         
+        [SerializeField] private SaveLoadManager saveLoad;
+
         public ObjectPool ObjectPool => objectPool;
+
+        public SaveLoadManager SaveLoad => saveLoad;
         
         public GeneralDifficultyManager DifficultyManager {
 get => difficultyManager;

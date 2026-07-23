@@ -2,17 +2,18 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using _Scripts.CharacterCreation;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace _Scripts.CharacterCreation
+namespace _Scripts.MainGame.SaveLoad
 {
     // Handles reading and writing save slot JSON files.
     // Save files are stored in Application.persistentDataPath/Saves/
     // Screenshot thumbnails are stored alongside as PNG files.
-    public class SaveManager : MonoBehaviour
+    public class SaveSlotManager : MonoBehaviour
     {
-        public static SaveManager Instance { get; private set; }
+        public static SaveSlotManager Instance { get; private set; }
 
         // Gameplay scene invokes this delegate when a load is confirmed.
         // Student A should assign their scene-loading logic here.
@@ -22,7 +23,8 @@ namespace _Scripts.CharacterCreation
         private const string SlotFilePrefix = "slot_";
         private const string SlotFileExtension = ".json";
 
-        private string SaveDirectory => Path.Combine(Application.persistentDataPath, SaveFolder);
+        // Shared by the world-state save system so slot metadata and world files live together.
+        public static string SaveDirectory => Path.Combine(Application.persistentDataPath, SaveFolder);
 
         private void Awake()
         {
@@ -79,7 +81,7 @@ namespace _Scripts.CharacterCreation
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning($"[SaveManager] Failed to read {file}: {e.Message}");
+                    Debug.LogWarning($"[SaveSlotManager] Failed to read {file}: {e.Message}");
                 }
             }
 
@@ -100,10 +102,17 @@ namespace _Scripts.CharacterCreation
 
         // --- Delete ---
 
+        // Removes everything that belongs to a slot: metadata, thumbnail, and the world save.
         public void DeleteSlot(int slotIndex)
         {
-            string path = SlotPath(slotIndex);
-            if (File.Exists(path)) File.Delete(path);
+            string meta = SlotPath(slotIndex);
+            if (File.Exists(meta)) File.Delete(meta);
+
+            string thumb = Path.Combine(SaveDirectory, $"thumb_{slotIndex}.png");
+            if (File.Exists(thumb)) File.Delete(thumb);
+
+            string world = SaveLoadManager.WorldPath(slotIndex);
+            if (File.Exists(world)) File.Delete(world);
         }
 
         // --- Load trigger ---
