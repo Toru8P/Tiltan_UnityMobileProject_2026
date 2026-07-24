@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemId: RoughPickaxe
   displayName: Rough Pickaxe
-  description: A simple pickaxe. Can be used to mine stone faster
+  description: A simple pickaxe. Can be used to mine stone and ores.
   icon: {fileID: 21300000, guid: 2f09d6ca6572b1d438c414c5ee308bc5, type: 3}
   category: 2
   armorSlot: 0

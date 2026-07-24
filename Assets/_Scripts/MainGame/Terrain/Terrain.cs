@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using _Scripts.MainGame.Pool;
@@ -16,18 +16,33 @@ namespace _Scripts.MainGame.Terrain
         [Header("Noise Settings")] [SerializeField]
         private NoiseSettings noiseSettings = NoiseSettings.Default;
 
-        [Header("Generation Prefabs")] public GameObject[] treePrefabs;
+        [Serializable]
+        public class OreSpawnEntry
+        {
+            public string oreName;
+            public GameObject prefab;
+            [Min(0)] public int attemptsPerChunk = 1;
+            [Range(0f, 1f)] public float spawnChance = 0.25f;
+        }
+        [Header("Generation Prefabs")]
+        public GameObject[] treePrefabs;
         public GameObject[] rockPrefabs;
         public GameObject[] bushPrefabs;
         public GameObject[] smallNaturePrefabs;
         [SerializeField] private string terrainLayerName = "TerrainGround";
 
-        [Header("Probabilities")] [Range(0, 1)]
-        public float treeChance = 0.25f; // Increased
+        [Header("Probabilities")]
+        [Range(0f, 1f)] public float treeChance = 0.25f;
+        [Range(0f, 1f)] public float rockChance = 0.2f;
+        [Range(0f, 1f)] public float bushChance = 0.1f;
+        [Range(0f, 1f)] public float smallChance = 0.45f;
 
-        [Range(0, 1)] public float rockChance = 0.2f;
-        [Range(0, 1)] public float bushChance = 0.1f;
-        [Range(0, 1)] public float smallChance = 0.45f;
+        [Header("Ore Generation")]
+        [Tooltip("Each entry performs its own number of placement rolls per chunk. Spawn chance is evaluated per roll.")]
+        public OreSpawnEntry[] oreSpawnEntries;
+        [Min(0f)] public float oreMinimumSpacing = 3f;
+        [Range(0f, 1f)] public float oreDensityMultiplier = 0.35f;
+
 
         [Range(2, 256)] public int resolution = 10;
         [SerializeField] private int width = 10;
@@ -178,8 +193,9 @@ namespace _Scripts.MainGame.Terrain
 
             if (_loadedChunkData != null && _loadedChunkData.TryGetValue(key, out ChunkSaveData saved))
             {
-                // This chunk was persisted — restore its exact contents instead of re-scattering.
+                // This chunk was persisted — restore its exact contents, then backfill ores once if needed.
                 RestoreChunk(terrainChunk, saved);
+                EnsureOresGenerated(terrainChunk, new SeededRandom(SeedUtility.Combine(seed, row, col) ^ 0x4F5245));
             }
             else
             {
@@ -255,7 +271,7 @@ namespace _Scripts.MainGame.Terrain
             for (int i = 0; i < attempts; i++)
             {
                 float r = rng.Range(0f, treeChance + rockChance + bushChance + smallChance);
-                GameObject[] list = null;
+                GameObject[] list;
 
                 if (r < treeChance) list = treePrefabs;
                 else if (r < treeChance + rockChance) list = rockPrefabs;
@@ -263,35 +279,103 @@ namespace _Scripts.MainGame.Terrain
                 else list = smallNaturePrefabs;
 
                 if (list == null || list.Length == 0) continue;
+                TryAddScatteredObject(chunk, list[rng.Range(0, list.Length)], rng);
+            }
 
-                int index = rng.Range(0, list.Length);
+            if (oreSpawnEntries == null) return;
 
-                // Random local X/Z inside the chunk extents
-                float localX = rng.Range(-chunk.Width * 0.5f, chunk.Width * 0.5f);
-                float localZ = rng.Range(-chunk.Height * 0.5f, chunk.Height * 0.5f);
+            EnsureOresGenerated(chunk, rng);
+        }
 
-                MeshCollider mc = chunk.MeshCollider;
-                if (mc == null || mc.sharedMesh == null) continue;
+        private void EnsureOresGenerated(Chunk chunk, SeededRandom rng)
+        {
+            if (oreSpawnEntries == null || oreSpawnEntries.Length == 0) return;
+            if (chunk.objects.Exists(objectData => IsOrePrefab(objectData.prefab))) return;
 
-                // Compute a safe world-space start Y above the mesh top
-                float startY = mc.bounds.max.y + 1.0f; // margin above the top
-                Vector3 worldOrigin = new Vector3(chunk.Position.x + localX, startY, chunk.Position.z + localZ);
+            foreach (OreSpawnEntry ore in oreSpawnEntries)
+            {
+                if (ore == null || ore.prefab == null || ore.attemptsPerChunk <= 0)
+                    continue;
 
-                // Cast down along the chunk's up axis (handles rotated chunks)
-                Vector3 dir = -chunk.transform.up;
-                Ray ray = new Ray(worldOrigin, dir);
-
-                if (mc.Raycast(ray, out RaycastHit hit, 200f))
+                for (int i = 0; i < ore.attemptsPerChunk; i++)
                 {
-                    Vector3 localPos = chunk.transform.InverseTransformPoint(hit.point);
-                    chunk.AddObjectData(new ObjectData
-                    {
-                        prefab = list[index],
-                        localPosition = localPos,
-                        localRotation = Quaternion.Euler(0f, rng.Range(0f, 360f), 0f)
-                    });
+                    if (rng.Range(0f, 1f) <= ore.spawnChance * oreDensityMultiplier)
+                        TryAddOreObject(chunk, ore.prefab, rng);
                 }
             }
+        }
+
+        private bool IsOrePrefab(GameObject prefab)
+        {
+            if (prefab == null || oreSpawnEntries == null) return false;
+
+            foreach (OreSpawnEntry ore in oreSpawnEntries)
+            {
+                if (ore != null && ore.prefab == prefab)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool TryAddOreObject(Chunk chunk, GameObject prefab, SeededRandom rng)
+        {
+            if (chunk == null || prefab == null) return false;
+
+            MeshCollider meshCollider = chunk.MeshCollider;
+            if (meshCollider == null || meshCollider.sharedMesh == null) return false;
+
+            float localX = rng.Range(-chunk.Width * 0.5f, chunk.Width * 0.5f);
+            float localZ = rng.Range(-chunk.Height * 0.5f, chunk.Height * 0.5f);
+            Vector3 localPosition = new Vector3(localX, 0f, localZ);
+            float minimumSpacingSqr = oreMinimumSpacing * oreMinimumSpacing;
+
+            foreach (ObjectData objectData in chunk.objects)
+            {
+                if (!IsOrePrefab(objectData.prefab)) continue;
+
+                Vector3 existingPosition = objectData.localPosition;
+                existingPosition.y = 0f;
+                if ((existingPosition - localPosition).sqrMagnitude < minimumSpacingSqr)
+                    return false;
+            }
+
+            float startY = meshCollider.bounds.max.y + 1.0f;
+            Vector3 worldOrigin = new Vector3(chunk.Position.x + localX, startY, chunk.Position.z + localZ);
+            Ray ray = new Ray(worldOrigin, -chunk.transform.up);
+            if (!meshCollider.Raycast(ray, out RaycastHit hit, 200f)) return false;
+
+            chunk.AddObjectData(new ObjectData
+            {
+                prefab = prefab,
+                localPosition = chunk.transform.InverseTransformPoint(hit.point),
+                localRotation = Quaternion.Euler(0f, rng.Range(0f, 360f), 0f)
+            });
+            return true;
+        }
+
+        private bool TryAddScatteredObject(Chunk chunk, GameObject prefab, SeededRandom rng)
+        {
+            if (chunk == null || prefab == null) return false;
+
+            MeshCollider meshCollider = chunk.MeshCollider;
+            if (meshCollider == null || meshCollider.sharedMesh == null) return false;
+
+            float localX = rng.Range(-chunk.Width * 0.5f, chunk.Width * 0.5f);
+            float localZ = rng.Range(-chunk.Height * 0.5f, chunk.Height * 0.5f);
+            float startY = meshCollider.bounds.max.y + 1.0f;
+            Vector3 worldOrigin = new Vector3(chunk.Position.x + localX, startY, chunk.Position.z + localZ);
+            Ray ray = new Ray(worldOrigin, -chunk.transform.up);
+
+            if (!meshCollider.Raycast(ray, out RaycastHit hit, 200f)) return false;
+
+            chunk.AddObjectData(new ObjectData
+            {
+                prefab = prefab,
+                localPosition = chunk.transform.InverseTransformPoint(hit.point),
+                localRotation = Quaternion.Euler(0f, rng.Range(0f, 360f), 0f)
+            });
+            return true;
         }
 
         public TerrainSaveData BuildSaveData()
@@ -365,6 +449,7 @@ namespace _Scripts.MainGame.Terrain
 
             // ...then activate the ring around the origin.
             ActivateInitialChunks();
+            SaveToFile();
         }
 
         // Restores a chunk's contents from its saved data, resolving prefab names via the registry.
@@ -399,6 +484,14 @@ namespace _Scripts.MainGame.Terrain
             RegisterPrefabs(rockPrefabs);
             RegisterPrefabs(bushPrefabs);
             RegisterPrefabs(smallNaturePrefabs);
+            if (oreSpawnEntries != null)
+            {
+                foreach (OreSpawnEntry ore in oreSpawnEntries)
+                {
+                    if (ore != null && ore.prefab != null)
+                        _prefabsByName[ore.prefab.name] = ore.prefab;
+                }
+            }
         }
 
         private void RegisterPrefabs(GameObject[] prefabs)
