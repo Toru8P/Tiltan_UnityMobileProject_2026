@@ -18,11 +18,15 @@ namespace _Scripts.MainGame.Player
         [SerializeField] private int effectiveDefense;
         [SerializeField] private float effectiveMoveSpeed;
         [SerializeField] private float effectiveAttackSpeed;
+        [SerializeField] private float effectiveCriticalChance;
+        [SerializeField] private float effectiveCriticalDamage = 1f;
 
         public int EffectiveAttack => effectiveAttack;
         public int EffectiveDefense => effectiveDefense;
         public float EffectiveMoveSpeed => effectiveMoveSpeed;
+        public float EffectiveCriticalChance => effectiveCriticalChance;
         public float EffectiveAttackSpeed => effectiveAttackSpeed;
+
 
         [Header("UI")]
         [SerializeField] private AmountBarInUIDriver hpBarDriver;
@@ -88,11 +92,15 @@ namespace _Scripts.MainGame.Player
             float percSpeed = 0;
             float flatAtkSpd = 0;
             float percAtkSpd = 0;
+            float flatCritChance = 0;
+            float percCritChance = 0;
+            float flatCritDamage = 0;
+            float percCritDamage = 0;
 
             // Held Item
             if (_equipment != null && _equipment.CurrentItem != null)
             {
-                ApplyModifiers(_equipment.CurrentItem, ref flatAttack, ref percAttack, ref flatDefense, ref percDefense, ref flatSpeed, ref percSpeed, ref flatAtkSpd, ref percAtkSpd);
+                ApplyModifiers(_equipment.CurrentItem, ref flatAttack, ref percAttack, ref flatDefense, ref percDefense, ref flatSpeed, ref percSpeed, ref flatAtkSpd, ref percAtkSpd, ref flatCritChance, ref percCritChance, ref flatCritDamage, ref percCritDamage);
             }
 
             // Armor
@@ -104,7 +112,7 @@ namespace _Scripts.MainGame.Player
                     var armor = _Scripts.MainGame.Inventory.PlayerArmorManager.Instance.GetEquippedItem(slot);
                     if (armor != null)
                     {
-                        ApplyModifiers(armor, ref flatAttack, ref percAttack, ref flatDefense, ref percDefense, ref flatSpeed, ref percSpeed, ref flatAtkSpd, ref percAtkSpd);
+                        ApplyModifiers(armor, ref flatAttack, ref percAttack, ref flatDefense, ref percDefense, ref flatSpeed, ref percSpeed, ref flatAtkSpd, ref percAtkSpd, ref flatCritChance, ref percCritChance, ref flatCritDamage, ref percCritDamage);
                     }
                 }
             }
@@ -119,9 +127,11 @@ namespace _Scripts.MainGame.Player
             effectiveDefense = Mathf.Max(0, Mathf.RoundToInt((baseDef + flatDefense) * (1 + percDefense)));
             effectiveMoveSpeed = Mathf.Max(0.1f, (baseMov + flatSpeed) * (1 + percSpeed));
             effectiveAttackSpeed = Mathf.Max(0.1f, (baseAtkSpd + flatAtkSpd) * (1 + percAtkSpd));
+            effectiveCriticalChance = Mathf.Max(0f, (flatCritChance + percCritChance) * 100f);
+            effectiveCriticalDamage = Mathf.Max(1f, 1f + flatCritDamage + percCritDamage);
         }
 
-        private void ApplyModifiers(_Scripts.MainGame.Inventory.ItemData item, ref float fAtk, ref float pAtk, ref float fDef, ref float pDef, ref float fSpd, ref float pSpd, ref float fAtkSpd, ref float pAtkSpd)
+        private void ApplyModifiers(_Scripts.MainGame.Inventory.ItemData item, ref float fAtk, ref float pAtk, ref float fDef, ref float pDef, ref float fSpd, ref float pSpd, ref float fAtkSpd, ref float pAtkSpd, ref float fCritChance, ref float pCritChance, ref float fCritDamage, ref float pCritDamage)
         {
             if (item.statModifiers == null) return;
             foreach (var mod in item.statModifiers)
@@ -137,12 +147,21 @@ namespace _Scripts.MainGame.Player
                         pDef += mod.percentageAmount;
                         break;
                     case _Scripts.MainGame.Inventory.StatType.MovementSpeed:
-                        fSpd += mod.flatAmount;
-                        pSpd += mod.percentageAmount;
-                        break;
                     case _Scripts.MainGame.Inventory.StatType.AttackSpeed:
                         fAtkSpd += mod.flatAmount;
                         pAtkSpd += mod.percentageAmount;
+                        break;
+
+                        fSpd += mod.flatAmount;
+                        pSpd += mod.percentageAmount;
+                        break;
+                    case _Scripts.MainGame.Inventory.StatType.CriticalChance:
+                        fCritChance += mod.flatAmount;
+                        pCritChance += mod.percentageAmount;
+                        break;
+                    case _Scripts.MainGame.Inventory.StatType.CriticalDamage:
+                        fCritDamage += mod.flatAmount;
+                        pCritDamage += mod.percentageAmount;
                         break;
                 }
             }
@@ -165,6 +184,14 @@ namespace _Scripts.MainGame.Player
             hpBarDriver.SetFill(currentStats.CurrentHealth, currentStats.MaxHealth);
             shieldBarDriver.SetFill(currentStats.CurrentShield, currentStats.MaxShield);
         }
+
+        public int GetAttackDamage(int fallbackDamage, out bool isCritical)
+        {
+            int baseDamage = effectiveAttack > 0 ? effectiveAttack : fallbackDamage;
+            isCritical = UnityEngine.Random.Range(0f, 100f) < effectiveCriticalChance;
+            return isCritical ? Mathf.Max(1, Mathf.RoundToInt(baseDamage * effectiveCriticalDamage)) : baseDamage;
+        }
+
 
         public void DealDamage(int damage)
         {

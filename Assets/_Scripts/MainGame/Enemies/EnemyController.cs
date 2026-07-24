@@ -393,7 +393,7 @@ private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
             _playerAdaptor.DealDamage(currentDamage);
         }
 
-        public void TakeDamage(int dmg)
+        public void TakeDamage(int dmg, bool isCritical = false)
         {
             if (isDead) return;
 
@@ -401,7 +401,7 @@ private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
 
             if (IndicatorManager.Instance != null)
             {
-                IndicatorManager.Instance.SpawnDamageZombie(transform.position, dmg);
+                IndicatorManager.Instance.SpawnDamageZombie(transform.position, dmg, isCritical);
             }
 
             if (enableDebugLogs)

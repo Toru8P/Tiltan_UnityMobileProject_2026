@@ -141,6 +141,7 @@ MonoBehaviour:
   amount: 1
   resourceType: 1
   requiredTool: 2
+  requiredTier: 1
   health: 5
   shakeDuration: 0.1
   shakeAmount: 0.1

@@ -10,11 +10,14 @@ namespace _Scripts.MainGame.Combat
         public float lifetime = 5f;
         
         private int _damage;
-        private bool _hasHit = false;
+        private bool _hasHit;
+        private bool _isCritical;
 
-        public void Initialize(int damage)
+
+        public void Initialize(int damage, bool isCritical = false)
         {
             _damage = damage;
+            _isCritical = isCritical;
             Destroy(gameObject, lifetime);
         }
 

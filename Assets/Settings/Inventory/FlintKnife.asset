@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
   m_Name: FlintKnife
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemId: 
+  itemId: Flint Knife
   displayName: Flint Knife
-  description: 'Fast, light melee weapon. Damage: 12.'
-  icon: {fileID: 0}
+  description: Fast, light melee weapon.
+  icon: {fileID: 21300000, guid: 716980b1bbc2a8a4fa82817695a84cb8, type: 3}
   category: 3
   armorSlot: 0
   armorModelPath: 
@@ -31,4 +31,10 @@ MonoBehaviour:
   toolType: 0
   tier: 1
   effectiveness: 1
-  statModifiers: []
+  statModifiers:
+  - statType: 0
+    flatAmount: 6
+    percentageAmount: 0
+  - statType: 3
+    flatAmount: 0.3
+    percentageAmount: 0

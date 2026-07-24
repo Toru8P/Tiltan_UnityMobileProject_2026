@@ -135,7 +135,8 @@ public void PerformRoll()
         {
             if (_equipment && _equipment.CurrentItem && _equipment.CurrentItem.projectilePrefab)
             {
-                int damage = _stats != null ? _stats.EffectiveAttack : (int)attackDamage;
+                bool isCritical = false;
+                int damage = _stats != null ? _stats.GetAttackDamage((int)attackDamage, out isCritical) : (int)attackDamage;
 
                 // Spawn position: slightly in front and up
                 Vector3 spawnPos = transform.position + transform.forward * 1f + Vector3.up * 1f;
@@ -143,7 +144,7 @@ public void PerformRoll()
 
                 if (projectileObj.TryGetComponent(out Projectile projectile))
                 {
-                    projectile.Initialize(damage);
+                    projectile.Initialize(damage, isCritical);
                 }
             }
         }
@@ -167,8 +168,9 @@ public void PerformRoll()
 
                     if (angle <= attackAngle * 0.5f)
                     {
-                        int damage = _stats ? _stats.EffectiveAttack : (int)attackDamage;
-                        enemy.TakeDamage(damage);
+                        bool isCritical = false;
+                        int damage = _stats ? _stats.GetAttackDamage(attackDamage, out isCritical) : (int)attackDamage;
+                    enemy.TakeDamage(damage, isCritical);
                     }
                 }
                 
@@ -180,10 +182,18 @@ public void PerformRoll()
                     if (resource.RequiredTool == ToolType.None || (equipped != null && equipped.toolType == resource.RequiredTool))
                     {
                         float effectiveness = equipped != null ? equipped.effectiveness : 1f;
-                        int amount = resource.GatherResource(effectiveness);
+                        // Bare hands count as tier 0, so they only work on resources with no tier requirement.
+                        int toolTier = equipped != null ? equipped.tier : 0;
+
+                        int amount = resource.GatherResource(effectiveness, toolTier);
                         if (amount > 0)
                         {
                             InventoryManager.Instance.AddItem(resource.ItemData, amount);
+                        }
+                        else if (!resource.IsTierSufficient(toolTier))
+                        {
+                            // The swing still played its hit feedback; the node just refuses to take damage.
+                            Debug.Log($"<color=yellow>Your tool is too weak — this needs a tier {resource.RequiredTier} {resource.RequiredTool} or better!</color>");
                         }
                     }
                     else if (resource.RequiredTool != ToolType.None)

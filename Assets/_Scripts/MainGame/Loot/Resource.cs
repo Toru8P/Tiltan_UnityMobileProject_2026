@@ -11,6 +11,11 @@ namespace _Scripts.MainGame.Loot
         [SerializeField] private int amount = 1;
         [SerializeField] private ResourceType resourceType;
         [SerializeField] private ToolType requiredTool;
+
+        // Minimum ItemData.tier a tool must have to actually damage this resource.
+        // 0 = no tier requirement (bare hands are treated as tier 0).
+        // A tier 1 tool swinging at a requiredTier 2 node plays the hit feedback but deals no damage.
+        [SerializeField, Min(0)] private int requiredTier;
         [SerializeField] private float health = 5f;
         
         [Header("Visual Feedback")]
@@ -33,6 +38,11 @@ namespace _Scripts.MainGame.Loot
         public int Amount => amount;
         public ResourceType ResourceType => resourceType;
         public ToolType RequiredTool => requiredTool;
+        public int RequiredTier => requiredTier;
+
+        // True when the given tool is strong enough to actually break this resource.
+        // Callers use it to show a "your tool is too weak" hint; the gate itself lives in GatherResource.
+        public bool IsTierSufficient(int toolTier) => toolTier >= requiredTier;
 
         private float _initialHealth;
         private int _initialAmount;
@@ -69,15 +79,22 @@ namespace _Scripts.MainGame.Loot
             SetFlashColor(Color.white);
         }
 
-        public int GatherResource(float effectiveness = 1f)
+        // Hits this resource with a tool of the given effectiveness and tier.
+        // Returns the amount dropped, or 0 if the node survived the hit.
+        // toolTier defaults to 0 so bare hands can only take resources with no tier requirement.
+        public int GatherResource(float effectiveness = 1f, int toolTier = 0)
         {
             if (_isDown) return 0;
 
-            health -= effectiveness;
-            
+            // Feedback fires before the tier check, so an underpowered tool still shakes and flashes
+            // the resource — the player sees the hit land but the node never loses health.
             EnsureInitialized();
             if (_feedbackCoroutine != null) StopCoroutine(_feedbackCoroutine);
             _feedbackCoroutine = StartCoroutine(FeedbackRoutine());
+
+            if (!IsTierSufficient(toolTier)) return 0;
+
+            health -= effectiveness;
 
             if (health <= 0)
             {

@@ -49,8 +49,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Loot.Resource
   itemData: {fileID: 0}
   amount: 1
-  resourceType: 0
+  resourceType: 1
   requiredTool: 2
+  requiredTier: 2
   health: 10
   shakeDuration: 0.1
   shakeAmount: 0.1

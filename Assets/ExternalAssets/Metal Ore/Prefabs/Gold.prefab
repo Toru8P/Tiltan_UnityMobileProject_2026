@@ -189,6 +189,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7624350875171591718}
+  - component: {fileID: 5378691265909649191}
   m_Layer: 0
   m_Name: Gold
   m_TagString: Untagged
@@ -214,6 +215,30 @@ Transform:
   - {fileID: 6028755362723413603}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5378691265909649191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4778066955128460072}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92640a4f1944fe14ca7d50a6054a37c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Loot.Resource
+  itemData: {fileID: 0}
+  amount: 1
+  resourceType: 0
+  requiredTool: 0
+  requiredTier: 2
+  health: 5
+  shakeDuration: 0.1
+  shakeAmount: 0.1
+  flashColor: {r: 1, g: 0, b: 0, a: 1}
+  flashDuration: 0.1
+  shrinkDuration: 0.5
+  poofEffectPrefab: {fileID: 0}
 --- !u!1 &7159484365415966431
 GameObject:
   m_ObjectHideFlags: 0

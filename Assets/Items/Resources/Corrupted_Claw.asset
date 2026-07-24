@@ -10,37 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
-  m_Name: Tier_3_Sword
+  m_Name: Corrupted_Claw
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.ItemData
-  itemId: Copper Greatblade
-  displayName: Copper Greatblade
-  description: A sword with a combined strength of 4 blades.
-  icon: {fileID: 21300000, guid: 5c861b74c29f3c048a367b3fb90c995b, type: 3}
-  category: 3
+  itemId: 
+  displayName: 
+  description: 
+  icon: {fileID: 0}
+  category: 0
   armorSlot: 0
   armorModelPath: 
   armorColor: {r: 1, g: 1, b: 1, a: 1}
-  maxStackSize: 1
+  maxStackSize: 100
   isConsumable: 0
   hungerRestore: 0
   healthRestore: 0
-  heldPrefab: {fileID: 6861799011205184991, guid: be060eed1da2f6543a130d534bc5e97f, type: 3}
+  heldPrefab: {fileID: 0}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
   projectilePrefab: {fileID: 0}
   toolType: 0
-  tier: 3
+  tier: 1
   effectiveness: 1
-  statModifiers:
-  - statType: 0
-    flatAmount: 100
-    percentageAmount: 0
-  - statType: 2
-    flatAmount: 2
-    percentageAmount: 0
-  - statType: 4
-    flatAmount: 0
-    percentageAmount: 1
-  - statType: 5
-    flatAmount: 0
-    percentageAmount: 10
+  statModifiers: []

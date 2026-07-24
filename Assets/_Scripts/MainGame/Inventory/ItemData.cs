@@ -4,7 +4,7 @@ namespace _Scripts.MainGame.Inventory
 {
     public enum ItemCategory { Resource, Food, Tool, Weapon, Armor, Potion, Consumable, Bow }
     public enum ArmorSlot { None, Helmet, Chest, Shoulders, Gloves, Pants, Boots }
-    public enum StatType { Attack, Defense, MovementSpeed, AttackSpeed }
+    public enum StatType { Attack, Defense, MovementSpeed, AttackSpeed, CriticalChance, CriticalDamage }
     public enum ToolType { None, Axe, Pickaxe, Hammer, Shovel, Sickle, Hoe }
 
     [System.Serializable]
