@@ -30,6 +30,32 @@ namespace _Scripts.MainGame.Inventory
             }
         }
 
+        // The armor meshes live on the character prefab and are authored ACTIVE, so without this
+        // the player starts already wearing the full set and equipping appears to do nothing.
+        private void Start()
+        {
+            HideAllArmorModels();
+        }
+
+        // Walks every armor ItemData and deactivates the mesh it points at, giving a clean "no armor" start.
+        private void HideAllArmorModels()
+        {
+            if (armorParent == null) return;
+
+            foreach (ItemData item in Resources.LoadAll<ItemData>(string.Empty))
+            {
+                if (item == null || item.category != ItemCategory.Armor) continue;
+                if (string.IsNullOrEmpty(item.armorModelPath)) continue;
+
+                Transform modelTransform = armorParent.Find(item.armorModelPath);
+                if (modelTransform != null)
+                    modelTransform.gameObject.SetActive(false);
+                else
+                    Debug.LogWarning($"[PlayerArmorManager] '{item.displayName}' points at model path " +
+                                     $"'{item.armorModelPath}', which does not exist under '{armorParent.name}'.");
+            }
+        }
+
         public bool Equip(ItemData item)
         {
             if (item == null || item.category != ItemCategory.Armor || item.armorSlot == ArmorSlot.None)
@@ -40,7 +66,14 @@ namespace _Scripts.MainGame.Inventory
 
             if (oldItem != null)
             {
-                InventoryManager.Instance.AddItem(oldItem, 1);
+                // AddItem returns what it could NOT place. Swapping into a full inventory used to
+                // drop the old piece on the floor of memory, so refuse the swap instead.
+                if (InventoryManager.Instance.AddItem(oldItem, 1) != 0)
+                {
+                    Debug.LogWarning($"[PlayerArmorManager] No inventory room to take off '{oldItem.displayName}' — " +
+                                     $"'{item.displayName}' was not equipped.");
+                    return false;
+                }
                 HideModel(slot);
             }
 
@@ -51,18 +84,24 @@ namespace _Scripts.MainGame.Inventory
             return true;
         }
 
-        public void Unequip(ArmorSlot slot)
+        // Returns true if the piece came off. It stays on when there is no inventory room for it,
+        // which used to fail silently and look like the button was broken.
+        public bool Unequip(ArmorSlot slot)
         {
             if (!equippedArmor.ContainsKey(slot) || equippedArmor[slot] == null)
-                return;
+                return false;
 
             ItemData item = equippedArmor[slot];
-            if (InventoryManager.Instance.AddItem(item, 1) == 0)
+            if (InventoryManager.Instance.AddItem(item, 1) != 0)
             {
-                equippedArmor[slot] = null;
-                HideModel(slot);
-                OnArmorChanged?.Invoke(slot, null);
+                Debug.LogWarning($"[PlayerArmorManager] Inventory is full — '{item.displayName}' stays equipped.");
+                return false;
             }
+
+            equippedArmor[slot] = null;
+            HideModel(slot);
+            OnArmorChanged?.Invoke(slot, null);
+            return true;
         }
 
         private void ShowModel(ArmorSlot slot, ItemData item)

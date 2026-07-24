@@ -3642,7 +3642,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63d6cab92b3750a408b45c866cead2cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.PlayerArmorManager
-  armorParent: {fileID: 0}
+  armorParent: {fileID: 9077076003395151772}
 --- !u!114 &4375509186860252514
 MonoBehaviour:
   m_ObjectHideFlags: 0

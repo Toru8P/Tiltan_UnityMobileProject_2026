@@ -77,6 +77,14 @@ namespace _Scripts.MainGame.Inventory
 
         public int AddItem(ItemData item, int qty = 1)
         {
+            // A WorldItem with no ItemData assigned used to reach the empty-slot loop and throw there,
+            // which aborted the pickup mid-way. Reject it up front and name the culprit instead.
+            if (item == null)
+            {
+                Debug.LogWarning("[Inventory] AddItem was called with a null item — check the ItemData field on whatever spawned it.");
+                return qty;
+            }
+
             int startQty = qty;
             int remaining = qty;
 

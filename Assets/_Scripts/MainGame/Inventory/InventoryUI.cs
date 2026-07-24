@@ -15,6 +15,7 @@ namespace _Scripts.MainGame.Inventory
         public GameObject inventoryPanel;
         public Transform slotContainer;
         public GameObject slotPrefab;
+        [SerializeField] private UnityEngine.UI.ScrollRect slotScrollView;
 
         [Header("Details Section")]
         public GameObject detailsPanel;
@@ -40,6 +41,9 @@ namespace _Scripts.MainGame.Inventory
         private int selectedIndex = -1;
         private int draggingIndex = -1;
         private int movingIndex = -1;
+        // Which armor slot the details panel is currently showing, or None when it is showing an
+        // inventory slot. This is what makes the action button mean UNEQUIP instead of USE/EQUIP.
+        private ArmorSlot inspectedArmorSlot = ArmorSlot.None;
         public int GetDraggingIndex() => draggingIndex;
         private float lastClickTime;
 private int lastClickIndex = -1;
@@ -141,11 +145,31 @@ private int lastClickIndex = -1;
             if (CraftingUI.Instance != null) CraftingUI.Instance.ToggleMenu();
         }
 
+        private float _savedScrollPosition = 1f;
+
         public void ShowContent(bool show)
         {
-            if (inventoryContent != null) inventoryContent.SetActive(show);
-            if (!show)
+            if (show)
             {
+                if (inventoryContent != null) inventoryContent.SetActive(true);
+                RefreshAll();
+                // Restore scroll position
+                if (slotScrollView != null)
+                {
+                    // Delaying by a frame or using Canvas.ForceUpdateCanvases can help if content size changed
+                    UnityEngine.Canvas.ForceUpdateCanvases();
+                    slotScrollView.verticalNormalizedPosition = _savedScrollPosition;
+                }
+            }
+            else
+            {
+                // Save scroll position before hiding
+                if (slotScrollView != null)
+                {
+                    _savedScrollPosition = slotScrollView.verticalNormalizedPosition;
+                }
+
+                if (inventoryContent != null) inventoryContent.SetActive(false);
                 if (detailsPanel != null) detailsPanel.SetActive(false);
                 // Cancel moving when closing
                 if (movingIndex != -1)
@@ -154,7 +178,6 @@ private int lastClickIndex = -1;
                     movingIndex = -1;
                 }
             }
-            if (show) RefreshAll();
         }
 
         public void HideInventory()
@@ -185,8 +208,11 @@ private int lastClickIndex = -1;
 
         private void HandleSingleClick(int index)
         {
+            // Selecting an inventory slot takes the panel out of "inspecting equipped armor" mode.
+            inspectedArmorSlot = ArmorSlot.None;
+
             // Selection for details (original behavior)
-            if (selectedIndex != -1 && selectedIndex < slotUIs.Count) 
+            if (selectedIndex != -1 && selectedIndex < slotUIs.Count)
                 slotUIs[selectedIndex].SetSelected(false);
             
             selectedIndex = index;
@@ -249,32 +275,61 @@ private int lastClickIndex = -1;
                 return;
             }
 
-            detailsPanel.SetActive(true);
-            if (itemNameText != null) itemNameText.text = slot.item.displayName;
-            if (itemCategoryText != null) 
-            {
-                itemCategoryText.text = slot.item.category.ToString().ToUpper();
-                UpdateCategoryBadge(slot.item.category);
-            }
-            if (itemDescriptionText != null) itemDescriptionText.text = slot.item.description;
-            if (itemStackText != null) itemStackText.text = $"Stack {slot.quantity}/{slot.item.maxStackSize}";
-        
-            UpdateStatsDisplay(slot.item);
+            string action = slot.item.category == ItemCategory.Armor ? "EQUIP" : "USE";
+            PopulateDetails(slot.item, $"Stack {slot.quantity}/{slot.item.maxStackSize}", action);
+        }
 
-            if (itemIcon != null) 
-{
-                itemIcon.sprite = slot.item.icon;
-                itemIcon.enabled = slot.item.icon != null;
-            }
-        if (useButton != null)
+        // Shows the piece currently worn in an armor slot. Called by ArmorSlotUI when its slot is
+        // tapped, so equipped gear can be inspected the same way inventory items can.
+        public void ShowEquippedArmorDetails(ArmorSlot armorSlot)
         {
-            var text = useButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (text != null)
+            if (PlayerArmorManager.Instance == null) return;
+
+            ItemData item = PlayerArmorManager.Instance.GetEquippedItem(armorSlot);
+            if (item == null)
             {
-                text.text = slot.item.category == ItemCategory.Armor ? "EQUIP" : "USE";
+                detailsPanel.SetActive(false);
+                return;
+            }
+
+            // Clear any inventory-slot selection so the two panels can't disagree about what is shown.
+            if (selectedIndex != -1 && selectedIndex < slotUIs.Count)
+                slotUIs[selectedIndex].SetSelected(false);
+            selectedIndex = -1;
+
+            inspectedArmorSlot = armorSlot;
+            PopulateDetails(item, "Equipped", "UNEQUIP");
+        }
+
+        // Fills the details panel from an ItemData. Shared by inventory slots and equipped armor;
+        // only the stack line and the action button label differ between the two.
+        private void PopulateDetails(ItemData item, string stackLabel, string actionLabel)
+        {
+            detailsPanel.SetActive(true);
+
+            if (itemNameText != null) itemNameText.text = item.displayName;
+            if (itemCategoryText != null)
+            {
+                itemCategoryText.text = item.category.ToString().ToUpper();
+                UpdateCategoryBadge(item.category);
+            }
+            if (itemDescriptionText != null) itemDescriptionText.text = item.description;
+            if (itemStackText != null) itemStackText.text = stackLabel;
+
+            UpdateStatsDisplay(item);
+
+            if (itemIcon != null)
+            {
+                itemIcon.sprite = item.icon;
+                itemIcon.enabled = item.icon != null;
+            }
+
+            if (useButton != null)
+            {
+                var text = useButton.GetComponentInChildren<TextMeshProUGUI>();
+                if (text != null) text.text = actionLabel;
             }
         }
-    }
 
     private void UpdateCategoryBadge(ItemCategory category)
 {
@@ -433,6 +488,18 @@ private int lastClickIndex = -1;
 
         public void UseItem()
         {
+            // When the panel is showing worn armor the button means UNEQUIP, not USE.
+            if (inspectedArmorSlot != ArmorSlot.None)
+            {
+                if (PlayerArmorManager.Instance != null &&
+                    PlayerArmorManager.Instance.Unequip(inspectedArmorSlot))
+                {
+                    inspectedArmorSlot = ArmorSlot.None;
+                    detailsPanel.SetActive(false);
+                }
+                return;
+            }
+
             if (selectedIndex == -1) return;
             var slot = InventoryManager.Instance.slots[selectedIndex];
             
