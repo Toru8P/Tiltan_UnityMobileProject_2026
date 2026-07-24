@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5264a990960646d409eafd2ca4f964e6, type: 3}
-  m_Name: RoughPickaxe
+  m_Name: NewRecipe
   m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipe
-  recipeName: Rough Pickaxe
-  icon: {fileID: 21300000, guid: 2f09d6ca6572b1d438c414c5ee308bc5, type: 3}
+  recipeName: Wood Log
+  icon: {fileID: 21300000, guid: 696e2b66bda6baa4a99a478e97e15488, type: 3}
   ingredients:
   - item: {fileID: 11400000, guid: 91ea529e0c44e8548b0445feeb7dfbcb, type: 2}
-    quantity: 2
-  - item: {fileID: 11400000, guid: f890d2cdadab12343b1d479cc6f15c23, type: 2}
-    quantity: 3
-  outputItem: {fileID: 11400000, guid: 52c420b2e0b3e3943af5415d51585c06, type: 2}
+    quantity: 1
+  - item: {fileID: 11400000, guid: 91ea529e0c44e8548b0445feeb7dfbcb, type: 2}
+    quantity: 1
+  outputItem: {fileID: 11400000, guid: d13bc46225053194a9d1fca270c4205f, type: 2}
   outputQuantity: 1
   requiresWorkstation: 0
   requiredWorkstation: 
