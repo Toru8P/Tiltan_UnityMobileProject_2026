@@ -6,6 +6,7 @@ using _Scripts.CharacterCreation;
 using Newtonsoft.Json;
 using UnityEngine;
 
+
 namespace _Scripts.MainGame.SaveLoad
 {
     // Handles reading and writing save slot JSON files.
@@ -17,6 +18,9 @@ namespace _Scripts.MainGame.SaveLoad
 
         // Gameplay scene invokes this delegate when a load is confirmed.
         // Student A should assign their scene-loading logic here.
+        public const int MaxSaveSlots = 3;
+
+
         public static Action<SaveSlotData> OnLoadRequested;
 
         private const string SaveFolder = "Saves";
@@ -47,6 +51,20 @@ namespace _Scripts.MainGame.SaveLoad
             string path = SlotPath(data.slotIndex);
             string json = JsonConvert.SerializeObject(data, Formatting.Indented);
             File.WriteAllText(path, json);
+        }
+
+        public void UpdateCustomization(int slotIndex, CharacterCustomization customization)
+        {
+            if (customization == null) return;
+
+            SaveSlotData data = LoadAllSlots().Find(slot => slot.slotIndex == slotIndex);
+            if (data == null) return;
+
+            data.characterName = customization.PlayerName;
+            data.skinColorIndex = customization.SkinColorIndex;
+            data.outfitColorIndex = customization.OutfitColorIndex;
+            data.saveDate = DateTime.UtcNow.ToString("o");
+            SaveSlot(data);
         }
 
         public IEnumerator SaveSlotWithScreenshot(SaveSlotData data)
@@ -133,13 +151,16 @@ namespace _Scripts.MainGame.SaveLoad
             {
                 foreach (string file in Directory.GetFiles(SaveDirectory, $"{SlotFilePrefix}*{WorldFileSuffix}"))
                 {
-                    string name = Path.GetFileNameWithoutExtension(file); // e.g. "slot_2_world"
-                    string mid = name.Substring(SlotFilePrefix.Length);    // "2_world"
+                    string name = Path.GetFileNameWithoutExtension(file);
+                    string mid = name.Substring(SlotFilePrefix.Length);
                     int underscore = mid.IndexOf('_');
                     if (underscore > 0 && int.TryParse(mid.Substring(0, underscore), out int idx))
                         used.Add(idx);
                 }
             }
+
+            if (used.Count >= MaxSaveSlots)
+                return -1;
 
             int slot = 0;
             while (used.Contains(slot)) slot++;

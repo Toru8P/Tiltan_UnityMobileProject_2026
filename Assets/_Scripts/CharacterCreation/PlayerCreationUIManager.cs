@@ -17,10 +17,24 @@ namespace _Scripts.CharacterCreation
 
         [Header("Scene")]
         [SerializeField] private string gameplaySceneName = "TerrainTest";
+        private const string OpenSaveSelectionKey = "open_save_selection_on_player_creation";
+
+        public static void RequestSaveSelection()
+        {
+            PlayerPrefs.SetInt(OpenSaveSelectionKey, 1);
+            PlayerPrefs.Save();
+        }
+
+
 
         private void Start()
         {
-            ShowMain();
+            bool openSaveSelection = PlayerPrefs.GetInt(OpenSaveSelectionKey, 0) == 1;
+            PlayerPrefs.DeleteKey(OpenSaveSelectionKey);
+            PlayerPrefs.Save();
+
+            if (openSaveSelection) ShowLoadGame();
+            else ShowMain();
         }
 
         private void OnEnable()
@@ -73,6 +87,12 @@ namespace _Scripts.CharacterCreation
         {
             // Allocate a fresh slot so a new game never overwrites an existing save.
             int slot = SaveSlotManager.Instance != null ? SaveSlotManager.Instance.GetNextFreeSlot() : 0;
+            if (slot < 0)
+            {
+                Debug.LogWarning($"Cannot create a new save: the maximum of {SaveSlotManager.MaxSaveSlots} save slots has been reached.");
+                ShowLoadGame();
+                return;
+            }
 
             // Generate the world seed now and bake it into the new save so the world is reproducible.
             int seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);

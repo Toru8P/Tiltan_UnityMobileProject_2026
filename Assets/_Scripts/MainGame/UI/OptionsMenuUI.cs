@@ -1,4 +1,6 @@
 using _Scripts.Managers;
+
+using _Scripts.CharacterCreation;
 using _Scripts.MainGame.SaveLoad;
 using TMPro;
 using UnityEngine;
@@ -68,8 +70,14 @@ namespace _Scripts.MainGame.UI
 
         public void SaveAndQuit()
         {
-            FindFirstObjectByType<SaveLoadManager>()?.Save();
+            SaveLoadManager saveLoadManager = FindFirstObjectByType<SaveLoadManager>();
+            saveLoadManager?.Save();
+            if (saveLoadManager != null && GameInitData.HasCustomization)
+            {
+                SaveSlotManager.Instance?.UpdateCustomization(saveLoadManager.ActiveSlot, GameInitData.Customization);
+            }
             PlayerPrefs.Save();
+            PlayerCreationUIManager.RequestSaveSelection();
             SceneTransitionManager.LoadScene("PlayerCreation");
         }
 

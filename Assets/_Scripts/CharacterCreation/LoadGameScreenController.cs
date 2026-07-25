@@ -36,6 +36,8 @@ namespace _Scripts.CharacterCreation
             }
 
             List<SaveSlotData> slots = SaveSlotManager.Instance.LoadAllSlots();
+            if (slots.Count > SaveSlotManager.MaxSaveSlots)
+                slots.RemoveRange(SaveSlotManager.MaxSaveSlots, slots.Count - SaveSlotManager.MaxSaveSlots);
             ShowEmpty(slots.Count == 0);
 
             for (int i = 0; i < _rows.Length; i++)
