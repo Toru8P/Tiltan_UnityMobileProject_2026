@@ -1,3 +1,4 @@
+using _Scripts.MainGame;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -40,7 +41,7 @@ namespace _Scripts.MainGame.UI
 
         private void RestartGame()
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            SceneTransitionManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 }

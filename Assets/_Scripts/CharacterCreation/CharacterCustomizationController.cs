@@ -1,6 +1,10 @@
-using System.Collections.Generic;
-using TMPro;
+using _Scripts.MainGame.Player;
+using UnityEngine.InputSystem;
+
 using UnityEngine;
+using TMPro;
+
+using System.Collections.Generic;
 
 namespace _Scripts.CharacterCreation
 {
@@ -45,7 +49,25 @@ namespace _Scripts.CharacterCreation
             foreach (Transform child in previewPivot)
                 Destroy(child.gameObject);
 
-            var instance = Instantiate(playerPreviewPrefab, previewPivot);
+            GameObject instance = Instantiate(playerPreviewPrefab, previewPivot);
+            instance.transform.localPosition = Vector3.zero;
+            Rigidbody previewRigidbody = instance.GetComponentInChildren<Rigidbody>();
+
+            instance.transform.localRotation = Quaternion.identity;
+            PlayerInput previewInput = instance.GetComponentInChildren<PlayerInput>();
+            if (previewInput != null) previewInput.enabled = false;
+            PlayerInputHandler previewInputHandler = instance.GetComponentInChildren<PlayerInputHandler>();
+            if (previewInputHandler != null) previewInputHandler.enabled = false;
+            PlayerMovementController previewMovement = instance.GetComponentInChildren<PlayerMovementController>();
+            if (previewMovement != null) previewMovement.enabled = false;
+            if (previewRigidbody != null)
+            {
+                previewRigidbody.isKinematic = true;
+                previewRigidbody.useGravity = false;
+                previewRigidbody.linearVelocity = Vector3.zero;
+                previewRigidbody.angularVelocity = Vector3.zero;
+            }
+
             _applicator = instance.GetComponentInChildren<CharacterAppearanceApplicator>();
             RefreshApplicator();
         }

@@ -10,7 +10,10 @@ namespace _Scripts.CharacterCreation
         public float playtimeSeconds;
         public string saveDate;          // ISO 8601 string
         public string thumbnailFileName; // relative to persistentDataPath
-        public string sceneName;         // scene to load when resuming
+        public string sceneName;
+
+        public int skinColorIndex;
+        public int outfitColorIndex;
 
         // Convenience for display
         public string FormattedPlaytime()

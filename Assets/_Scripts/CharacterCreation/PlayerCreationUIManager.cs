@@ -1,4 +1,5 @@
 using System;
+using _Scripts.MainGame;
 using _Scripts.MainGame.SaveLoad;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -36,10 +37,22 @@ namespace _Scripts.CharacterCreation
         private void HandleLoadRequested(SaveSlotData data)
         {
             if (data == null) return;
+            GameInitData.SetCustomization(new CharacterCustomization
+            {
+                PlayerName = string.IsNullOrWhiteSpace(data.characterName) ? "Hero" : data.characterName,
+                SkinColorIndex = data.skinColorIndex,
+                OutfitColorIndex = data.outfitColorIndex
+            });
             // SaveLoadManager's own hook has already set the active slot; we just switch scenes.
             string scene = !string.IsNullOrEmpty(data.sceneName) ? data.sceneName : gameplaySceneName;
-            SceneManager.LoadScene(scene);
+            SceneTransitionManager.LoadScene(scene);
         }
+
+        public void ShowCharacterSelection()
+        {
+            ShowMain();
+        }
+
 
         public void ShowMain()
         {
@@ -73,13 +86,21 @@ namespace _Scripts.CharacterCreation
                     slotIndex = slot,
                     characterName = GameInitData.HasCustomization ? GameInitData.Customization.PlayerName : "New Character",
                     sceneName = gameplaySceneName,
+                    skinColorIndex = GameInitData.HasCustomization ? GameInitData.Customization.SkinColorIndex : 0,
+                    outfitColorIndex = GameInitData.HasCustomization ? GameInitData.Customization.OutfitColorIndex : 0,
                     saveDate = DateTime.UtcNow.ToString("o"),
                     playtimeSeconds = 0
                 });
             }
 
-            SceneManager.LoadScene(gameplaySceneName);
+            SceneTransitionManager.LoadScene(gameplaySceneName);
         }
+
+        public void ReturnToSaveSelection()
+        {
+            SceneTransitionManager.LoadScene("PlayerCreation");
+        }
+
 
         public void CancelNewGame()
         {

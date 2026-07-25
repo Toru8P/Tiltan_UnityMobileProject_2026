@@ -3613,6 +3613,8 @@ MonoBehaviour:
   effectiveDefense: 0
   effectiveMoveSpeed: 0
   effectiveAttackSpeed: 0
+  effectiveCriticalChance: 0
+  effectiveCriticalDamage: 1
   hpBarDriver: {fileID: 0}
   shieldBarDriver: {fileID: 0}
 --- !u!114 &147836556778051692
@@ -3674,6 +3676,16 @@ MonoBehaviour:
   - {fileID: 4101311933953502970}
   - {fileID: 3776704814231600665}
   - {fileID: 386874038666841660}
+  skinColorOptions:
+  - {r: 1, g: 0.8, b: 0.6, a: 1}
+  - {r: 0.8, g: 0.55, b: 0.35, a: 1}
+  - {r: 0.5, g: 0.3, b: 0.15, a: 1}
+  - {r: 0.25, g: 0.15, b: 0.05, a: 1}
+  outfitColorOptions:
+  - {r: 1, g: 0, b: 0, a: 1}
+  - {r: 0, g: 0, b: 1, a: 1}
+  - {r: 0, g: 1, b: 0, a: 1}
+  - {r: 0.1, g: 0.1, b: 0.1, a: 1}
 --- !u!1 &4031047315772819942
 GameObject:
   m_ObjectHideFlags: 0

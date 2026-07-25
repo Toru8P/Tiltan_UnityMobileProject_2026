@@ -2,10 +2,6 @@ using UnityEngine;
 
 namespace _Scripts.CharacterCreation
 {
-    // Attach to the root of the player preview prefab.
-    // Assign the SkinnedMeshRenderers for skin and outfit in the inspector.
-    // ApplyCustomization() is called live during character creation.
-    // ApplyToInstance() is called from the gameplay scene after spawning the player.
     public class CharacterAppearanceApplicator : MonoBehaviour
     {
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
@@ -17,6 +13,35 @@ namespace _Scripts.CharacterCreation
         [Header("Outfit Renderers")]
         [SerializeField] private SkinnedMeshRenderer[] outfitRenderers;
 
+        [Header("Gameplay Color Options")]
+        [SerializeField] private Color[] skinColorOptions =
+        {
+            new Color(1f, 0.8f, 0.6f, 1f),
+            new Color(0.8f, 0.55f, 0.35f, 1f),
+            new Color(0.5f, 0.3f, 0.15f, 1f),
+            new Color(0.25f, 0.15f, 0.05f, 1f)
+        };
+
+        [SerializeField] private Color[] outfitColorOptions =
+        {
+            Color.red,
+            Color.blue,
+            Color.green,
+            new Color(0.1f, 0.1f, 0.1f, 1f)
+        };
+
+        private void Start()
+        {
+            ApplyCurrentCustomization();
+        }
+
+        private void ApplyCurrentCustomization()
+        {
+            CharacterCustomization customization = GameInitData.GetCustomizationOrSaved();
+            if (customization != null)
+                ApplyCustomization(skinColorOptions, outfitColorOptions, customization);
+        }
+
         public void ApplyCustomization(Color[] skinColors, Color[] outfitColors, CharacterCustomization customization)
         {
             if (customization == null) return;
@@ -25,30 +50,27 @@ namespace _Scripts.CharacterCreation
             SetColor(outfitRenderers, GetColor(outfitColors, customization.OutfitColorIndex));
         }
 
-        // Called from the gameplay scene after instantiating the player prefab.
-        // Pass the same color arrays that were set in CharacterCustomizationController.
-        public static void ApplyToInstance(GameObject instance, Color[] skinColors, Color[] outfitColors,
-            CharacterCustomization customization)
+        public static void ApplyToInstance(GameObject instance, Color[] skinColors, Color[] outfitColors, CharacterCustomization customization)
         {
-            var applicator = instance.GetComponentInChildren<CharacterAppearanceApplicator>();
+            CharacterAppearanceApplicator applicator = instance.GetComponentInChildren<CharacterAppearanceApplicator>();
             applicator?.ApplyCustomization(skinColors, outfitColors, customization);
         }
 
         private void SetColor(SkinnedMeshRenderer[] renderers, Color color)
         {
             if (renderers == null) return;
-            foreach (var r in renderers)
+            foreach (SkinnedMeshRenderer renderer in renderers)
             {
-                if (r == null) continue;
-                var block = new MaterialPropertyBlock();
-                r.GetPropertyBlock(block);
+                if (renderer == null) continue;
+                MaterialPropertyBlock block = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(block);
                 block.SetColor(BaseColorId, color);
                 block.SetColor(ColorId, color);
-                r.SetPropertyBlock(block);
+                renderer.SetPropertyBlock(block);
             }
         }
 
-        private Color GetColor(Color[] options, int index)
+        private static Color GetColor(Color[] options, int index)
         {
             if (options == null || options.Length == 0) return Color.white;
             return options[Mathf.Clamp(index, 0, options.Length - 1)];
