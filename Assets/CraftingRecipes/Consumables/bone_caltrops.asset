@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5264a990960646d409eafd2ca4f964e6, type: 3}
+  m_Name: bone_caltrops
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipe
+  recipeName: Bone Caltrops
+  icon: {fileID: 0}
+  ingredients:
+  - item: {fileID: 11400000, guid: ec240735120276f41b52789470d22ac3, type: 2}
+    quantity: 1
+  - item: {fileID: 11400000, guid: a6f731379b3078f41b8d42c73b66a8e3, type: 2}
+    quantity: 1
+  outputItem: {fileID: 11400000, guid: 21408b9b96d329f47a9238ebfd2c71ec, type: 2}
+  outputQuantity: 1
+  requiresWorkstation: 0
+  requiredWorkstation: 

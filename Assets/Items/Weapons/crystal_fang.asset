@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
+  m_Name: crystal_fang
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.ItemData
+  itemId: crystal_fang
+  displayName: Crystal Fang
+  description: 
+  icon: {fileID: 0}
+  category: 3
+  armorSlot: 0
+  armorModelPath: 
+  armorColor: {r: 1, g: 1, b: 1, a: 1}
+  maxStackSize: 1
+  isConsumable: 0
+  hungerRestore: 0
+  healthRestore: 0
+  heldPrefab: {fileID: 0}
+  holdPosition: {x: 0, y: 0, z: 0}
+  holdRotation: {x: 0, y: 0, z: 0}
+  projectilePrefab: {fileID: 0}
+  toolType: 0
+  tier: 4
+  effectiveness: 1
+  statModifiers:
+  - statType: 0
+    flatAmount: 380
+    percentageAmount: 0
+  - statType: 4
+    flatAmount: 0
+    percentageAmount: 0.18
+  - statType: 5
+    flatAmount: 0
+    percentageAmount: 0.75

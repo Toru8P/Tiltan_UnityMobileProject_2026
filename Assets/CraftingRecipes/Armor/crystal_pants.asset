@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5264a990960646d409eafd2ca4f964e6, type: 3}
+  m_Name: crystal_pants
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipe
+  recipeName: Crystal Pants
+  icon: {fileID: 0}
+  ingredients:
+  - item: {fileID: 11400000, guid: db5a5c7d0d7c7ca43a693127de3c620d, type: 2}
+    quantity: 1
+  - item: {fileID: 11400000, guid: 3f9e9462db275d343a3370c326aac42a, type: 2}
+    quantity: 1
+  outputItem: {fileID: 11400000, guid: 37bae10e7abc88e48b625aa0df695366, type: 2}
+  outputQuantity: 1
+  requiresWorkstation: 0
+  requiredWorkstation: 

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5264a990960646d409eafd2ca4f964e6, type: 3}
+  m_Name: crystal_helmet
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipe
+  recipeName: Crystal Helmet
+  icon: {fileID: 0}
+  ingredients:
+  - item: {fileID: 11400000, guid: f92c47e2558ad5540920e40cc336d001, type: 2}
+    quantity: 1
+  - item: {fileID: 11400000, guid: 3f9e9462db275d343a3370c326aac42a, type: 2}
+    quantity: 1
+  outputItem: {fileID: 11400000, guid: 965c414b56013734ba62ff00b6a16b74, type: 2}
+  outputQuantity: 1
+  requiresWorkstation: 0
+  requiredWorkstation: 

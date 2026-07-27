@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5264a990960646d409eafd2ca4f964e6, type: 3}
+  m_Name: reinforced_shoulders
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipe
+  recipeName: Reinforced Shoulders
+  icon: {fileID: 0}
+  ingredients:
+  - item: {fileID: 11400000, guid: 73714e3f15fb47b44a16032c701074ea, type: 2}
+    quantity: 1
+  - item: {fileID: 11400000, guid: d0adf8bc999c4064f870e0acbe3b13aa, type: 2}
+    quantity: 1
+  outputItem: {fileID: 11400000, guid: daf073c6a0e6b8b46b8dcdd7b697b52f, type: 2}
+  outputQuantity: 1
+  requiresWorkstation: 0
+  requiredWorkstation: 

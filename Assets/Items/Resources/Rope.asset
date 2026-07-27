@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
   m_Name: Rope
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemId: Rope
+  itemId: rope
   displayName: Rope
-  description: A rope made from flowers. Can be used to create tools
+  description: 
   icon: {fileID: 21300000, guid: cdb508c7296b41040a2308b618781aae, type: 3}
   category: 0
   armorSlot: 0
@@ -27,4 +27,8 @@ MonoBehaviour:
   heldPrefab: {fileID: 0}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
+  projectilePrefab: {fileID: 0}
+  toolType: 0
+  tier: 2
+  effectiveness: 1
   statModifiers: []

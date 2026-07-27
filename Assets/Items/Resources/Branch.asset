@@ -12,14 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
   m_Name: Branch
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemId: Branch
+  itemId: branch
   displayName: Branch
-  description: Wooden branch used for crafting
+  description: 
   icon: {fileID: 21300000, guid: 6f3067a4cf8cd06448f033a2753a5ff1, type: 3}
   category: 0
+  armorSlot: 0
+  armorModelPath: 
+  armorColor: {r: 1, g: 1, b: 1, a: 1}
   maxStackSize: 100
   isConsumable: 0
   hungerRestore: 0
+  healthRestore: 0
   heldPrefab: {fileID: 0}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
+  projectilePrefab: {fileID: 0}
+  toolType: 0
+  tier: 1
+  effectiveness: 1
+  statModifiers: []

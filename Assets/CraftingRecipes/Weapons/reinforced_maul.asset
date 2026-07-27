@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5264a990960646d409eafd2ca4f964e6, type: 3}
+  m_Name: reinforced_maul
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipe
+  recipeName: Reinforced Maul
+  icon: {fileID: 0}
+  ingredients:
+  - item: {fileID: 11400000, guid: 00a9b593ff800ae44a4f46cdbde651bb, type: 2}
+    quantity: 1
+  - item: {fileID: 11400000, guid: 47c57ed9072eab84ca195b1c920ab31b, type: 2}
+    quantity: 1
+  outputItem: {fileID: 11400000, guid: 341ce428a4a5c2d4b99b52cd2fd93fa5, type: 2}
+  outputQuantity: 1
+  requiresWorkstation: 0
+  requiredWorkstation: 

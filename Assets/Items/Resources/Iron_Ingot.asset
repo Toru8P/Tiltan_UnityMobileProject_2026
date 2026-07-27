@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
   m_Name: Iron_Ingot
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.ItemData
-  itemId: 
-  displayName: 
+  itemId: iron_ingot
+  displayName: Iron Ingot
   description: 
   icon: {fileID: 0}
   category: 0
@@ -29,6 +29,6 @@ MonoBehaviour:
   holdRotation: {x: 0, y: 0, z: 0}
   projectilePrefab: {fileID: 0}
   toolType: 0
-  tier: 1
+  tier: 3
   effectiveness: 1
   statModifiers: []

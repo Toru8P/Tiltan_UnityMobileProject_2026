@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5264a990960646d409eafd2ca4f964e6, type: 3}
+  m_Name: void_shard
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipe
+  recipeName: Void Shard
+  icon: {fileID: 0}
+  ingredients:
+  - item: {fileID: 11400000, guid: 8ada09c9e8ba474408fa51a08631f2bf, type: 2}
+    quantity: 1
+  - item: {fileID: 11400000, guid: 571c0fac9e10c754ca84699ea44d1913, type: 2}
+    quantity: 1
+  outputItem: {fileID: 11400000, guid: fd1f29742325b9148b4a4763ccfcdee2, type: 2}
+  outputQuantity: 1
+  requiresWorkstation: 0
+  requiredWorkstation: 

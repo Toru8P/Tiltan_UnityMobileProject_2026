@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b50777b6e5926f44ea9e0d6a26085cd9, type: 3}
   m_Name: Flint
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.ItemData
-  itemId: Flint
+  itemId: flint
   displayName: Flint
-  description: Sharp flint.
+  description: 
   icon: {fileID: 21300000, guid: cdaa53059f2442c459ce751243bdf2d4, type: 3}
   category: 0
   armorSlot: 0
