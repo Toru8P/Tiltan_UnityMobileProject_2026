@@ -2289,6 +2289,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.CharacterCreation.CharacterCustomizationController
   playerPreviewPrefab: {fileID: 4021885863237934328, guid: ab7dba41493419c4db6003f73c2584ee, type: 3}
+  characterId: HumanMale_Character_FREE
   previewPivot: {fileID: 1642974663}
   skinColorOptions:
   - {r: 1, g: 0.8, b: 0.6, a: 1}
@@ -5133,6 +5134,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.CharacterCreation.LoadGameScreenController
   slotContainer: {fileID: 2142196456}
+  slotPrefab: {fileID: 3074424330911594088, guid: dc49df0d119f3d7469b6ab8a8fdae74d, type: 3}
   emptyLabel: {fileID: 1458100813}
 --- !u!114 &2147150677
 MonoBehaviour:

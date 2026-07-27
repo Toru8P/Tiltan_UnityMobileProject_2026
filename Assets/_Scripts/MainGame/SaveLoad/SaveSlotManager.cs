@@ -43,14 +43,28 @@ namespace _Scripts.MainGame.SaveLoad
             DontDestroyOnLoad(gameObject);
         }
 
-        // --- Write ---
+        public static SaveSlotManager GetOrCreate()
+        {
+            if (Instance != null) return Instance;
+
+            GameObject managerObject = new GameObject("SaveManager");
+            return managerObject.AddComponent<SaveSlotManager>();
+        }
+
 
         public void SaveSlot(SaveSlotData data)
         {
+            if (data == null)
+            {
+                Debug.LogError("[SaveSlotManager] Cannot save a null slot.");
+                return;
+            }
+
             Directory.CreateDirectory(SaveDirectory);
             string path = SlotPath(data.slotIndex);
             string json = JsonConvert.SerializeObject(data, Formatting.Indented);
             File.WriteAllText(path, json);
+            Debug.Log($"[SaveSlotManager] Saved slot {data.slotIndex} metadata to {path}.");
         }
 
         public void UpdateCustomization(int slotIndex, CharacterCustomization customization)
@@ -60,6 +74,7 @@ namespace _Scripts.MainGame.SaveLoad
             SaveSlotData data = LoadAllSlots().Find(slot => slot.slotIndex == slotIndex);
             if (data == null) return;
 
+            data.characterId = string.IsNullOrWhiteSpace(data.characterId) ? customization.CharacterId : data.characterId;
             data.characterName = customization.PlayerName;
             data.skinColorIndex = customization.SkinColorIndex;
             data.outfitColorIndex = customization.OutfitColorIndex;
@@ -69,19 +84,90 @@ namespace _Scripts.MainGame.SaveLoad
 
         public IEnumerator SaveSlotWithScreenshot(SaveSlotData data)
         {
-            yield return new WaitForEndOfFrame();
+            if (data == null)
+            {
+                Debug.LogError("[SaveSlotManager] Cannot capture a screenshot for a null slot.");
+                yield break;
+            }
 
-            string thumbName = $"thumb_{data.slotIndex}.png";
-            string thumbPath = Path.Combine(SaveDirectory, thumbName);
-            Directory.CreateDirectory(SaveDirectory);
+            List<Canvas> hiddenCanvases = HideCanvasesForScreenshot();
+            List<Renderer> hiddenRenderers = HideTaggedRenderersForScreenshot();
 
-            var texture = ScreenCapture.CaptureScreenshotAsTexture();
-            File.WriteAllBytes(thumbPath, texture.EncodeToPNG());
-            Destroy(texture);
+            try
+            {
+                yield return new WaitForEndOfFrame();
 
-            data.thumbnailFileName = thumbName;
-            data.saveDate = DateTime.UtcNow.ToString("o");
-            SaveSlot(data);
+                string thumbName = $"thumb_{data.slotIndex}.png";
+                string thumbPath = Path.Combine(SaveDirectory, thumbName);
+                Directory.CreateDirectory(SaveDirectory);
+
+                Texture2D texture = ScreenCapture.CaptureScreenshotAsTexture();
+                File.WriteAllBytes(thumbPath, texture.EncodeToPNG());
+                Destroy(texture);
+
+                data.thumbnailFileName = thumbName;
+                data.saveDate = DateTime.UtcNow.ToString("o");
+                SaveSlot(data);
+            }
+            finally
+            {
+                RestoreCanvases(hiddenCanvases);
+                RestoreRenderers(hiddenRenderers);
+            }
+        }
+
+        private static List<Canvas> HideCanvasesForScreenshot()
+        {
+            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            List<Canvas> hiddenCanvases = new List<Canvas>();
+
+            foreach (Canvas canvas in canvases)
+            {
+                if (!canvas.enabled) continue;
+                canvas.enabled = false;
+                hiddenCanvases.Add(canvas);
+            }
+
+            return hiddenCanvases;
+        }
+
+        private static List<Renderer> HideTaggedRenderersForScreenshot()
+        {
+            List<Renderer> hiddenRenderers = new List<Renderer>();
+            string[] excludedTags = { "Player", "Enemy" };
+
+            foreach (string tag in excludedTags)
+            {
+                GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag(tag);
+                foreach (GameObject taggedObject in taggedObjects)
+                {
+                    Renderer[] renderers = taggedObject.GetComponentsInChildren<Renderer>(true);
+                    foreach (Renderer renderer in renderers)
+                    {
+                        if (!renderer.enabled || hiddenRenderers.Contains(renderer)) continue;
+                        renderer.enabled = false;
+                        hiddenRenderers.Add(renderer);
+                    }
+                }
+            }
+
+            return hiddenRenderers;
+        }
+
+        private static void RestoreCanvases(List<Canvas> canvases)
+        {
+            foreach (Canvas canvas in canvases)
+            {
+                if (canvas != null) canvas.enabled = true;
+            }
+        }
+
+        private static void RestoreRenderers(List<Renderer> renderers)
+        {
+            foreach (Renderer renderer in renderers)
+            {
+                if (renderer != null) renderer.enabled = true;
+            }
         }
 
         // --- Read ---

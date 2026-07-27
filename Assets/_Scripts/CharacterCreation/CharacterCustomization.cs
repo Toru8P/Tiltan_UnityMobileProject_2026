@@ -4,8 +4,9 @@ namespace _Scripts.CharacterCreation
     // Carried by GameInitData into the gameplay scene.
     public class CharacterCustomization
     {
+        public string CharacterId = "HumanMale_Character_FREE";
         public string PlayerName = "Hero";
-        public int SkinColorIndex = 0;
-        public int OutfitColorIndex = 0;
+        public int SkinColorIndex;
+        public int OutfitColorIndex;
     }
 }

@@ -15,6 +15,8 @@ namespace _Scripts.CharacterCreation
     {
         [Header("Player Preview")]
         [SerializeField] private GameObject playerPreviewPrefab;
+
+        [SerializeField] private string characterId = "HumanMale_Character_FREE";
         [SerializeField] private Transform previewPivot;
 
         [Header("Color Options")]
@@ -35,7 +37,7 @@ namespace _Scripts.CharacterCreation
 
         private void Start()
         {
-            _customization = new CharacterCustomization();
+            _customization = new CharacterCustomization { CharacterId = characterId };
             GameInitData.SetCustomization(_customization);
 
             SpawnPreview();

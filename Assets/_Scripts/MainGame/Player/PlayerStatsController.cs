@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using _Scripts.MainGame.UI;
+using _Scripts.MainGame.SaveLoad;
 using UnityEngine;
 
 namespace _Scripts.MainGame.Player
@@ -32,10 +33,26 @@ namespace _Scripts.MainGame.Player
         [SerializeField] private AmountBarInUIDriver hpBarDriver;
         [SerializeField] private AmountBarInUIDriver shieldBarDriver;
 
-        public int CurrentHealth => currentStats.CurrentHealth;
         public bool IsDead => currentStats.CurrentHealth <= 0;
 
         private PlayerEquipment _equipment;
+
+        public void WriteSaveData(PlayerSaveData saveData)
+        {
+            if (saveData == null) return;
+            saveData.currentHealth = currentStats.CurrentHealth;
+            saveData.currentShield = currentStats.CurrentShield;
+        }
+
+        public void ReadSaveData(PlayerSaveData saveData)
+        {
+            if (saveData == null) return;
+            currentStats.CurrentHealth = Mathf.Clamp(saveData.currentHealth, 0, currentStats.MaxHealth);
+            currentStats.CurrentShield = Mathf.Clamp(saveData.currentShield, 0, currentStats.MaxShield);
+            UpdateBars();
+        }
+
+
 
         private void Awake()
         {

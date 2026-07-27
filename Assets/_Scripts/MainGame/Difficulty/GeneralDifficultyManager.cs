@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -83,6 +83,11 @@ namespace _Scripts.MainGame.Difficulty
             }
         }
 
+        public void RestoreElapsedTime(float elapsedTime)
+        {
+            _elapsedTime = Mathf.Max(0f, elapsedTime);
+            _currentPhase = GetPhaseForTime(_elapsedTime);
+        }
         public DifficultyPhase GetPhaseForTime(float time)
         {
             DifficultyPhase result = DifficultyPhase.Easy;

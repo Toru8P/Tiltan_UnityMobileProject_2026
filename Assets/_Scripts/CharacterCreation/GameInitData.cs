@@ -7,6 +7,7 @@ namespace _Scripts.CharacterCreation
         private const string SkinColorKey = "character_skin_color_index";
         private const string OutfitColorKey = "character_outfit_color_index";
         private const string PlayerNameKey = "character_name";
+        private const string CharacterIdKey = "character_id";
 
         public static CharacterCustomization Customization { get; private set; }
 
@@ -18,6 +19,7 @@ namespace _Scripts.CharacterCreation
             PlayerPrefs.SetInt(SkinColorKey, customization.SkinColorIndex);
             PlayerPrefs.SetInt(OutfitColorKey, customization.OutfitColorIndex);
             PlayerPrefs.SetString(PlayerNameKey, customization.PlayerName ?? "Hero");
+            PlayerPrefs.SetString(CharacterIdKey, customization.CharacterId ?? "HumanMale_Character_FREE");
             PlayerPrefs.Save();
         }
 
@@ -28,6 +30,7 @@ namespace _Scripts.CharacterCreation
 
             Customization = new CharacterCustomization
             {
+                CharacterId = PlayerPrefs.GetString(CharacterIdKey, "HumanMale_Character_FREE"),
                 PlayerName = PlayerPrefs.GetString(PlayerNameKey, "Hero"),
                 SkinColorIndex = PlayerPrefs.GetInt(SkinColorKey, 0),
                 OutfitColorIndex = PlayerPrefs.GetInt(OutfitColorKey, 0)

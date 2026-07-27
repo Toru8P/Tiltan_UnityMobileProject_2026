@@ -21,8 +21,9 @@ namespace _Scripts.MainGame.Player
             if (save != null && save.HasSaveFile && save.Current.hasPlayer)
             {
                 PlayerSaveData p = save.Current.player;
-                transform.SetPositionAndRotation(p.position, Quaternion.Euler(0f, p.rotationY, 0f));
-                if (_terrain != null) _terrain.ActivateAroundWorld(p.position);
+                PlayerStatsController stats = GetComponent<PlayerStatsController>();
+                if (stats != null) stats.ReadSaveData(p);
+
             }
 
             // Stage position on every chunk crossing; Terrain persists the whole save right after.

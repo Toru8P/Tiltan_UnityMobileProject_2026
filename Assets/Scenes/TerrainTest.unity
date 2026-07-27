@@ -267,11 +267,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.UI.OptionsMenuUI
   optionsPanel: {fileID: 0}
   closeButton: {fileID: 0}
+  saveAndQuitButton: {fileID: 0}
   bgmSlider: {fileID: 0}
   sfxSlider: {fileID: 0}
-  difficultyButtons: []
-  activeButtonColor: {r: 0.29, g: 0.87, b: 0.5, a: 1}
-  inactiveButtonColor: {r: 0.18, g: 0.18, b: 0.18, a: 1}
 --- !u!1 &2660260
 GameObject:
   m_ObjectHideFlags: 0

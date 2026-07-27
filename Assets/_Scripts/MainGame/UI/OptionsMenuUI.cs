@@ -1,3 +1,4 @@
+using System.Collections;
 using _Scripts.Managers;
 
 using _Scripts.CharacterCreation;
@@ -52,6 +53,7 @@ namespace _Scripts.MainGame.UI
         {
             if (optionsPanel != null)
                 optionsPanel.SetActive(false);
+            Time.timeScale = 1f;
         }
 
         public void Toggle()
@@ -70,15 +72,47 @@ namespace _Scripts.MainGame.UI
 
         public void SaveAndQuit()
         {
+            StartCoroutine(SaveAndQuitRoutine());
+        }
+
+        private IEnumerator SaveAndQuitRoutine()
+        {
             SaveLoadManager saveLoadManager = FindFirstObjectByType<SaveLoadManager>();
+            Hide();
+            yield return new WaitForEndOfFrame();
+
+            SaveSlotManager slotManager = SaveSlotManager.GetOrCreate();
             saveLoadManager?.Save();
-            if (saveLoadManager != null && GameInitData.HasCustomization)
+
+            SaveSlotData data = slotManager.LoadAllSlots().Find(slot => slot.slotIndex == (saveLoadManager != null ? saveLoadManager.ActiveSlot : 0));
+            if (data == null)
+                data = new SaveSlotData { slotIndex = saveLoadManager != null ? saveLoadManager.ActiveSlot : 0, sceneName = "TerrainTest" };
+
+            if (saveLoadManager != null)
             {
-                SaveSlotManager.Instance?.UpdateCustomization(saveLoadManager.ActiveSlot, GameInitData.Customization);
+                data.playtimeSeconds = saveLoadManager.Current.playtimeSeconds;
+                data.sceneName = "TerrainTest";
             }
+
+            if (GameInitData.HasCustomization)
+            {
+                data.characterId = GameInitData.Customization.CharacterId;
+                data.characterName = GameInitData.Customization.PlayerName;
+                data.skinColorIndex = GameInitData.Customization.SkinColorIndex;
+                data.outfitColorIndex = GameInitData.Customization.OutfitColorIndex;
+            }
+
+            Debug.Log($"[OptionsMenuUI] Saving slot {data.slotIndex}.");
+            yield return slotManager.SaveSlotWithScreenshot(data);
+
             PlayerPrefs.Save();
             PlayerCreationUIManager.RequestSaveSelection();
             SceneTransitionManager.LoadScene("PlayerCreation");
+        }
+
+        private void OnDestroy()
+        {
+            Time.timeScale = 1f;
         }
 
         private static void SetupSlider(Slider slider, UnityEngine.Events.UnityAction<float> callback)

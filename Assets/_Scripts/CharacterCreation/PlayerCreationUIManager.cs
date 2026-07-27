@@ -53,6 +53,7 @@ namespace _Scripts.CharacterCreation
             if (data == null) return;
             GameInitData.SetCustomization(new CharacterCustomization
             {
+                CharacterId = string.IsNullOrWhiteSpace(data.characterId) ? "HumanMale_Character_FREE" : data.characterId,
                 PlayerName = string.IsNullOrWhiteSpace(data.characterName) ? "Hero" : data.characterName,
                 SkinColorIndex = data.skinColorIndex,
                 OutfitColorIndex = data.outfitColorIndex
@@ -104,6 +105,7 @@ namespace _Scripts.CharacterCreation
                 SaveSlotManager.Instance.SaveSlot(new SaveSlotData
                 {
                     slotIndex = slot,
+                    characterId = GameInitData.HasCustomization ? GameInitData.Customization.CharacterId : "HumanMale_Character_FREE",
                     characterName = GameInitData.HasCustomization ? GameInitData.Customization.PlayerName : "New Character",
                     sceneName = gameplaySceneName,
                     skinColorIndex = GameInitData.HasCustomization ? GameInitData.Customization.SkinColorIndex : 0,
