@@ -15,6 +15,7 @@ namespace _Scripts.MainGame.UI
         [SerializeField] private Color criticalDamageColor = Color.yellow;
         [SerializeField] private Color pointsColor = Color.yellow;
         [SerializeField] private Color healingColor = Color.green;
+        [SerializeField] private Color itemPickupColor = Color.cyan;
 
         private void Awake()
         {
@@ -44,6 +45,12 @@ namespace _Scripts.MainGame.UI
         {
             if (amount <= 0) return;
             Spawn(position, "+" + amount.ToString(), healingColor);
+        }
+
+        public void SpawnItemPickup(Vector3 position, int amount, string itemName)
+        {
+            if (amount <= 0 || string.IsNullOrWhiteSpace(itemName)) return;
+            Spawn(position, $"+{amount} {itemName}", itemPickupColor);
         }
 
         private void Spawn(Vector3 position, string text, Color color, Sprite icon = null)

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4081942447714113124}
   - component: {fileID: 2009789788696277617}
   m_Layer: 0
-  m_Name: RoughAxe
+  m_Name: Stone_Axe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

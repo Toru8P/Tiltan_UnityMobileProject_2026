@@ -484,14 +484,20 @@ private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
 
         private void SpawnLoot(ItemData item, int quantity)
         {
-            GameObject prefab = _currentSettings.worldItemPrefab;
-            if (!prefab) return;
+            if (item == null || quantity <= 0 || InventoryManager.Instance == null) return;
 
-            GameObject lootObj = Instantiate(prefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
-            WorldItem worldItem = lootObj.GetComponent<WorldItem>();
-            if (worldItem)
+            int leftover = InventoryManager.Instance.AddItem(item, quantity);
+            int addedQuantity = quantity - leftover;
+
+            if (addedQuantity > 0 && IndicatorManager.Instance != null)
             {
-                worldItem.SpawnSetup(item, quantity);
+                string itemName = string.IsNullOrWhiteSpace(item.displayName) ? item.name : item.displayName;
+                IndicatorManager.Instance.SpawnItemPickup(transform.position, addedQuantity, itemName);
+            }
+
+            if (leftover > 0)
+            {
+                Debug.LogWarning($"Inventory full: {leftover}x {item.displayName} could not be added.", this);
             }
         }
 

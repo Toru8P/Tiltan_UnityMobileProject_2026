@@ -65,8 +65,13 @@ private int lastClickIndex = -1;
             if (useButton != null) useButton.onClick.AddListener(UseItem);
             if (dropOneButton != null) dropOneButton.onClick.AddListener(DropOne);
             if (dropAllButton != null) dropAllButton.onClick.AddListener(DropAll);
-            // Combine button is no longer needed with drag-and-drop merge
-            if (combineItemButton != null) combineItemButton.gameObject.SetActive(false);
+            if (combineItemButton != null)
+            {
+                combineItemButton.onClick.AddListener(MergeSelectedItem);
+                TextMeshProUGUI mergeLabel = combineItemButton.GetComponentInChildren<TextMeshProUGUI>(true);
+                if (mergeLabel != null) mergeLabel.text = "MERGE";
+                combineItemButton.gameObject.SetActive(false);
+            }
         }
 
         public void OnBeginDrag(int index, Sprite icon)
@@ -272,11 +277,19 @@ private int lastClickIndex = -1;
             if (slot.IsEmpty)
             {
                 detailsPanel.SetActive(false);
+                if (combineItemButton != null) combineItemButton.gameObject.SetActive(false);
                 return;
             }
 
             string action = slot.item.category == ItemCategory.Armor ? "EQUIP" : "USE";
             PopulateDetails(slot.item, $"Stack {slot.quantity}/{slot.item.maxStackSize}", action);
+
+            if (combineItemButton != null)
+            {
+                bool canMerge = CraftingManager.Instance != null &&
+                                CraftingManager.Instance.HasSameItemMergeRecipe(slot.item, slot.quantity);
+                combineItemButton.gameObject.SetActive(canMerge);
+            }
         }
 
         // Shows the piece currently worn in an armor slot. Called by ArmorSlotUI when its slot is
@@ -306,6 +319,7 @@ private int lastClickIndex = -1;
         private void PopulateDetails(ItemData item, string stackLabel, string actionLabel)
         {
             detailsPanel.SetActive(true);
+            if (combineItemButton != null) combineItemButton.gameObject.SetActive(false);
 
             if (itemNameText != null) itemNameText.text = item.displayName;
             if (itemCategoryText != null)
@@ -550,6 +564,19 @@ private int lastClickIndex = -1;
                     Debug.Log($"Consumed {slot.item.displayName}");
                     return;
                 }
+            }
+        }
+
+        public void MergeSelectedItem()
+        {
+            if (selectedIndex < 0 || CraftingManager.Instance == null) return;
+
+            if (CraftingManager.Instance.TryMergeSameItemStack(selectedIndex))
+            {
+                if (selectedIndex < InventoryManager.Instance.slots.Count)
+                    UpdateDetails(selectedIndex);
+                else if (combineItemButton != null)
+                    combineItemButton.gameObject.SetActive(false);
             }
         }
 

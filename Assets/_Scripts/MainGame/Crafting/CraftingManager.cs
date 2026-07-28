@@ -137,6 +137,83 @@ namespace _Scripts.MainGame.Crafting
             return a.itemId == b.itemId;
         }
 
+        /// <summary>
+        /// Returns whether the selected stack can satisfy a recipe made only from that same item.
+        /// </summary>
+        public bool HasSameItemMergeRecipe(ItemData item, int availableQuantity)
+        {
+            return FindSameItemMergeRecipe(item, availableQuantity) != null;
+        }
+
+        /// <summary>
+        /// Consumes the required quantity from one inventory stack and adds the recipe output.
+        /// </summary>
+        public bool TryMergeSameItemStack(int index)
+        {
+            if (InventoryManager.Instance == null || index < 0 || index >= InventoryManager.Instance.slots.Count)
+                return false;
+
+            InventorySlot slot = InventoryManager.Instance.slots[index];
+            if (slot.IsEmpty) return false;
+
+            CraftingRecipe recipe = FindSameItemMergeRecipe(slot.item, slot.quantity);
+            if (recipe == null) return false;
+
+            int requiredQuantity = 0;
+            foreach (RecipeIngredient ingredient in recipe.ingredients)
+                requiredQuantity += ingredient.quantity;
+
+            slot.quantity -= requiredQuantity;
+            if (slot.quantity <= 0) slot.Clear();
+
+            int leftover = InventoryManager.Instance.AddItem(recipe.outputItem, recipe.outputQuantity);
+            InventoryManager.Instance.NotifySlotChanged(index);
+            PlayCombinationSound(recipe.outputItem);
+
+            if (leftover > 0)
+                Debug.LogWarning($"Inventory full - {leftover}x {recipe.outputItem.displayName} could not be added.");
+
+            return true;
+        }
+
+        private CraftingRecipe FindSameItemMergeRecipe(ItemData item, int availableQuantity)
+        {
+            if (item == null || allRecipes == null) return null;
+
+            foreach (CraftingRecipe recipe in allRecipes)
+            {
+                if (recipe == null || recipe.ingredients == null || recipe.ingredients.Length == 0)
+                    continue;
+
+                string ingredientId = null;
+                int requiredQuantity = 0;
+                bool validSameItemRecipe = true;
+
+                foreach (RecipeIngredient ingredient in recipe.ingredients)
+                {
+                    if (ingredient.item == null || !IsSameItem(item, ingredient.item))
+                    {
+                        validSameItemRecipe = false;
+                        break;
+                    }
+
+                    ingredientId ??= ingredient.item.itemId;
+                    if (ingredient.item.itemId != ingredientId)
+                    {
+                        validSameItemRecipe = false;
+                        break;
+                    }
+
+                    requiredQuantity += ingredient.quantity;
+                }
+
+                if (validSameItemRecipe && requiredQuantity >= 2 && availableQuantity >= requiredQuantity)
+                    return recipe;
+            }
+
+            return null;
+        }
+
         public bool TryMergeSlots(int index1, int index2)
         {
             var slot1 = InventoryManager.Instance.slots[index1];
