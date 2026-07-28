@@ -10,6 +10,13 @@ namespace _Scripts.MainGame.Crafting
 
         [SerializeField] private CraftingRecipe[] allRecipes;
 
+
+        [Header("Combination Audio")]
+        [SerializeField] private AudioClip tier2CombinationSound;
+        [SerializeField] private AudioClip tier3CombinationSound;
+        [SerializeField] private AudioClip tier4CombinationSound;
+        [SerializeField] private AudioClip tier5CombinationSound;
+
         // Currently active workstation (null = inventory crafting)
         private string activeWorkstation = null;
 
@@ -205,7 +212,8 @@ namespace _Scripts.MainGame.Crafting
                 InventoryManager.Instance.NotifySlotChanged(index1);
                 InventoryManager.Instance.NotifySlotChanged(index2);
             
-                Debug.Log($"Merged items into {recipe.outputItem.displayName}");
+                PlayCombinationSound(recipe.outputItem);
+
                 return true;
             }
 
@@ -213,7 +221,33 @@ namespace _Scripts.MainGame.Crafting
             return false;
         }
 
-        // Returns true if player has all ingredients
+        private void PlayCombinationSound(ItemData outputItem)
+        {
+            if (outputItem == null || outputItem.tier < 2 || outputItem.tier > 5) return;
+            if (SingletonPoint.Instance == null || SingletonPoint.Instance.AudioManager == null)
+            {
+                Debug.LogWarning($"CraftingManager: Cannot play tier {outputItem.tier} combination sound because AudioManager is unavailable.");
+                return;
+            }
+
+            AudioClip sound = outputItem.tier switch
+            {
+                2 => tier2CombinationSound,
+                3 => tier3CombinationSound,
+                4 => tier4CombinationSound,
+                5 => tier5CombinationSound,
+                _ => null
+            };
+
+            if (sound == null)
+            {
+                Debug.LogWarning($"CraftingManager: No combination sound assigned for tier {outputItem.tier} output {outputItem.itemId}.");
+                return;
+            }
+
+            SingletonPoint.Instance.AudioManager.PlaySFX(sound);
+        }
+
         public bool CanCraft(CraftingRecipe recipe)
         {
             if (InventoryManager.Instance == null)
@@ -268,7 +302,8 @@ namespace _Scripts.MainGame.Crafting
             if (leftover > 0)
                 Debug.LogWarning($"Inventory full - {leftover}x {recipe.outputItem.displayName} dropped");
 
-            Debug.Log($"CraftingManager: Successfully crafted {recipe.recipeName}");
+            PlayCombinationSound(recipe.outputItem);
+
             return true;
         }
     }

@@ -13,7 +13,9 @@ namespace _Scripts.MainGame.Inventory
         [SerializeField] private AudioClip pickupSound;
         public List<InventorySlot> slots = new();
 
-        [Header("Save / Load")]
+        [Tooltip("ItemData assets outside Resources that must be resolvable when loading saves.")]
+        [SerializeField] private ItemData[] additionalItemData;
+
         [Tooltip("DEBUG ONLY: start with an empty inventory, ignoring (and overwriting) any existing save.")]
         [SerializeField] private bool createNewInventory = false;
 
@@ -63,6 +65,8 @@ namespace _Scripts.MainGame.Inventory
             SaveLoadManager save = SaveOrNull();
             if (!createNewInventory && save != null && save.HasSaveFile && save.Current.hasInventory)
                 Load(save.Current.inventory);
+            else
+                Debug.Log("[Inventory] No saved inventory found; preserving scene inventory.");
 
             // Auto-save on any slot change (all mutation paths funnel through OnSlotChanged).
             OnSlotChanged += _ => _dirty = true;
@@ -226,14 +230,15 @@ namespace _Scripts.MainGame.Inventory
         // Restores slots from saved data, resolving itemIds back to ItemData assets.
         public void Load(InventorySave data)
         {
-            if (data == null) return;
+            if (data == null || data.slots == null) return;
             EnsureItemRegistry();
 
-            for (int i = 0; i < slots.Count; i++)
-            {
-                InventorySlot slot = slots[i];
-                slot.Clear();
+            InventorySlot[] resolvedSlots = new InventorySlot[slots.Count];
+            int resolvedItemCount = 0;
 
+            for (int i = 0; i < resolvedSlots.Length; i++)
+            {
+                resolvedSlots[i] = new InventorySlot();
                 if (i >= data.slots.Count) continue;
 
                 InventorySlotSave saved = data.slots[i];
@@ -241,14 +246,35 @@ namespace _Scripts.MainGame.Inventory
 
                 if (_itemsById.TryGetValue(saved.itemId, out ItemData item) && item != null)
                 {
-                    slot.item = item;
-                    slot.quantity = saved.quantity;
+                    resolvedSlots[i].item = item;
+                    resolvedSlots[i].quantity = saved.quantity;
+                    resolvedItemCount++;
                 }
                 else
                 {
-                    Debug.LogWarning($"[Inventory] Saved item '{saved.itemId}' not found; slot {i} left empty.");
+                    Debug.LogWarning($"[Inventory] Saved item '{saved.itemId}' not found; slot {i} was not applied.");
                 }
+            }
 
+            if (resolvedItemCount == 0)
+            {
+                Debug.LogWarning("[Inventory] Saved inventory resolved to zero items; preserving the scene inventory instead of clearing it.");
+                return;
+            }
+
+            for (int i = 0; i < slots.Count; i++)
+            {
+                slots[i].item = resolvedSlots[i].item;
+                slots[i].quantity = resolvedSlots[i].quantity;
+                OnSlotChanged?.Invoke(i);
+            }
+        }
+
+        private void ClearInventorySlots()
+        {
+            for (int i = 0; i < slots.Count; i++)
+            {
+                slots[i].Clear();
                 OnSlotChanged?.Invoke(i);
             }
         }
@@ -259,12 +285,12 @@ namespace _Scripts.MainGame.Inventory
             if (_itemsById != null) return;
             _itemsById = new Dictionary<string, ItemData>();
 
-            foreach (ItemData item in Resources.LoadAll<ItemData>(string.Empty))
+            foreach (ItemData item in additionalItemData)
             {
                 if (item == null || string.IsNullOrEmpty(item.itemId)) continue;
                 if (!_itemsById.ContainsKey(item.itemId)) _itemsById[item.itemId] = item;
-                else Debug.LogWarning($"[Inventory] Duplicate itemId '{item.itemId}' on asset '{item.name}'; keeping first.");
             }
+
         }
 
         // Deletes the active slot's world save file. Debug helper.

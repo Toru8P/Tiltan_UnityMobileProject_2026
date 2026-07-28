@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5264a990960646d409eafd2ca4f964e6, type: 3}
+  m_Name: tier_3_sword
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipe
+  recipeName: tier_2_sword
+  icon: {fileID: 0}
+  ingredients:
+  - item: {fileID: 11400000, guid: 25c38c62adbb459429e423c37bdc8659, type: 2}
+    quantity: 2
+  outputItem: {fileID: 11400000, guid: 6a377430dad517c4eb372168305e9145, type: 2}
+  outputQuantity: 1
+  requiresWorkstation: 0
+  requiredWorkstation: 
