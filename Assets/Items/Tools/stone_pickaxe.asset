@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: stone_pickaxe
   displayName: Stone Pickaxe
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: f346af5fa925b6041aee5f14754be125, type: 3}
   category: 2
   armorSlot: 0
   armorModelPath: 
@@ -24,7 +24,7 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   healthRestore: 0
-  heldPrefab: {fileID: 0}
+  heldPrefab: {fileID: 6170791478243889133, guid: 3e7a1e5aa1f393548a94e42ac73ea257, type: 3}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
   projectilePrefab: {fileID: 0}

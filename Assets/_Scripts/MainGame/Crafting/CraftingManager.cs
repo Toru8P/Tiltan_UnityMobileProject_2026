@@ -49,6 +49,8 @@ namespace _Scripts.MainGame.Crafting
             var result = new List<CraftingRecipe>();
             foreach (var recipe in allRecipes)
             {
+                if (recipe == null) continue;
+
                 bool workstationMatch = !recipe.requiresWorkstation ||
                                         recipe.requiredWorkstation == activeWorkstation;
                 if (workstationMatch)
@@ -67,6 +69,9 @@ namespace _Scripts.MainGame.Crafting
 
             foreach (var recipe in allRecipes)
             {
+                // Skip empty slots left in the recipe list to avoid null dereferences.
+                if (recipe == null) continue;
+
                 // First check workstation requirement
                 bool workstationMatch = !recipe.requiresWorkstation || recipe.requiredWorkstation == activeWorkstation;
                 if (!workstationMatch) continue;

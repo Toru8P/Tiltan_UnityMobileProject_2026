@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: long_shaft
   displayName: Long Shaft
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 17fd38a90b126e8458ed3bd2b465b1fc, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 

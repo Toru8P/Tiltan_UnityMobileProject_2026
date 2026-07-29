@@ -19731,6 +19731,8 @@ MonoBehaviour:
   _sfxGroup: {fileID: -3191424505591224591, guid: 20c1d5e2f4a9c7140b7837b1cd8a45d3, type: 2}
   _bgmSource: {fileID: 2015978928}
   _sfxSource: {fileID: 1250422187}
+  _defaultBgm: {fileID: 8300000, guid: b9def6925c6bef44dbc9b4ec164bd60a, type: 3}
+  _defaultBgmVolume: 0.2
 --- !u!1 &1912645861
 GameObject:
   m_ObjectHideFlags: 0

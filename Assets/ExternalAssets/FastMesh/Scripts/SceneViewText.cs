@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 
@@ -54,5 +55,5 @@ namespace FastMesh_Example
         }
     }
 }
-
+#endif
 

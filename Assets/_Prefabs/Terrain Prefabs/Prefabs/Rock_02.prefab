@@ -127,7 +127,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3591ac09f1cbe6043857e877505aca48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Loot.WorldItem
-  itemData: {fileID: 11400000, guid: f890d2cdadab12343b1d479cc6f15c23, type: 2}
+  itemData: {fileID: 11400000, guid: 932f24e7848e2ff42b8c434d9b81ca7c, type: 2}
   quantity: 1
 --- !u!136 &-4256671418908990115
 CapsuleCollider:

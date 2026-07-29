@@ -15,7 +15,7 @@ MonoBehaviour:
   recipeName: Stone Chunk
   icon: {fileID: 0}
   ingredients:
-  - item: {fileID: 11400000, guid: cb87e492936ceb2469a16719db680b00, type: 2}
+  - item: {fileID: 11400000, guid: 932f24e7848e2ff42b8c434d9b81ca7c, type: 2}
     quantity: 2
   outputItem: {fileID: 11400000, guid: c7b3fec7f23c11f4ab987b80d1c9e795, type: 2}
   outputQuantity: 1
