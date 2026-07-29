@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: health_potion
   displayName: Health Potion
   description: Restores some health.
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 73943792bd53b5343be5337706849023, type: 3}
   category: 5
   armorSlot: 0
   armorModelPath: 

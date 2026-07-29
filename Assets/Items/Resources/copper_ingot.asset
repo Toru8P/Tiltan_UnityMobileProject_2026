@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: copper_ingot
   displayName: Copper Ingot
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 3a15ee981114f184dbbcee8a72b19b7b, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 

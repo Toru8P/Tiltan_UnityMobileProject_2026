@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: moon_ingot
   displayName: Moon Ingot
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 3c25d446e91e7614990c660158f0f99a, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 

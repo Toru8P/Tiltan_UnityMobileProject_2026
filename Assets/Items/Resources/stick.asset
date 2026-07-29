@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: stick
   displayName: Stick
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: ddfeb2caa02156645ac716c5bad2188b, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 

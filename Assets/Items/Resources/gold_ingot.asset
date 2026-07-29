@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: gold_ingot
   displayName: Gold Ingot
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 40992a9f6a89dbf45ab3aa9b1a5d3dc9, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 
