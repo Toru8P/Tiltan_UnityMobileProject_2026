@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: crushed_petals
   displayName: Crushed Petals
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: e2ca213e23f4ecb45aedc503fa080336, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 

@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: flower_essence
   displayName: Flower Essence
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 299f0af2b3245c74daa948c40007d912, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 

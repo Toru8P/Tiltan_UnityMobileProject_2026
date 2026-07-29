@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: stone_chunk
   displayName: Stone Chunk
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: dc5763c33f638f643a372cd265211695, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 
@@ -24,7 +24,7 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   healthRestore: 0
-  heldPrefab: {fileID: 0}
+  heldPrefab: {fileID: 1714651736809104625, guid: f58f2c604767fc74e85d52a668947212, type: 3}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
   projectilePrefab: {fileID: 0}

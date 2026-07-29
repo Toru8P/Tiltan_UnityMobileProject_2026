@@ -17,9 +17,18 @@ MonoBehaviour:
   description: Restores some health.
   icon: {fileID: 0}
   category: 5
+  armorSlot: 0
+  armorModelPath: 
+  armorColor: {r: 1, g: 1, b: 1, a: 1}
   maxStackSize: 100
   isConsumable: 1
   hungerRestore: 0
-  heldPrefab: {fileID: 0}
+  healthRestore: 0
+  heldPrefab: {fileID: 173500, guid: fb5a9652227c545d98a413cd73b80b69, type: 3}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
+  projectilePrefab: {fileID: 0}
+  toolType: 0
+  tier: 1
+  effectiveness: 1
+  statModifiers: []

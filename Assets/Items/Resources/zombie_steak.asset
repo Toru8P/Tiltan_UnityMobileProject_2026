@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: zombie_steak
   displayName: Zombie Steak
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 353945790cd96d446b05714f53bfbe57, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 
@@ -24,7 +24,7 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   healthRestore: 0
-  heldPrefab: {fileID: 0}
+  heldPrefab: {fileID: 227577062100369360, guid: 78aa69274795dd6458edadb8e3efe5c3, type: 3}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
   projectilePrefab: {fileID: 0}

@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: stone
   displayName: Stone
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 08bad63dd215b3d4eaf37587a3eeb5f7, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 
@@ -24,7 +24,7 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   healthRestore: 0
-  heldPrefab: {fileID: 0}
+  heldPrefab: {fileID: 6643786286258685243, guid: 2ae7895e035ed2845968497ffe90d2f0, type: 3}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
   projectilePrefab: {fileID: 0}

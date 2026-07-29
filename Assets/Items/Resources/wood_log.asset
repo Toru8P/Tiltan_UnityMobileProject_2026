@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: wood_log
   displayName: Wood Log
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 696e2b66bda6baa4a99a478e97e15488, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 
@@ -24,7 +24,7 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   healthRestore: 0
-  heldPrefab: {fileID: 0}
+  heldPrefab: {fileID: 1067067477924061449, guid: 83fd8f54f429a8b499c70dc6be351a61, type: 3}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
   projectilePrefab: {fileID: 0}

@@ -24,7 +24,7 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   healthRestore: 0
-  heldPrefab: {fileID: 3631743804569562876, guid: dd60299c4ee23d64db38d2cde51ff312, type: 3}
+  heldPrefab: {fileID: 0}
   holdPosition: {x: -0.096, y: -0.168, z: -0.112}
   holdRotation: {x: 21.726568, y: 5.282802, z: 195.60844}
   projectilePrefab: {fileID: 0}

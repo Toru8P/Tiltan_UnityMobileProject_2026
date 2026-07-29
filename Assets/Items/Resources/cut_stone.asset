@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: cut_stone
   displayName: Cut Stone
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 1e3822c9f11f1bc4c9d34578999cb3ec, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 
@@ -24,7 +24,7 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   healthRestore: 0
-  heldPrefab: {fileID: 0}
+  heldPrefab: {fileID: 1075028168993801027, guid: c161c3b433c705e48b444c709ed2aae3, type: 3}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
   projectilePrefab: {fileID: 0}

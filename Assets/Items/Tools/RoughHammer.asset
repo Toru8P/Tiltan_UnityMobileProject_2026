@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: RoughHammer
   displayName: Rough Hammer
   description: A simple hammer. Can be used to increase damage
-  icon: {fileID: 21300000, guid: 0d63ea012df00f140aca253680017540, type: 3}
+  icon: {fileID: 21300000, guid: 1217ba6b7ef231a4aaeccc1a5cf10456, type: 3}
   category: 3
   armorSlot: 0
   armorModelPath: 
@@ -24,7 +24,7 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   healthRestore: 0
-  heldPrefab: {fileID: 310574568959611158, guid: 768daac6d87237d4ea61587a16ef41b7, type: 3}
+  heldPrefab: {fileID: 602622052190468803, guid: cace3be87f734094f9d915a196eb877b, type: 3}
   holdPosition: {x: -0.11, y: -0.09, z: -0.094}
   holdRotation: {x: 357.26056, y: 167.09903, z: 2.251998}
   projectilePrefab: {fileID: 0}

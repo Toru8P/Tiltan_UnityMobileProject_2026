@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: corrupted_claw
   displayName: Corrupted Claw
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 33d8c00053fcc464ba29eaa153120410, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 

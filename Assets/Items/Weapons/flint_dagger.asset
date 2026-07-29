@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: flint_dagger
   displayName: Flint Dagger
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 716980b1bbc2a8a4fa82817695a84cb8, type: 3}
   category: 3
   armorSlot: 0
   armorModelPath: 
@@ -24,7 +24,7 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   healthRestore: 0
-  heldPrefab: {fileID: 0}
+  heldPrefab: {fileID: 110658, guid: a4cd3d5e9967248a69e6203d2ce67874, type: 3}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
   projectilePrefab: {fileID: 0}

@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: heavy_head
   displayName: Heavy Head
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 2b91e9c2a4bc673448d669752975429e, type: 3}
   category: 0
   armorSlot: 0
   armorModelPath: 
