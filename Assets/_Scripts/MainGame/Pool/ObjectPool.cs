@@ -3,24 +3,61 @@ using UnityEngine;
 
 namespace _Scripts.MainGame.Pool
 {
-    [CreateAssetMenu(fileName = "NewObjectPool", menuName = "Pooling/Object Pool")]
-    public class ObjectPool : ScriptableObject
+    /// <summary>
+    /// Scene-lifetime object pool singleton. Because it lives in the scene (rather than as a
+    /// persistent ScriptableObject asset), it is destroyed and recreated with every scene load,
+    /// so pooled instances can never linger as stale references across a save/load reload.
+    /// </summary>
+    public class ObjectPool : MonoBehaviour
     {
-        private Dictionary<GameObject, Queue<GameObject>> _pools = new();
-        private Dictionary<GameObject, HashSet<GameObject>> _inPoolCheck = new();
-        private Dictionary<GameObject, GameObject> _instanceToPrefab = new();
+        public static ObjectPool Instance { get; private set; }
 
+        private readonly Dictionary<GameObject, Queue<GameObject>> _pools = new();
+        private readonly Dictionary<GameObject, HashSet<GameObject>> _inPoolCheck = new();
+        private readonly Dictionary<GameObject, GameObject> _instanceToPrefab = new();
+
+        private void Awake()
+        {
+            if (Instance && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
+
+        /// <summary>Retrieves an active instance of the given prefab from the pool, creating one if needed.</summary>
         public GameObject Get(GameObject prefab)
         {
             EnsurePoolExists(prefab);
 
-            GameObject instance;
-            if (_pools[prefab].Count > 0)
+            GameObject instance = null;
+
+            // Discard any dead (destroyed) queued instances instead of handing back a destroyed
+            // object and throwing MissingReferenceException.
+            while (_pools[prefab].Count > 0)
             {
-                instance = _pools[prefab].Dequeue();
-                _inPoolCheck[prefab].Remove(instance);
+                GameObject candidate = _pools[prefab].Dequeue();
+                _inPoolCheck[prefab].Remove(candidate);
+                if (candidate != null)
+                {
+                    instance = candidate;
+                    break;
+                }
+
+                _instanceToPrefab.Remove(candidate);
             }
-            else
+
+            if (instance == null)
             {
                 instance = Instantiate(prefab);
                 _instanceToPrefab[instance] = prefab;
@@ -30,6 +67,7 @@ namespace _Scripts.MainGame.Pool
             return instance;
         }
 
+        /// <summary>Retrieves an active instance positioned and rotated as specified.</summary>
         public GameObject Get(GameObject prefab, Vector3 position, Quaternion rotation)
         {
             GameObject instance = Get(prefab);
@@ -37,6 +75,7 @@ namespace _Scripts.MainGame.Pool
             return instance;
         }
 
+        /// <summary>Pre-instantiates a number of inactive instances of the given prefab into the pool.</summary>
         public void PreWarm(GameObject prefab, int count)
         {
             EnsurePoolExists(prefab);
@@ -51,6 +90,7 @@ namespace _Scripts.MainGame.Pool
             }
         }
 
+        /// <summary>Returns an instance to the pool, deactivating it for later reuse.</summary>
         public void Return(GameObject instance)
         {
             if (!instance) return;

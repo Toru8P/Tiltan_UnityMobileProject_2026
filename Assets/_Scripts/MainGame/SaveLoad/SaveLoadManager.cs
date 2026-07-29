@@ -1,6 +1,7 @@
 using System.IO;
 using _Scripts.CharacterCreation;
 using _Scripts.MainGame.Difficulty;
+using _Scripts.MainGame.Inventory;
 using _Scripts.MainGame.Player;
 using UnityEngine;
 
@@ -123,6 +124,15 @@ namespace _Scripts.MainGame.SaveLoad
             _current.player.rotationY = stats.transform.eulerAngles.y;
             stats.WriteSaveData(_current.player);
 
+            // Snapshot the live inventory into the save right alongside the player, so an explicit
+            // save always persists the current contents even if no slot changed this frame.
+            InventoryManager inventory = InventoryManager.Instance;
+            if (inventory != null)
+            {
+                _current.inventory = inventory.BuildSaveData();
+                _current.hasInventory = true;
+            }
+
             GeneralDifficultyManager difficulty = FindFirstObjectByType<GeneralDifficultyManager>();
             if (difficulty != null) _current.playtimeSeconds = difficulty.ElapsedTime;
         }
@@ -147,6 +157,14 @@ namespace _Scripts.MainGame.SaveLoad
                     stats.transform.SetPositionAndRotation(_current.player.position, Quaternion.Euler(0f, _current.player.rotationY, 0f));
                     stats.ReadSaveData(_current.player);
                 }
+            }
+
+            // Restore the inventory here too, not just in InventoryManager.Awake: the manager is a
+            // DontDestroyOnLoad singleton, so on a continue within the same session its Awake load does
+            // not run again — this guarantees the persisted manager reloads from the active slot.
+            if (_current.hasInventory && InventoryManager.Instance != null)
+            {
+                InventoryManager.Instance.Load(_current.inventory);
             }
 
             GeneralDifficultyManager difficulty = FindFirstObjectByType<GeneralDifficultyManager>();

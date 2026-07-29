@@ -20,7 +20,9 @@ namespace _Scripts.MainGame.Enemies
     {
         [Header("References")]
         [SerializeField] private Transform playerTransform;
-        [SerializeField] private ObjectPool enemyPool;
+
+        // Resolves to the scene's singleton pool, which is recreated on every scene load.
+        private ObjectPool enemyPool => ObjectPool.Instance;
 
         [Header("Spawn Settings")]
         [SerializeField] private float spawnDistance = 25f;

@@ -258,10 +258,27 @@ namespace _Scripts.MainGame.Terrain
         // so the ground under them is active. Does not save.
         public void ActivateAroundWorld(Vector3 worldPos)
         {
+            if (TryGetChunkCoords(worldPos, out int row, out int col))
+            {
+                UpdateChunksAround(row, col);
+            }
+        }
+
+        // Converts a world-space position into the (row, col) of the chunk whose footprint contains it.
+        // Chunks are CENTERED at transform.position + (col*width, 0, row*height) and span width x height,
+        // so the containing cell is found by shifting the local position half a chunk and flooring —
+        // a plain RoundToInt misclassifies points sitting on a chunk border. This is the exact inverse
+        // of the placement done in GenerateOrGetChunkAt.
+        private bool TryGetChunkCoords(Vector3 worldPos, out int row, out int col)
+        {
+            row = 0;
+            col = 0;
+            if (width <= 0 || height <= 0) return false;
+
             Vector3 local = worldPos - transform.position;
-            int col = Mathf.RoundToInt(local.x / Mathf.Max(1, width));
-            int row = Mathf.RoundToInt(local.z / Mathf.Max(1, height));
-            UpdateChunksAround(row, col);
+            col = Mathf.FloorToInt((local.x + width * 0.5f) / width);
+            row = Mathf.FloorToInt((local.z + height * 0.5f) / height);
+            return true;
         }
 
         private void FillNewChunk(Chunk chunk, SeededRandom rng)
@@ -447,8 +464,20 @@ namespace _Scripts.MainGame.Terrain
                 GenerateOrGetChunkAt(chunkData.row, chunkData.col);
             }
 
-            // ...then activate the ring around the origin.
-            ActivateInitialChunks();
+            // ...then activate the ring around the player's saved position (not the origin), so the
+            // ground is streamed in exactly where the restored player will land instead of leaving
+            // them over inactive chunks and falling through. Falls back to the origin ring if no
+            // player position was persisted.
+            SaveLoadManager save = SaveOrNull();
+            if (save != null && save.Current.hasPlayer)
+            {
+                ActivateAroundWorld(save.Current.player.position);
+            }
+            else
+            {
+                ActivateInitialChunks();
+            }
+
             SaveToFile();
         }
 

@@ -24,6 +24,12 @@ namespace _Scripts.MainGame.Player
                 PlayerStatsController stats = GetComponent<PlayerStatsController>();
                 if (stats != null) stats.ReadSaveData(p);
 
+                // Terrain (execution order -100) has already generated/loaded the world, but only the
+                // chunks around the origin are active. Stream the chunks around the saved position too,
+                // so the ground is active beneath the restored player instead of the player falling
+                // through an inactive chunk. Uses the saved position directly, so it works regardless of
+                // when SaveLoadManager restores the transform.
+                if (_terrain != null) _terrain.ActivateAroundWorld(p.position);
             }
 
             // Stage position on every chunk crossing; Terrain persists the whole save right after.

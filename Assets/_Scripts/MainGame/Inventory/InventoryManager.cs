@@ -279,18 +279,29 @@ namespace _Scripts.MainGame.Inventory
             }
         }
 
-        // Builds the itemId -> ItemData lookup from all ItemData assets under Resources (once).
+        // Builds the itemId -> ItemData lookup from every ItemData asset under a Resources folder,
+        // plus any extra assets wired via additionalItemData (for items kept outside Resources). Built once.
         private void EnsureItemRegistry()
         {
             if (_itemsById != null) return;
             _itemsById = new Dictionary<string, ItemData>();
 
-            foreach (ItemData item in additionalItemData)
+            // Load every ItemData placed under any Resources folder so gathered items resolve automatically.
+            foreach (ItemData item in Resources.LoadAll<ItemData>(string.Empty))
             {
                 if (item == null || string.IsNullOrEmpty(item.itemId)) continue;
                 if (!_itemsById.ContainsKey(item.itemId)) _itemsById[item.itemId] = item;
             }
 
+            // Include explicitly-wired assets that live outside Resources (e.g. armor, food props).
+            if (additionalItemData != null)
+            {
+                foreach (ItemData item in additionalItemData)
+                {
+                    if (item == null || string.IsNullOrEmpty(item.itemId)) continue;
+                    if (!_itemsById.ContainsKey(item.itemId)) _itemsById[item.itemId] = item;
+                }
+            }
         }
 
         // Deletes the active slot's world save file. Debug helper.

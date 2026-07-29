@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23e136d029d29eb4d9f07fd029f13ff9, type: 3}
+  m_Name: DailyRewards
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.DailyReward.DailyRewardDefinition
+  rewards:
+  - item: {fileID: 11400000, guid: 0656d56e04fa26e44b4efb2afa9db37b, type: 2}
+    quantity: 10
+  - item: {fileID: 11400000, guid: b2f095601d2285d4baa9246240bfcad5, type: 2}
+    quantity: 2
+  - item: {fileID: 11400000, guid: 571c0fac9e10c754ca84699ea44d1913, type: 2}
+    quantity: 1

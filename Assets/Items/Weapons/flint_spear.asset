@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.MainGame.Inventory.ItemData
   itemId: flint_spear
   displayName: Flint Spear
-  description: 
-  icon: {fileID: 0}
+  description: An extremly sharp spear.
+  icon: {fileID: 21300000, guid: 4324b884ed915e74b9ae806a43addc51, type: 3}
   category: 3
   armorSlot: 0
   armorModelPath: 
@@ -24,7 +24,7 @@ MonoBehaviour:
   isConsumable: 0
   hungerRestore: 0
   healthRestore: 0
-  heldPrefab: {fileID: 0}
+  heldPrefab: {fileID: 761511652599934085, guid: cfdc8e6d2ffd5ed418c4b185b84299a4, type: 3}
   holdPosition: {x: 0, y: 0, z: 0}
   holdRotation: {x: 0, y: 0, z: 0}
   projectilePrefab: {fileID: 0}
